@@ -1,0 +1,21 @@
+overload:
+  enabled: true
+  package: yandextank.plugins.DataUploader
+phantom:
+  address: zpk-developer.dots.proitr.ru
+  uris : [
+  "/accounts/filter/?fname_null=0&limit=6&sex_eq=f&query_id=0",
+  "/accounts/filter/?fname_null=0&limit=6&sex_eq=m&query_id=1"
+  ]
+  instances: 10000
+  headers:
+      - "[Connection: Keep-Alive]"
+      - "[Host: localhost]"
+  load_profile:
+    load_type: rps
+    schedule: line(1, 100, 30s)
+console:
+  enabled: true
+telegraf:
+    enabled: false
+
