@@ -385,15 +385,21 @@ public class Service {
                             throw new RuntimeException();
                         }
                         if (account.getLikes() != null) {
-                            if (predicate.equals(CONTAINS_PR)) {
-                                String[] splitedValue = getValue(param).split(",");
-                                if (splitedValue.length <= account.getLikes().size()) {
-                                    enableProp.add(LIKES);
-                                    for (String value : splitedValue) {
-                                        if (!account.getLikes().stream().map(Like::getId).collect(Collectors.toList()).contains(Integer.parseInt(value))) {
-                                            enableProp.remove(enableProp.size()-1);
-                                            break;
-                                        }
+                           /* String[] splitedValue = getValue(param).split(",");
+                                for (String value: splitedValue) {
+                                    if (account.getLikes().stream().map(Like::getId).collect(Collectors.toList()).contains(Integer.parseInt(value))) {
+                                        enableProp.add(LIKES);
+                                        break;
+                                    }
+                                }*/
+                            String[] splitedValue = getValue(param).split(",");
+                            if (splitedValue.length <= account.getLikes().size()) {
+                                enableProp.add(LIKES);
+                                List<Integer> likesArr = account.getLikes().stream().map(Like::getId).collect(Collectors.toList());
+                                for (String value : splitedValue) {
+                                    if (!likesArr.contains(Integer.parseInt(value))) {
+                                        enableProp.remove(enableProp.size()-1);
+                                        break;
                                     }
                                 }
                             }

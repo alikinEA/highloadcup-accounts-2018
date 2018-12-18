@@ -1,8 +1,9 @@
 overload:
   enabled: true
   package: yandextank.plugins.DataUploader
+  token_file: "token.txt"
 phantom:
-  address: zpk-developer.dots.proitr.ru
+  address: 10.242.7.77:8099
   uris : [
   "/accounts/filter/?fname_null=0&limit=6&sex_eq=f&query_id=0",
   "/accounts/filter/?fname_null=0&limit=6&sex_eq=m&query_id=1"
@@ -13,7 +14,7 @@ phantom:
       - "[Host: localhost]"
   load_profile:
     load_type: rps
-    schedule: line(1, 100, 30s)
+    schedule: line(1, 150, 30s)
 console:
   enabled: true
 telegraf:

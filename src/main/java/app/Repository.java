@@ -23,8 +23,14 @@ public class Repository {
 
 
     public static volatile long currentTimeStamp = 0l;
-    //private static final String dataPath = "/tmp/data/";
-    private static final String dataPath = "/mnt/data/";
+    private static final String dataPath = "/tmp/data/";
+    //private static final String dataPath = "/mnt/data/";
+    private static String getPath(String fileName) {
+        //return dataPath + fileName;
+        return fileName;
+    }
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
 
    //public static final DB db = DBMaker.fileDB(dataPath + "/testMapDB.db").make();
@@ -47,14 +53,13 @@ public class Repository {
                             }
                         }
                         if (fileHeader.getFileName().contains("accounts")) {
-                            String newFilePath = dataPath + fileHeader.getFileName();
+                            String newFilePath = getPath(fileHeader.getFileName());
                             fileNames.add(newFilePath);
                             System.out.println("fileName = " + newFilePath);
 
-                            ObjectMapper mapper = new ObjectMapper();
                             Path path = Paths.get(newFilePath);
                             try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))){
-                                for (Account account : new ObjectMapper()
+                                for (Account account : mapper
                                         .readValue(zipFile.getInputStream(fileHeader), Accounts.class)
                                         .getAccounts()) {
                                     writer.write(mapper.writeValueAsString(account));
@@ -63,6 +68,7 @@ public class Repository {
                             }catch(IOException ex){
                                 ex.printStackTrace();
                             }
+                            System.gc();//¯\_(ツ)_/¯
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -76,6 +82,5 @@ public class Repository {
         }
 
     }
-
 
 }
