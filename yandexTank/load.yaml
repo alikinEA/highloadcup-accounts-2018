@@ -14,7 +14,7 @@ phantom:
       - "[Host: localhost]"
   load_profile:
     load_type: rps
-    schedule: line(1, 150, 30s)
+    schedule: line(5, 200, 60s)
 console:
   enabled: true
 telegraf:

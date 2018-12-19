@@ -23,6 +23,7 @@ public class Repository {
 
 
     public static volatile long currentTimeStamp = 0l;
+    public static volatile long currentTimeStamp2 = 0l;
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
     private static String getPath(String fileName) {
@@ -40,18 +41,27 @@ public class Repository {
     public static void initData() {
         ///data = db.indexTreeList("myList", Serializer.STRING).createOrOpen();
         try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(dataPath + "options.txt")))){
+                String timestamp = reader.lines().findFirst().get();
+                currentTimeStamp = new Long(timestamp + "000");
+                currentTimeStamp2 = new Long(timestamp);
+                System.out.println("external timestamp = " + currentTimeStamp);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             ZipFile zipFile = new ZipFile(dataPath + "data.zip");
             zipFile.getFileHeaders().stream().forEach(item -> {
                 if (item != null) {
                     try {
                         FileHeader fileHeader = (FileHeader)item;
-                        if (fileHeader.getFileName().contains("options")) {
+                        /*if (fileHeader.getFileName().contains("options")) {
                             try (BufferedReader reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(fileHeader)))){
                                 String timestamp = reader.lines().findFirst().get();
                                 currentTimeStamp = new Long(timestamp + "000");
+                                currentTimeStamp2 = new Long(timestamp);
                                 System.out.println("timestamp = " + currentTimeStamp);
                             }
-                        }
+                        }*/
                         if (fileHeader.getFileName().contains("accounts")) {
                             String newFilePath = getPath(fileHeader.getFileName());
                             fileNames.add(newFilePath);
@@ -59,12 +69,15 @@ public class Repository {
 
                             Path path = Paths.get(newFilePath);
                             try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))){
-                                for (Account account : mapper
+                                List<Account> accounts = mapper
                                         .readValue(zipFile.getInputStream(fileHeader), Accounts.class)
-                                        .getAccounts()) {
+                                        .getAccounts();
+                                accounts.sort(Comparator.comparingInt(Account::getId).reversed());
+                                for (Account account : accounts) {
                                     writer.write(mapper.writeValueAsString(account));
                                     writer.newLine();
                                 }
+                                accounts = null;
                             }catch(IOException ex){
                                 ex.printStackTrace();
                             }
