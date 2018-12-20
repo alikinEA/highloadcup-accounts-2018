@@ -25,9 +25,7 @@ import java.util.stream.Collectors;
 public class Service {
 
     private static final byte[] EMPTY = "{}".getBytes();
-    private static final Result NOT_FOUND_RESULT = new Result(EMPTY,HttpResponseStatus.NOT_FOUND);
-    private static final Result BAD_REQUEST_RESULT = new Result(EMPTY,HttpResponseStatus.BAD_REQUEST);
-    private static final Result OK_EMTY = new Result(EMPTY,HttpResponseStatus.OK);
+    private static final Result OK_ACCEPTED = new Result(EMPTY,HttpResponseStatus.ACCEPTED);
 
     private static final String SEX = "sex";
     private static final String EMAIL = "email";
@@ -68,7 +66,7 @@ public class Service {
         if (req.uri().startsWith(URI_FILTER)) {
             return handleFilter(req);
         } else {
-            return OK_EMTY;
+            return OK_ACCEPTED;
         }
     }
 
@@ -374,8 +372,8 @@ public class Service {
                                     /*if (Repository.currentTimeStamp < new Date(Long.parseLong(account.getPremium().getFinish() + "000")).getTime()) {
                                         enableProp.add(PREMIUM);
                                     }*/
-                                    if (Repository.currentTimeStamp < account.getPremium().getFinish()
-                                            && Repository.currentTimeStamp > account.getPremium().getStart()) {
+                                    if (Repository.currentTimeStamp2 < account.getPremium().getFinish()
+                                            && Repository.currentTimeStamp2 > account.getPremium().getStart()) {
                                         enableProp.add(PREMIUM);
                                     }
                                 }
@@ -421,12 +419,12 @@ public class Service {
                         if (!enableProp.contains(BIRTH)) {
                             account.setBirth(null);
                         }
-                        if (!enableProp.contains(INTERESTS)) {
+                        //if (!enableProp.contains(INTERESTS)) {
                             account.setInterests(null);
-                        }
-                        if (!enableProp.contains(LIKES)) {
+                        //}
+                        //if (!enableProp.contains(LIKES)) {
                             account.setLikes(null);
-                        }
+                        //}
                         if (!enableProp.contains(PREMIUM)) {
                             account.setPremium(null);
                         }

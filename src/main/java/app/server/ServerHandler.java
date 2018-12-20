@@ -42,12 +42,16 @@ public class ServerHandler  extends SimpleChannelInboundHandler<FullHttpRequest>
         try {
             Result result = Service.handle(request);
             ByteBuf bytesC = copiedBuffer(result.getContent());
-            DefaultFullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK,bytesC);
+            DefaultFullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, result.getStatus(),bytesC);
             response.headers().setInt(CONTENT_LENGTH, bytesC.readableBytes());
             response.headers().set(CONTENT_TYPE, CONTENT_TYPE_VALUE);
             response.headers().set(SERVER, SERVER_VALUE);
             ctx.writeAndFlush(response);
         } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+            } else {
+                e.printStackTrace();
+            }
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST);
             response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes());
             response.headers().set(CONTENT_TYPE, CONTENT_TYPE_VALUE);

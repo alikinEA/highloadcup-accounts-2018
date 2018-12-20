@@ -22,8 +22,9 @@ public class Repository {
 
 
 
-    public static volatile long currentTimeStamp = 0l;
-    public static volatile long currentTimeStamp2 = 0l;
+    static volatile long currentTimeStamp = 0l;
+    static volatile long currentTimeStamp2 = 0l;
+    static volatile boolean isRait = false;
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
     private static String getPath(String fileName) {
@@ -42,9 +43,22 @@ public class Repository {
         ///data = db.indexTreeList("myList", Serializer.STRING).createOrOpen();
         try {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(dataPath + "options.txt")))){
-                String timestamp = reader.lines().findFirst().get();
+                String timestamp = reader.readLine();
                 currentTimeStamp = new Long(timestamp + "000");
                 currentTimeStamp2 = new Long(timestamp);
+                String flag = reader.readLine();
+                if (Integer.parseInt(flag) == 1) {
+                    isRait = true;
+                }
+                if (isRait) {
+                    for (int i = 1; i < 51; i++) {
+                        fileNames.add("accounts_" + i + ".json");
+                    }
+                } else {
+                    fileNames.add("accounts_1.json");
+                }
+                System.out.println("fileName count = " + fileNames.size());
+                System.out.println("isRait = " + isRait);
                 System.out.println("external timestamp = " + currentTimeStamp);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -64,9 +78,6 @@ public class Repository {
                         }*/
                         if (fileHeader.getFileName().contains("accounts")) {
                             String newFilePath = getPath(fileHeader.getFileName());
-                            fileNames.add(newFilePath);
-                            System.out.println("fileName = " + newFilePath);
-
                             Path path = Paths.get(newFilePath);
                             try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))){
                                 List<Account> accounts = mapper
@@ -81,7 +92,6 @@ public class Repository {
                             }catch(IOException ex){
                                 ex.printStackTrace();
                             }
-                            System.gc();//¯\_(ツ)_/¯
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
