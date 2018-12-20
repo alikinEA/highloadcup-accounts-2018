@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by Alikin E.A. on 13.12.18.
@@ -36,8 +37,9 @@ public class Repository {
     public static final List<String> fileNames = new ArrayList<>();
 
     public static final Object PRESENT = new Object();
-    public static final ConcurrentHashMap ids = new ConcurrentHashMap();
-    public static final ConcurrentHashMap emails = new ConcurrentHashMap();
+    public static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
+    public static final CopyOnWriteArrayList<Account> list = new CopyOnWriteArrayList<>();
 
     public static void initData() {
         ///data = db.indexTreeList("myList", Serializer.STRING).createOrOpen();
@@ -77,23 +79,30 @@ public class Repository {
                             }
                         }*/
                         if (fileHeader.getFileName().contains("accounts")) {
-                            String newFilePath = getPath(fileHeader.getFileName());
-                            Path path = Paths.get(newFilePath);
-                            try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))){
+                            //String newFilePath = getPath(fileHeader.getFileName());
+                            //Path path = Paths.get(newFilePath);
+                            //try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))){
                                 List<Account> accounts = mapper
                                         .readValue(zipFile.getInputStream(fileHeader), Accounts.class)
                                         .getAccounts();
-                                accounts.sort(Comparator.comparingInt(Account::getId).reversed());
+                                if (fileHeader.getFileName().equals("accounts_50.json") || fileHeader.getFileName().equals("accounts_1.json")) {
+                                    accounts.sort(Comparator.comparingInt(Account::getId).reversed());
+                                }
                                 for (Account account : accounts) {
-                                    writer.write(mapper.writeValueAsString(account));
-                                    ids.put(String.valueOf(account.getId()),PRESENT);
                                     emails.put(account.getEmail(),PRESENT);
-                                    writer.newLine();
+                                    ids.put(String.valueOf(account.getId()), PRESENT);
+                                    //writer.write(mapper.writeValueAsString(account));
+                                    if (isRait && fileHeader.getFileName().equals("accounts_50.json")) {
+                                        list.add(account);
+                                    } else if (!isRait && fileHeader.getFileName().equals("accounts_1.json")) {
+                                        list.add(account);
+                                    }
+                                    //writer.newLine();
                                 }
                                 accounts = null;
-                            }catch(IOException ex){
+                            /*}catch(IOException ex){
                                 ex.printStackTrace();
-                            }
+                            }*/
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

@@ -6,17 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 
 /**
  * Created by Alikin E.A. on 15.12.18.
@@ -68,14 +63,14 @@ public class Service {
     private static final String URI_FILTER = "/accounts/filter/?";
     private static final String URI_NEW = "/accounts/new";
     private static final String URI_LIKES = "/accounts/likes";
-    private static final String URI_GROUP = "/accounts/group";
+    private static final String URI_GROUP = "/accounts/group/?";
     private static final String URI_SUGGEST = "/suggest";
     private static final String URI_RECOMENDED = "/recommend";
     private static final String ACCOUNTS =  "/accounts/";
 
     public static Result handle(FullHttpRequest req) {
         if (req.uri().startsWith(URI_FILTER)) {
-            return handleFilter(req);
+            return handleFilterv2(req);
         } else if (req.uri().startsWith(URI_NEW)) {
             return handleNew(req);
         } else if (req.uri().startsWith(URI_LIKES)) {
@@ -138,7 +133,26 @@ public class Service {
     }
 
     private static Result handleGroup(FullHttpRequest req) {
-        return BAD_REQUEST;
+        String[] params = req.uri().replace(URI_GROUP,"").split("&");
+        for (String param : params) {
+            if (param.startsWith("keys")) {
+                String value = getValue(param);
+                if (!SEX.equals(value)
+                        && !STATUS.equals(value)
+                        && !INTERESTS.equals(value)
+                        && !COUNTRY.equals(value)
+                        && !CITY.equals(value)) {
+                    return BAD_REQUEST;
+                }
+            }
+            if (param.startsWith("order")) {
+                String value = getValue(param);
+                if (!"1".equals(value) && !"-1".equals(value)) {
+                    return BAD_REQUEST;
+                }
+            }
+        }
+        return NOT_FOUND;
     }
 
     private static Result handleLikes(FullHttpRequest req) {
@@ -200,6 +214,469 @@ public class Service {
             return BAD_REQUEST;
         }
         return CREATED;
+    }
+
+
+    private static boolean validate(String param) {
+        String predicate = getPredicate(param);
+        if (param.startsWith(SEX)) {
+            if (!predicate.equals(EQ_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(EMAIL)) {
+            if (!predicate.equals(DOMAIN_PR)
+                    && !predicate.equals(LT_PR)
+                    && !predicate.equals(GT_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(STATUS)) {
+            if (!predicate.equals(EQ_PR)
+                    && !predicate.equals(NEQ_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(FNAME)) {
+            if (!predicate.equals(EQ_PR)
+                    && !predicate.equals(ANY_PR)
+                    && !predicate.equals(NULL_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(SNAME)) {
+            if (!predicate.equals(EQ_PR)
+                    && !predicate.equals(STARTS_PR)
+                    && !predicate.equals(NULL_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(PHONE)) {
+            if (!predicate.equals(NULL_PR)
+                    && !predicate.equals(CODE_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(COUNTRY)) {
+            if (!predicate.equals(NULL_PR)
+                    && !predicate.equals(EQ_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(CITY)) {
+            if (!predicate.equals(EQ_PR)
+                    && !predicate.equals(ANY_PR)
+                    && !predicate.equals(NULL_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(BIRTH)) {
+            if (!predicate.equals(YEAR_PR)
+                    && !predicate.equals(LT_PR)
+                    && !predicate.equals(GT_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(INTERESTS)) {
+            if (!predicate.equals(CONTAINS_PR)
+                    && !predicate.equals(ANY_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(LIKES)) {
+            if (!predicate.equals(CONTAINS_PR)) {
+                return false;
+            }
+        }
+        if (param.startsWith(PREMIUM)) {
+            if (!predicate.equals(NULL_PR)
+                    && !predicate.equals(NOW_PR)) {
+                return false;
+            }
+        }
+        return true;
+
+    }
+
+    private static boolean compareArrays(String[] params, List<String> enableProp) {
+        if (params.length != enableProp.size()) {
+            return false;
+        }
+        for (String prop : enableProp) {
+            boolean isValid = false;
+            for (String param : params) {
+                if (param.contains(prop)) {
+                    return true;
+                }
+            }
+            if (!isValid) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String getValue(String param) {
+        try {
+            return URLDecoder.decode(param.substring(param.indexOf("=") + 1), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException();
+        }
+    }
+
+    private static String getPredicate(String param) {
+        return param.substring(param.indexOf("_") + 1,param.indexOf("="));
+    }
+
+    private static Result handleFilterv2(FullHttpRequest req) {
+        String[] params = req.uri().replace(URI_FILTER,"").split("&");
+        int i = 0;
+        int limit = 0;
+        for (String param : params) {
+            if (param.startsWith(LIMIT)) {
+                limit = Integer.parseInt(getValue(param));
+            }
+        }
+
+        for (String param : params) {
+            if (!validate(param)) {
+                return BAD_REQUEST;
+            }
+        }
+        List<String> enableProp = new ArrayList<>();
+        List<Account> accounts = new ArrayList<>(limit);
+
+        for (Account account : Repository.list) {
+            if (i == limit) {
+                break;
+            }
+            for (String param : params) {
+                //SEX ============================================
+                if (param.startsWith(SEX)) {
+                    if (account.getSex().equals(getValue(param))) {
+                        enableProp.add(SEX);
+                    }
+                }
+                //SEX ============================================
+
+                //EMAIL ============================================
+                if (param.startsWith(EMAIL)) {
+                    String predicate = getPredicate(param);
+                    if (predicate.equals(DOMAIN_PR)) {
+                        if (account.getEmail().contains(getValue(param))) {
+                            enableProp.add(EMAIL);
+                        }
+                    } else if (predicate.equals(LT_PR)) {
+                        if (account.getEmail().compareTo(getValue(param)) < 0) {
+                            enableProp.add(EMAIL);
+                        }
+                    } else if (predicate.equals(GT_PR)) {
+                        if (account.getEmail().compareTo(getValue(param)) > 0) {
+                            enableProp.add(EMAIL);
+                        }
+                    }
+                }
+                //EMAIL ============================================
+
+                //STATUS ============================================
+                if (param.startsWith(STATUS)) {
+                    String predicate = getPredicate(param);
+                    if (predicate.equals(EQ_PR)) {
+                        if (account.getStatus().equals(getValue(param))) {
+                            enableProp.add(STATUS);
+                        }
+                    } else if (predicate.equals(NEQ_PR)) {
+                        if (!account.getStatus().equals(getValue(param))) {
+                            enableProp.add(STATUS);
+                        }
+                    }
+                }
+                //STATUS ============================================
+
+                //FNAME ============================================
+                if (param.startsWith(FNAME)) {
+                    String predicate = getPredicate(param);
+
+                    if (predicate.equals(EQ_PR)) {
+                        if (getValue(param).equals(account.getFname())) {
+                            enableProp.add(FNAME);
+                        }
+                    } else if (predicate.equals(ANY_PR)) {
+                        String[] splitedValue = getValue(param).split(",");
+                        for (String value: splitedValue) {
+                            if (value.equals(account.getFname())) {
+                                enableProp.add(FNAME);
+                                break;
+                            }
+                        }
+                    } else if (predicate.equals(NULL_PR)) {
+                        String value = getValue(param);
+                        if (value.equals(NULL_PR_VAL_ONE)) {
+                            if (account.getFname() == null) {
+                                enableProp.add(FNAME);
+                            }
+                        } else {
+                            if (account.getFname() != null) {
+                                enableProp.add(FNAME);
+                            }
+                        }
+                    }
+                }
+                //FNAME ============================================
+
+
+                //SNAME ============================================
+                if (param.startsWith(SNAME)) {
+                    String predicate = getPredicate(param);
+
+                    if (predicate.equals(EQ_PR)) {
+                        if (getValue(param).equals(account.getSname())) {
+                            enableProp.add(SNAME);
+                        }
+                    } else if (predicate.equals(NULL_PR)) {
+                        String value = getValue(param);
+                        if (value.equals(NULL_PR_VAL_ONE)) {
+                            if (account.getSname() == null) {
+                                enableProp.add(SNAME);
+                            }
+                        } else {
+                            if (account.getSname() != null) {
+                                enableProp.add(SNAME);
+                            }
+                        }
+                    } else if (predicate.equals(STARTS_PR)) {
+                        if (account.getSname() != null)
+                            if (account.getSname().startsWith(getValue(param))) {
+                                enableProp.add(SNAME);
+                            }
+                    }
+                }
+                //SNAME ============================================
+
+
+                //PHONE ============================================
+                if (param.startsWith(PHONE)) {
+                    String predicate = getPredicate(param);
+
+                    if (predicate.equals(CODE_PR)) {
+                        if (account.getPhone() != null) {
+                            if (account.getPhone()
+                                    .substring(account.getPhone().indexOf("(") + 1
+                                            , account.getPhone().indexOf(")"))
+                                    .equals(getValue(param))) {
+                                enableProp.add(PHONE);
+                            }
+                        }
+                    } else if (predicate.equals(NULL_PR)) {
+                        String value = getValue(param);
+                        if (value.equals(NULL_PR_VAL_ONE)) {
+                            if (account.getPhone() == null) {
+                                enableProp.add(PHONE);
+                            }
+                        } else {
+                            if (account.getPhone() != null) {
+                                enableProp.add(PHONE);
+                            }
+                        }
+                    }
+                }
+                //PHONE ============================================
+
+                //COUNTRY ============================================
+                if (param.startsWith(COUNTRY)) {
+                    String predicate = getPredicate(param);
+
+                    if (predicate.equals(EQ_PR)) {
+                        if (getValue(param).equals(account.getCountry())) {
+                            enableProp.add(COUNTRY);
+                        }
+                    } else if (predicate.equals(NULL_PR)) {
+                        String value = getValue(param);
+                        if (value.equals(NULL_PR_VAL_ONE)) {
+                            if (account.getCountry() == null) {
+                                enableProp.add(COUNTRY);
+                            }
+                        } else {
+                            if (account.getCountry() != null) {
+                                enableProp.add(COUNTRY);
+                            }
+                        }
+                    }
+                }
+                //COUNTRY ============================================
+
+                //CITY ============================================
+                if (param.startsWith(CITY)) {
+                    String predicate = getPredicate(param);
+
+                    if (predicate.equals(EQ_PR)) {
+                        if (getValue(param).equals(account.getCity())) {
+                            enableProp.add(CITY);
+                        }
+                    } else if (predicate.equals(ANY_PR)) {
+                        String[] splitedValue = getValue(param).split(",");
+                        for (String value: splitedValue) {
+                            if (value.equals(account.getCity())) {
+                                enableProp.add(CITY);
+                                break;
+                            }
+                        }
+                    } else if (predicate.equals(NULL_PR)) {
+                        String value = getValue(param);
+                        if (value.equals(NULL_PR_VAL_ONE)) {
+                            if (account.getCity() == null) {
+                                enableProp.add(CITY);
+                            }
+                        } else {
+                            if (account.getCity() != null) {
+                                enableProp.add(CITY);
+                            }
+                        }
+                    }
+                }
+                //CITY ============================================
+
+                //BIRTH ============================================
+                if (param.startsWith(BIRTH)) {
+                    String predicate = getPredicate(param);
+                    if (predicate.equals(YEAR_PR)) {
+                        Date date = new Date(Long.parseLong(account.getBirth() + "000"));
+                        Calendar calendar = new GregorianCalendar();
+                        calendar.setTime(date);
+                        if (Integer.parseInt(getValue(param)) == calendar.get(Calendar.YEAR)) {
+                            enableProp.add(BIRTH);
+                        }
+                    } else if (predicate.equals(LT_PR)) {
+                        if (account.getBirth().compareTo(Integer.parseInt(getValue(param))) < 0) {
+                            enableProp.add(BIRTH);
+                        }
+                    } else if (predicate.equals(GT_PR)) {
+                        if (account.getBirth().compareTo(Integer.parseInt(getValue(param))) > 0) {
+                            enableProp.add(BIRTH);
+                        }
+                    }
+                }
+                //BIRTH ============================================
+
+
+                //INTERESTS ============================================
+                if (param.startsWith(INTERESTS)) {
+                    String predicate = getPredicate(param);
+                    if (account.getInterests() != null) {
+                        if (predicate.equals(ANY_PR)) {
+                            String[] splitedValue = getValue(param).split(",");
+                            for (String value : splitedValue) {
+                                if (account.getInterests().contains(value)) {
+                                    enableProp.add(INTERESTS);
+                                    break;
+                                }
+                            }
+                        } else if (predicate.equals(CONTAINS_PR)) {
+                            String[] splitedValue = getValue(param).split(",");
+                            if (splitedValue.length <= account.getInterests().size()) {
+                                enableProp.add(INTERESTS);
+                                for (String value : splitedValue) {
+                                    if (!account.getInterests().contains(value)) {
+                                        enableProp.remove(enableProp.size()-1);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+                //INTERESTS ============================================
+
+
+
+                //LIKES ============================================
+                if (param.startsWith(LIKES)) {
+                    if (account.getLikes() != null) {
+                        String[] splitedValue = getValue(param).split(",");
+                        if (splitedValue.length <= account.getLikes().size()) {
+                            enableProp.add(LIKES);
+                            List<Integer> likesArr = account.getLikes().stream().map(Like::getId).collect(Collectors.toList());
+                            for (String value : splitedValue) {
+                                if (!likesArr.contains(Integer.parseInt(value))) {
+                                    enableProp.remove(enableProp.size()-1);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                //LIKES ============================================
+
+
+                //PREMIUM ============================================
+                if (param.startsWith(PREMIUM)) {
+                    String predicate = getPredicate(param);
+                    if (predicate.equals(NOW_PR)) {
+                        if (account.getPremium() != null) {
+                            if (Repository.currentTimeStamp2 < account.getPremium().getFinish()
+                                    && Repository.currentTimeStamp2 > account.getPremium().getStart()) {
+                                enableProp.add(PREMIUM);
+                            }
+                        }
+                    } else if (predicate.equals(NULL_PR)) {
+                        String value = getValue(param);
+                        if (value.equals(NULL_PR_VAL_ONE)) {
+                            if (account.getPremium() == null) {
+                                enableProp.add(PREMIUM);
+                            }
+                        } else {
+                            if (account.getPremium() != null) {
+                                enableProp.add(PREMIUM);
+                            }
+                        }
+                    }
+                }
+                //PREMIUM ============================================
+            }
+            enableProp.add(QUERY_ID);
+            enableProp.add(LIMIT);
+            if (compareArrays(params,enableProp)) {
+                Account result = new Account();
+                result.setId(account.getId());
+                result.setEmail(account.getEmail());
+                if (enableProp.contains(SEX)) {
+                    result.setSex(account.getSex());
+                }
+                if (enableProp.contains(STATUS)) {
+                    result.setStatus(account.getStatus());
+                }
+                if (enableProp.contains(FNAME)) {
+                    result.setFname(account.getFname());
+                }
+                if (enableProp.contains(SNAME)) {
+                    result.setSname(account.getSname());
+                }
+                if (enableProp.contains(PHONE)) {
+                    result.setPhone(account.getPhone());
+                }
+                if (enableProp.contains(COUNTRY)) {
+                    result.setCountry(account.getCountry());
+                }
+                if (enableProp.contains(CITY)) {
+                    result.setCity(account.getCity());
+                }
+                if (enableProp.contains(BIRTH)) {
+                    result.setBirth(account.getBirth());
+                }
+                if (enableProp.contains(PREMIUM)) {
+                    result.setPremium(account.getPremium());
+                }
+                accounts.add(result);
+                i++;
+            }
+            enableProp.clear();
+        }
+        try {
+            return new Result(mapper.writeValueAsBytes(new Accounts(accounts)),HttpResponseStatus.OK);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException();
+        }
     }
 
     private static Result handleFilter(FullHttpRequest req) {
@@ -564,110 +1041,5 @@ public class Service {
         return OK_EMPTY_ACCOUNTS;
     }
 
-    private static boolean validate(String param) {
-        String predicate = getPredicate(param);
-        if (param.startsWith(SEX)) {
-            if (!predicate.equals(EQ_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(EMAIL)) {
-            if (!predicate.equals(DOMAIN_PR)
-                    && !predicate.equals(LT_PR)
-                    && !predicate.equals(GT_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(STATUS)) {
-            if (!predicate.equals(EQ_PR)
-                    && !predicate.equals(NEQ_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(FNAME)) {
-            if (!predicate.equals(EQ_PR)
-                    && !predicate.equals(ANY_PR)
-                    && !predicate.equals(NULL_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(SNAME)) {
-            if (!predicate.equals(EQ_PR)
-                    && !predicate.equals(STARTS_PR)
-                    && !predicate.equals(NULL_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(PHONE)) {
-            if (!predicate.equals(NULL_PR)
-                    && !predicate.equals(CODE_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(COUNTRY)) {
-            if (!predicate.equals(NULL_PR)
-                    && !predicate.equals(EQ_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(CITY)) {
-            if (!predicate.equals(EQ_PR)
-                    && !predicate.equals(ANY_PR)
-                    && !predicate.equals(NULL_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(BIRTH)) {
-            if (!predicate.equals(YEAR_PR)
-                    && !predicate.equals(LT_PR)
-                    && !predicate.equals(GT_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(INTERESTS)) {
-            if (!predicate.equals(CONTAINS_PR)
-                    && !predicate.equals(ANY_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(LIKES)) {
-            if (!predicate.equals(CONTAINS_PR)) {
-                return false;
-            }
-        }
-        if (param.startsWith(PREMIUM)) {
-            if (!predicate.equals(NULL_PR)
-                    && !predicate.equals(NOW_PR)) {
-                return false;
-            }
-        }
-        return true;
 
-    }
-
-    private static boolean compareArrays(String[] params, List<String> enableProp) {
-        if (params.length != enableProp.size()) {
-            return false;
-        }
-        for (String prop : enableProp) {
-            boolean isValid = false;
-            for (String param : params) {
-                if (param.contains(prop)) {
-                    return true;
-                }
-            }
-            if (!isValid) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static String getValue(String param) throws UnsupportedEncodingException {
-        return URLDecoder.decode(param.substring(param.indexOf("=") + 1), "UTF-8");
-    }
-
-    private static String getPredicate(String param) {
-        return param.substring(param.indexOf("_") + 1,param.indexOf("="));
-    }
 }
