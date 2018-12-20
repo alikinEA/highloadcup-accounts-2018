@@ -1,9 +1,6 @@
 package app;
 
-import app.models.Account;
-import app.models.Accounts;
-import app.models.Like;
-import app.models.Result;
+import app.models.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -19,13 +16,21 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
+
 /**
  * Created by Alikin E.A. on 15.12.18.
  */
 public class Service {
 
     private static final byte[] EMPTY = "{}".getBytes();
-    private static final Result OK_ACCEPTED = new Result(EMPTY,HttpResponseStatus.ACCEPTED);
+    private static final byte[] EMPTY_ACCOUNTS = "{\"accounts\":[]}".getBytes();
+    private static final Result OK_EMPTY_ACCOUNTS = new Result(EMPTY_ACCOUNTS,HttpResponseStatus.OK);
+    private static final Result ACCEPTED = new Result(EMPTY,HttpResponseStatus.ACCEPTED);
+    private static final Result CREATED = new Result(EMPTY,HttpResponseStatus.CREATED);
+    private static final Result BAD_REQUEST = new Result(EMPTY,HttpResponseStatus.BAD_REQUEST);
+    private static final Result NOT_FOUND = new Result(EMPTY,HttpResponseStatus.NOT_FOUND);
+
 
     private static final String SEX = "sex";
     private static final String EMAIL = "email";
@@ -61,30 +66,158 @@ public class Service {
 
 
     private static final String URI_FILTER = "/accounts/filter/?";
+    private static final String URI_NEW = "/accounts/new";
+    private static final String URI_LIKES = "/accounts/likes";
+    private static final String URI_GROUP = "/accounts/group";
+    private static final String URI_SUGGEST = "/suggest";
+    private static final String URI_RECOMENDED = "/recommend";
+    private static final String ACCOUNTS =  "/accounts/";
 
-    public static Result handle(FullHttpRequest req) throws IOException {
+    public static Result handle(FullHttpRequest req) {
         if (req.uri().startsWith(URI_FILTER)) {
             return handleFilter(req);
+        } else if (req.uri().startsWith(URI_NEW)) {
+            return handleNew(req);
+        } else if (req.uri().startsWith(URI_LIKES)) {
+            return handleLikes(req);
+        } else if (req.uri().startsWith(URI_GROUP)) {
+            return handleGroup(req);
+        } else if (req.uri().contains(URI_SUGGEST)) {
+            return handleSuggest(req);
+        } else if (req.uri().contains(URI_RECOMENDED)) {
+            return handleRecomended(req);
         } else {
-            return OK_ACCEPTED;
+            return handleUpdate(req);
         }
     }
 
-    private static Result handleFilter(FullHttpRequest req) throws IOException {
-        String uri = req.uri();
-        String[] params = uri.replace(URI_FILTER,"").split("&");
-        int i = 0;
+    private static Result handleUpdate(FullHttpRequest req) {
+        String curId = req.uri().substring(req.uri().indexOf(ACCOUNTS) + 10,req.uri().lastIndexOf("/?"));
+        if (Repository.ids.containsKey(curId)) {
+            try {
+                Account account = mapper.readValue(req.content().toString(StandardCharsets.UTF_8),Account.class);
+                if (account.getSex() != null) {
+                    if (!account.getSex().equals("f")
+                            && !account.getSex().equals("m")) {
+                        return BAD_REQUEST;
+                    }
+                }
+                if (account.getStatus() != null) {
+                    if (!account.getStatus().equals("свободны")
+                            && !account.getStatus().equals("всё сложно")
+                            && !account.getStatus().equals("заняты")) {
+                        return BAD_REQUEST;
+                    }
+                }
+                if (account.getEmail() != null) {
+                    if (!account.getEmail().contains("@")) {
+                        return BAD_REQUEST;
+                    }
+                    if (Repository.emails.containsKey(account.getEmail())) {
+                        return BAD_REQUEST;
+                    } else {
+                        Repository.emails.put(account.getEmail(),Repository.PRESENT);
+                        return ACCEPTED;
+                    }
+                }
+            } catch (IOException e) {
+                return BAD_REQUEST;
+            }
+        } else {
+            return NOT_FOUND;
+        }
+        return ACCEPTED;
+    }
+
+    private static Result handleRecomended(FullHttpRequest req) {
+        return NOT_FOUND;
+    }
+
+    private static Result handleSuggest(FullHttpRequest req) {
+        return NOT_FOUND;
+    }
+
+    private static Result handleGroup(FullHttpRequest req) {
+        return BAD_REQUEST;
+    }
+
+    private static Result handleLikes(FullHttpRequest req) {
+        try {
+            LikesRequest likesReq = mapper.readValue(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
+            for (LikeRequest like : likesReq.getLikes()) {
+                if (like.getLiker() == null || !Repository.ids.containsKey(like.getLiker().toString())) {
+                    return BAD_REQUEST;
+                }
+                if (like.getLikee() == null || !Repository.ids.containsKey(like.getLikee().toString())) {
+                    return BAD_REQUEST;
+                }
+            }
+        } catch (IOException e) {
+            return BAD_REQUEST;
+        }
+        return ACCEPTED;
+    }
+
+    private static Result handleNew(FullHttpRequest req) {
+        try {
+            Account account = mapper.readValue(req.content().toString(StandardCharsets.UTF_8),Account.class);
+            if (account.getId() == null) {
+                return BAD_REQUEST;
+            }
+            if (Repository.ids.containsKey(account.getId().toString())) {
+                return BAD_REQUEST;
+            }
+            if (account.getSex() != null) {
+                if (!account.getSex().equals("f")
+                        && !account.getSex().equals("m")) {
+                    return BAD_REQUEST;
+                }
+            } else {
+                return BAD_REQUEST;
+            }
+            if (account.getStatus() != null) {
+                if (!account.getStatus().equals("свободны")
+                        && !account.getStatus().equals("всё сложно")
+                        && !account.getStatus().equals("заняты")) {
+                    return BAD_REQUEST;
+                }
+            } else {
+                return BAD_REQUEST;
+            }
+            if (account.getEmail() != null) {
+                if (!account.getEmail().contains("@")) {
+                    return BAD_REQUEST;
+                }
+                if (Repository.emails.containsKey(account.getEmail())) {
+                    return BAD_REQUEST;
+                } else {
+                    Repository.emails.put(account.getEmail(),Repository.PRESENT);
+                    Repository.ids.put(account.getId().toString(),Repository.PRESENT);
+                    return CREATED;
+                }
+            }
+        } catch (IOException e) {
+            return BAD_REQUEST;
+        }
+        return CREATED;
+    }
+
+    private static Result handleFilter(FullHttpRequest req) {
+        String[] params = req.uri().replace(URI_FILTER,"").split("&");
+        /*int i = 0;
         int limit = 0;
         for (String param : params) {
             if (param.startsWith(LIMIT)) {
                 limit = Integer.parseInt(getValue(param));
             }
-        }
+        }*/
 
         for (String param : params) {
-            validate(param);
+            if (!validate(param)) {
+                return BAD_REQUEST;
+            }
         }
-        List<String> enableProp = new ArrayList<>();
+        /*List<String> enableProp = new ArrayList<>();
         List<Account> accounts = new ArrayList<>(limit);
 
         for (int i1 = Repository.fileNames.size() - 1; i1 >= 0; i1--) {
@@ -341,13 +474,6 @@ public class Service {
                         //LIKES ============================================
                         if (param.startsWith(LIKES)) {
                             if (account.getLikes() != null) {
-                           /* String[] splitedValue = getValue(param).split(",");
-                                for (String value: splitedValue) {
-                                    if (account.getLikes().stream().map(Like::getId).collect(Collectors.toList()).contains(Integer.parseInt(value))) {
-                                        enableProp.add(LIKES);
-                                        break;
-                                    }
-                                }*/
                                 String[] splitedValue = getValue(param).split(",");
                                 if (splitedValue.length <= account.getLikes().size()) {
                                     enableProp.add(LIKES);
@@ -369,9 +495,6 @@ public class Service {
                             String predicate = getPredicate(param);
                             if (predicate.equals(NOW_PR)) {
                                 if (account.getPremium() != null) {
-                                    /*if (Repository.currentTimeStamp < new Date(Long.parseLong(account.getPremium().getFinish() + "000")).getTime()) {
-                                        enableProp.add(PREMIUM);
-                                    }*/
                                     if (Repository.currentTimeStamp2 < account.getPremium().getFinish()
                                             && Repository.currentTimeStamp2 > account.getPremium().getStart()) {
                                         enableProp.add(PREMIUM);
@@ -437,85 +560,88 @@ public class Service {
             }
         }
         return new Result(mapper.writeValueAsBytes(new Accounts(accounts)),HttpResponseStatus.OK);
+        */
+        return OK_EMPTY_ACCOUNTS;
     }
 
-    private static void validate(String param) {
+    private static boolean validate(String param) {
         String predicate = getPredicate(param);
         if (param.startsWith(SEX)) {
             if (!predicate.equals(EQ_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(EMAIL)) {
             if (!predicate.equals(DOMAIN_PR)
                     && !predicate.equals(LT_PR)
                     && !predicate.equals(GT_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(STATUS)) {
             if (!predicate.equals(EQ_PR)
                     && !predicate.equals(NEQ_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(FNAME)) {
             if (!predicate.equals(EQ_PR)
                     && !predicate.equals(ANY_PR)
                     && !predicate.equals(NULL_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(SNAME)) {
             if (!predicate.equals(EQ_PR)
                     && !predicate.equals(STARTS_PR)
                     && !predicate.equals(NULL_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(PHONE)) {
             if (!predicate.equals(NULL_PR)
                     && !predicate.equals(CODE_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(COUNTRY)) {
             if (!predicate.equals(NULL_PR)
                     && !predicate.equals(EQ_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(CITY)) {
             if (!predicate.equals(EQ_PR)
                     && !predicate.equals(ANY_PR)
                     && !predicate.equals(NULL_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(BIRTH)) {
             if (!predicate.equals(YEAR_PR)
                     && !predicate.equals(LT_PR)
                     && !predicate.equals(GT_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(INTERESTS)) {
             if (!predicate.equals(CONTAINS_PR)
                     && !predicate.equals(ANY_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(LIKES)) {
             if (!predicate.equals(CONTAINS_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
         if (param.startsWith(PREMIUM)) {
             if (!predicate.equals(NULL_PR)
                     && !predicate.equals(NOW_PR)) {
-                throw new RuntimeException();
+                return false;
             }
         }
+        return true;
 
     }
 

@@ -11,16 +11,13 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Alikin E.A. on 13.12.18.
  */
 public class Repository {
-
-
 
     static volatile long currentTimeStamp = 0l;
     static volatile long currentTimeStamp2 = 0l;
@@ -36,8 +33,11 @@ public class Repository {
 
 
    //public static final DB db = DBMaker.fileDB(dataPath + "/testMapDB.db").make();
-    public static volatile List<String> fileNames = new ArrayList<>();
+    public static final List<String> fileNames = new ArrayList<>();
 
+    public static final Object PRESENT = new Object();
+    public static final ConcurrentHashMap ids = new ConcurrentHashMap();
+    public static final ConcurrentHashMap emails = new ConcurrentHashMap();
 
     public static void initData() {
         ///data = db.indexTreeList("myList", Serializer.STRING).createOrOpen();
@@ -86,6 +86,8 @@ public class Repository {
                                 accounts.sort(Comparator.comparingInt(Account::getId).reversed());
                                 for (Account account : accounts) {
                                     writer.write(mapper.writeValueAsString(account));
+                                    ids.put(String.valueOf(account.getId()),PRESENT);
+                                    emails.put(account.getEmail(),PRESENT);
                                     writer.newLine();
                                 }
                                 accounts = null;

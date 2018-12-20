@@ -17,7 +17,7 @@ import java.util.List;
 public class Account {
 
     private String email;
-    private int id;
+    private Integer id;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String sex;
