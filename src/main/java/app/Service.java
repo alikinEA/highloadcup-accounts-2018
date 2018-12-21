@@ -1,6 +1,7 @@
 package app;
 
 import app.models.*;
+import app.server.Server;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -339,8 +340,8 @@ public class Service {
             }
         }
 
-        Map<String,String> valueCache = new HashMap<>();
-        Map<String,String> predicateCache = new HashMap<>();
+        Map<String,String> valueCache = new HashMap<>(10);
+        Map<String,String> predicateCache = new HashMap<>(10);
         for (String param : params) {
             if (!validate(param,predicateCache)) {
                 return BAD_REQUEST;
