@@ -43,7 +43,7 @@ public class Server {
     public void run() throws Exception {
 
         EpollEventLoopGroup bossGroup = new EpollEventLoopGroup(1);
-        EpollEventLoopGroup workerGroup = new EpollEventLoopGroup(8);
+        EpollEventLoopGroup workerGroup = new EpollEventLoopGroup(4);
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)

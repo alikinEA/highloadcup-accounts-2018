@@ -36,8 +36,8 @@ public class Repository {
 
     private static final List<String> availableNames =
             Arrays.asList("accounts_50.json"
-                    ,"accounts_49.json"
-                    /*,"accounts_48.json"
+                    /*,"accounts_49.json"
+                    ,"accounts_48.json"
                     ,"accounts_47.json"
                     ,"accounts_46.json"
                     ,"accounts_45.json"
@@ -51,7 +51,7 @@ public class Repository {
     static final Object PRESENT = new Object();
     static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
     static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
-    static final ArrayList<Account> list = new ArrayList<>(20_010);
+    static final CopyOnWriteArrayList<Account> list = new CopyOnWriteArrayList<>();
 
 
     public static void initData() {
