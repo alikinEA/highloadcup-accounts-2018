@@ -19,10 +19,24 @@ public class Server {
 
     }
 
+    public static void  printCurrentMemoryUsage() {
+        Runtime runtime = Runtime.getRuntime();
+        long memory = runtime.totalMemory() - runtime.freeMemory();
+        System.out.println("Used memory is bytes: " + memory);
+        System.out.println("Used memory is mb: " + bytesToMegabytes(memory));
+
+    }
+
+    private static final long MEGABYTE = 1024L * 1024L;
+
+    public static long bytesToMegabytes(long bytes) {
+        return bytes / MEGABYTE;
+    }
+
     public static void main(String[] args) throws Exception {
+        printCurrentMemoryUsage();
         Repository.initData();
-        //version 6
-        System.out.println("free memory size =" + Runtime.getRuntime().freeMemory());
+        printCurrentMemoryUsage();
         new Server().run();
     }
 

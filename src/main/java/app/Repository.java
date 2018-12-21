@@ -6,12 +6,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
 
-import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -25,18 +26,32 @@ public class Repository {
     static volatile boolean isRait = false;
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
-    private static String getPath(String fileName) {
+    /*private static String getPath(String fileName) {
         //return dataPath + fileName;
         return fileName;
-    }
+    }*/
 
     private static final ObjectMapper mapper = new ObjectMapper();
     public static final List<String> fileNames = new ArrayList<>();
 
+    private static final List<String> availableNames =
+            Arrays.asList("accounts_50.json"
+                    ,"accounts_49.json"
+                    /*,"accounts_48.json"
+                    ,"accounts_47.json"
+                    ,"accounts_46.json"
+                    ,"accounts_45.json"
+                    ,"accounts_44.json"
+                    ,"accounts_43.json"
+                    ,"accounts_42.json"
+                    ,"accounts_41.json"
+                    ,"accounts_40.json"*/
+                    );
+
     static final Object PRESENT = new Object();
     static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
     static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
-    static final CopyOnWriteArrayList<Account> list = new CopyOnWriteArrayList<>();
+    static final ArrayList<Account> list = new ArrayList<>(20_010);
 
 
     public static void initData() {
@@ -82,14 +97,14 @@ public class Repository {
                                 List<Account> accounts = mapper
                                         .readValue(zipFile.getInputStream(fileHeader), Accounts.class)
                                         .getAccounts();
-                                if (fileHeader.getFileName().equals("accounts_50.json") || fileHeader.getFileName().equals("accounts_1.json")) {
+                                if (availableNames.contains(fileHeader.getFileName()) || fileHeader.getFileName().equals("accounts_1.json")) {
                                     accounts.sort(Comparator.comparingInt(Account::getId).reversed());
                                 }
                                 for (Account account : accounts) {
                                     emails.put(account.getEmail(),PRESENT);
                                     ids.put(String.valueOf(account.getId()), PRESENT);
                                     //writer.write(mapper.writeValueAsString(account));
-                                    if (isRait && fileHeader.getFileName().equals("accounts_50.json")) {
+                                    if (isRait && availableNames.contains(fileHeader.getFileName())) {
                                         list.add(account);
                                     } else if (!isRait && fileHeader.getFileName().equals("accounts_1.json")) {
                                         list.add(account);
@@ -106,6 +121,9 @@ public class Repository {
                     }
                 }
             });
+            System.out.println("list ids = " + ids.size());
+            System.out.println("list emails = " + emails.size());
+            System.out.println("list size = " + list.size());
             System.out.println("End unzip");
             System.gc();//¯\_(ツ)_/¯
         } catch (Exception e) {

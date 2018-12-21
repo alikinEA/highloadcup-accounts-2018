@@ -14,3 +14,6 @@ docker run -v /root/yandexTank/:/var/loadtest -v $SSH_AUTH_SOCK:/ssh-agent -e SS
 
 
 
+
+https://highloadcup.ru/en/solution/42254/#result шинонда 2 сета даты
+https://highloadcup.ru/en/solution/42257/#result рейт
