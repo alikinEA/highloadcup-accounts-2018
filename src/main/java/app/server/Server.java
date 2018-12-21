@@ -21,7 +21,7 @@ public class Server {
 
     public static void main(String[] args) throws Exception {
         Repository.initData();
-        //version 5
+        //version 6
         System.out.println("free memory size =" + Runtime.getRuntime().freeMemory());
         new Server().run();
     }

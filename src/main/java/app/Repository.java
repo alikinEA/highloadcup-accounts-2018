@@ -31,18 +31,15 @@ public class Repository {
     }
 
     private static final ObjectMapper mapper = new ObjectMapper();
-
-
-   //public static final DB db = DBMaker.fileDB(dataPath + "/testMapDB.db").make();
     public static final List<String> fileNames = new ArrayList<>();
 
-    public static final Object PRESENT = new Object();
-    public static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
-    public static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
-    public static final CopyOnWriteArrayList<Account> list = new CopyOnWriteArrayList<>();
+    static final Object PRESENT = new Object();
+    static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
+    static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
+    static final CopyOnWriteArrayList<Account> list = new CopyOnWriteArrayList<>();
+
 
     public static void initData() {
-        ///data = db.indexTreeList("myList", Serializer.STRING).createOrOpen();
         try {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(dataPath + "options.txt")))){
                 String timestamp = reader.readLine();
