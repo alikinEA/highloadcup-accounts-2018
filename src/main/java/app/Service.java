@@ -134,8 +134,9 @@ public class Service {
     }
 
     private static Result handleGroup(FullHttpRequest req) {
-        String[] params = req.uri().replace(URI_GROUP,"").split("&");
-        for (String param : params) {
+        StringTokenizer t = new StringTokenizer(req.uri().replace(URI_GROUP,""),",");
+        while(t.hasMoreTokens()) {
+            String param = t.nextToken();
             if (param.startsWith("keys")) {
                 String value = getValue(param);
                 if (!SEX.equals(value)
@@ -300,8 +301,8 @@ public class Service {
 
     }
 
-    private static boolean compareArrays(String[] params, List<String> enableProp) {
-        if (params.length != enableProp.size()) {
+    private static boolean compareArrays(List<String> params, List<String> enableProp) {
+        if (params.size() != enableProp.size()) {
             return false;
         }
         for (String prop : enableProp) {
@@ -331,7 +332,7 @@ public class Service {
     }
 
     private static Result handleFilterv2(FullHttpRequest req) {
-        String[] params = req.uri().replace(URI_FILTER,"").split("&");
+        List<String> params = getTokens(req.uri().replace(URI_FILTER,""),"&");
         int i = 0;
         int limit = 0;
         for (String param : params) {
@@ -585,9 +586,9 @@ public class Service {
                             break;
                         }
                     } else if (predicate.equals(ANY_PR)) {
-                        String[] splitedValue = valueCache.get(param).split(",");
-                        for (String value: splitedValue) {
-                            if (value.equals(account.getCity())) {
+                        StringTokenizer t = new StringTokenizer(valueCache.get(param),",");
+                        while(t.hasMoreTokens()) {
+                            if (t.nextToken().equals(account.getCity())) {
                                 enableProp.add(CITY);
                                 break;
                             }
@@ -623,12 +624,10 @@ public class Service {
                             break;
                         }
                     } else if (predicate.equals(ANY_PR)) {
-                        String[] splitedValue = valueCache.get(param).split(",");
-                        for (String value: splitedValue) {
-                            if (value.equals(account.getFname())) {
+                        StringTokenizer t = new StringTokenizer(valueCache.get(param),",");
+                        while(t.hasMoreTokens()) {
+                            if (t.nextToken().equals(account.getFname())) {
                                 enableProp.add(FNAME);
-                                break;
-                            } else {
                                 break;
                             }
                         }
@@ -656,16 +655,16 @@ public class Service {
                     String predicate = predicateCache.get(param);
                     if (account.getInterests() != null) {
                         if (predicate.equals(ANY_PR)) {
-                            String[] splitedValue = valueCache.get(param).split(",");
-                            for (String value : splitedValue) {
-                                if (account.getInterests().contains(value)) {
+                            StringTokenizer t = new StringTokenizer(valueCache.get(param),",");
+                            while(t.hasMoreTokens()) {
+                                if (account.getInterests().contains(t.nextToken())) {
                                     enableProp.add(INTERESTS);
                                     break;
                                 }
                             }
                         } else if (predicate.equals(CONTAINS_PR)) {
-                            String[] splitedValue = valueCache.get(param).split(",");
-                            if (splitedValue.length <= account.getInterests().size()) {
+                            List<String> splitedValue = getTokens(valueCache.get(param),",");
+                            if (splitedValue.size() <= account.getInterests().size()) {
                                 enableProp.add(INTERESTS);
                                 for (String value : splitedValue) {
                                     if (!account.getInterests().contains(value)) {
@@ -673,6 +672,8 @@ public class Service {
                                         break;
                                     }
                                 }
+                            } else {
+                                break;
                             }
                         }
 
@@ -684,17 +685,18 @@ public class Service {
 
                 //LIKES ============================================
                 if (param.startsWith(LIKES)) {
-                    if (account.getLikes() != null) {
-                        String[] splitedValue = valueCache.get(param).split(",");
-                        if (splitedValue.length <= account.getLikes().size()) {
+                    if (account.getLikesArr() != null) {
+                        List<String> splitedValue = getTokens(valueCache.get(param),",");
+                        if (splitedValue.size() <= account.getLikesArr().size()) {
                             enableProp.add(LIKES);
-                            List<Integer> likesArr = account.getLikes().stream().map(Like::getId).collect(Collectors.toList());
                             for (String value : splitedValue) {
-                                if (!likesArr.contains(Integer.parseInt(value))) {
+                                if (!account.getLikesArr().contains(value)) {
                                     enableProp.remove(enableProp.size()-1);
                                     break;
                                 }
                             }
+                        } else {
+                            break;
                         }
                     }
                 }
@@ -749,4 +751,12 @@ public class Service {
         valueCache.put(param,getValue(param));
     }
 
+    public static List<String> getTokens(String str,String ch) {
+        List<String> tokens = new ArrayList<>();
+        StringTokenizer tokenizer = new StringTokenizer(str, ch);
+        while (tokenizer.hasMoreElements()) {
+            tokens.add(tokenizer.nextToken());
+        }
+        return tokens;
+    }
 }

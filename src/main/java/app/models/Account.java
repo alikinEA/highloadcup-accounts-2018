@@ -1,5 +1,6 @@
 package app.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,6 +34,8 @@ public class Account {
     private String phone;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Like> likes;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<String> likesArr;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer birth;
     @JsonInclude(JsonInclude.Include.NON_NULL)

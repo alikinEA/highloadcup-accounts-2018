@@ -2,6 +2,8 @@ package app;
 
 import app.models.Account;
 import app.models.Accounts;
+import app.models.Like;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
@@ -15,6 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * Created by Alikin E.A. on 13.12.18.
@@ -26,10 +29,6 @@ public class Repository {
     static volatile boolean isRait = false;
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
-    /*private static String getPath(String fileName) {
-        //return dataPath + fileName;
-        return fileName;
-    }*/
 
     private static final ObjectMapper mapper = new ObjectMapper();
     public static final List<String> fileNames = new ArrayList<>();
@@ -82,18 +81,7 @@ public class Repository {
                 if (item != null) {
                     try {
                         FileHeader fileHeader = (FileHeader)item;
-                        /*if (fileHeader.getFileName().contains("options")) {
-                            try (BufferedReader reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(fileHeader)))){
-                                String timestamp = reader.lines().findFirst().get();
-                                currentTimeStamp = new Long(timestamp + "000");
-                                currentTimeStamp2 = new Long(timestamp);
-                                System.out.println("timestamp = " + currentTimeStamp);
-                            }
-                        }*/
                         if (fileHeader.getFileName().contains("accounts")) {
-                            //String newFilePath = getPath(fileHeader.getFileName());
-                            //Path path = Paths.get(newFilePath);
-                            //try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))){
                                 List<Account> accounts = mapper
                                         .readValue(zipFile.getInputStream(fileHeader), Accounts.class)
                                         .getAccounts();
@@ -105,16 +93,22 @@ public class Repository {
                                     ids.put(String.valueOf(account.getId()), PRESENT);
                                     //writer.write(mapper.writeValueAsString(account));
                                     if (isRait && availableNames.contains(fileHeader.getFileName())) {
+                                        if (account.getLikes() != null) {
+                                            account.setLikesArr(account.getLikes().stream().map(like -> String.valueOf(like.getId())).collect(Collectors.toList()));
+                                            account.setLikes(null);
+                                        }
+                                        account.setJoined(null);
                                         list.add(account);
                                     } else if (!isRait && fileHeader.getFileName().equals("accounts_1.json")) {
+                                        if (account.getLikes() != null) {
+                                            account.setLikesArr(account.getLikes().stream().map(like -> String.valueOf(like.getId())).collect(Collectors.toList()));
+                                            account.setLikes(null);
+                                        }
+                                        account.setJoined(null);
                                         list.add(account);
                                     }
-                                    //writer.newLine();
                                 }
                                 accounts = null;
-                            /*}catch(IOException ex){
-                                ex.printStackTrace();
-                            }*/
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
