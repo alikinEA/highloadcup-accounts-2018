@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.util.internal.StringUtil;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -62,8 +63,8 @@ public class Service {
 
 
     private static final String URI_FILTER = "/accounts/filter/?";
-    private static final String URI_NEW = "/accounts/new";
-    private static final String URI_LIKES = "/accounts/likes";
+    private static final String URI_NEW = "/accounts/new/";
+    private static final String URI_LIKES = "/accounts/likes/";
     private static final String URI_GROUP = "/accounts/group/?";
     private static final String URI_SUGGEST = "/suggest";
     private static final String URI_RECOMENDED = "/recommend";
@@ -73,9 +74,17 @@ public class Service {
         if (req.uri().startsWith(URI_FILTER)) {
             return handleFilterv2(req);
         } else if (req.uri().startsWith(URI_NEW)) {
-            return handleNew(req);
+            if (req.uri().replace(URI_NEW,"").charAt(0) != '?') {
+                return NOT_FOUND;
+            } else {
+                return handleNew(req);
+            }
         } else if (req.uri().startsWith(URI_LIKES)) {
-            return handleLikes(req);
+            if (req.uri().replace(URI_LIKES,"").charAt(0) != '?') {
+                return NOT_FOUND;
+            } else {
+                return handleLikes(req);
+            }
         } else if (req.uri().startsWith(URI_GROUP)) {
             return handleGroup(req);
         } else if (req.uri().contains(URI_SUGGEST)) {
@@ -89,6 +98,9 @@ public class Service {
 
     private static Result handleUpdate(FullHttpRequest req) {
         String curId = req.uri().substring(req.uri().indexOf(ACCOUNTS) + 10,req.uri().lastIndexOf("/?"));
+        if (!Character.isDigit(curId.charAt(0))) {
+            return NOT_FOUND;
+        }
         if (Repository.ids.containsKey(curId)) {
             try {
                 Account account = mapper.readValue(req.content().toString(StandardCharsets.UTF_8),Account.class);
