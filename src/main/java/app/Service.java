@@ -70,6 +70,11 @@ public class Service {
     private static final String URI_RECOMENDED = "/recommend";
     private static final String ACCOUNTS =  "/accounts/";
 
+
+    private static final String STATUS1 = "свободны";
+    private static final String STATUS2 = "всё сложно";
+    private static final String STATUS3 = "заняты";
+
     public static Result handle(FullHttpRequest req) {
         if (req.uri().startsWith(URI_FILTER)) {
             return handleFilterv2(req);
@@ -111,9 +116,9 @@ public class Service {
                     }
                 }
                 if (account.getStatus() != null) {
-                    if (!account.getStatus().equals("свободны")
-                            && !account.getStatus().equals("всё сложно")
-                            && !account.getStatus().equals("заняты")) {
+                    if (!account.getStatus().equals(STATUS1)
+                            && !account.getStatus().equals(STATUS2)
+                            && !account.getStatus().equals(STATUS3)) {
                         return BAD_REQUEST;
                     }
                 }
@@ -138,6 +143,13 @@ public class Service {
     }
 
     private static Result handleRecomended(FullHttpRequest req) {
+       /* String replAcc = req.uri().substring(10);
+        String id = replAcc.substring(0,replAcc.indexOf("/"));
+        if (!Repository.ids.containsKey(id)) {
+            return NOT_FOUND;
+        } else {
+
+        }*/
         return NOT_FOUND;
     }
 
