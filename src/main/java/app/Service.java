@@ -85,7 +85,7 @@ public class Service {
     private static final String utf8 = "UTF-8";
     private static final String delim = ",";
     private static final String delim2 = "=";
-    private static final Character delim3 = '?';
+    private static final char delim3 = '?';
     private static final String delim4 = "/?";
     private static final String delim5 = "1";
     private static final String delim6 = "-1";
@@ -112,7 +112,6 @@ public class Service {
                 return handleLikes(req);
             }
         } else if (req.uri().startsWith(URI_GROUP)) {
-            //interests, country, city. todo 3 справочника
             return handleGroup(req);
         } else if (req.uri().contains(URI_SUGGEST)) {
             return handleSuggest(req);
@@ -176,21 +175,13 @@ public class Service {
     }
 
     private static Result handleSuggest(FullHttpRequest req) {
-         ///accounts/2148/suggest/?limit=0 Expected code: 400
-        //Received code: 404
         return NOT_FOUND;
     }
 
     private static Result handleGroup(FullHttpRequest req) {
-        StringTokenizer t = new StringTokenizer(req.uri().substring(17),delim);
+        StringTokenizer t = new StringTokenizer(req.uri().substring(17),delim8);
         while(t.hasMoreTokens()) {
             String param = t.nextToken();
-            if (param.startsWith(ORDER)) {
-                String value = getValue(param);
-                if (!delim5.equals(value) && !delim6.equals(value)) {
-                    return BAD_REQUEST;
-                }
-            }
 
             if (param.startsWith(KEYS)) {
                 String value = getValue(param);
@@ -204,21 +195,6 @@ public class Service {
                             && !CITY.equals(keyValue)) {
                         return BAD_REQUEST;
                     }
-                }
-            }
-            if (param.startsWith(SEX)) {
-                String value = getValue(param);
-                if (!value.equals(F)
-                        && !value.equals(M)) {
-                    return NOT_FOUND;
-                }
-            }
-            if (param.startsWith(STATUS)) {
-                String value = getValue(param);
-                if (!value.equals(STATUS1)
-                        && !value.equals(STATUS2)
-                        && !value.equals(STATUS3)) {
-                    return NOT_FOUND;
                 }
             }
         }

@@ -49,6 +49,10 @@ public class Repository {
     static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
     static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
     static final CopyOnWriteArrayList<Account> list = new CopyOnWriteArrayList<>();
+    //static final ConcurrentHashMap<String,Object> cityDir = new ConcurrentHashMap<>();
+    //static final ConcurrentHashMap<String,Object> countryDir = new ConcurrentHashMap<>();
+    //static final ConcurrentHashMap<String,Object> interestDir = new ConcurrentHashMap<>();
+
 
 
     public static void initData() {
@@ -89,6 +93,23 @@ public class Repository {
                                 for (Account account : accounts) {
                                     emails.put(account.getEmail(),PRESENT);
                                     ids.put(String.valueOf(account.getId()), PRESENT);
+                                    /*if (account.getCity() != null) {
+                                        if (!cityDir.containsKey(account.getCity())) {
+                                            cityDir.put(account.getCity(),PRESENT);
+                                        }
+                                    }
+                                    if (account.getCountry() != null) {
+                                        if (!countryDir.containsKey(account.getCountry())) {
+                                            countryDir.put(account.getCountry(),PRESENT);
+                                        }
+                                    }
+                                    if (account.getInterests() != null) {
+                                        for (String interest : account.getInterests()) {
+                                            if (!interestDir.containsKey(interest)) {
+                                                interestDir.put(interest,PRESENT);
+                                            }
+                                        }
+                                    }*/
                                     //writer.write(mapper.writeValueAsString(account));
                                     if (isRait && availableNames.contains(fileHeader.getFileName())) {
                                         if (account.getLikes() != null) {
