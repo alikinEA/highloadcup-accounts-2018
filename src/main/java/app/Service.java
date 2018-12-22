@@ -44,6 +44,9 @@ public class Service {
     private static final String ID = "id";
     private static final String QUERY_ID = "query_id";
     private static final String LIMIT = "limit";
+    private static final String ORDER = "order";
+    private static final String KEYS = "keys";
+
 
     private static final String EQ_PR = "eq";
     private static final String NEQ_PR = "neq";
@@ -70,27 +73,46 @@ public class Service {
     private static final String URI_RECOMENDED = "/recommend";
     private static final String ACCOUNTS =  "/accounts/";
 
+    private static final String F =  "f";
+    private static final String M =  "m";
+
 
     private static final String STATUS1 = "свободны";
     private static final String STATUS2 = "всё сложно";
     private static final String STATUS3 = "заняты";
 
+
+    private static final String utf8 = "UTF-8";
+    private static final String delim = ",";
+    private static final String delim2 = "=";
+    private static final Character delim3 = '?';
+    private static final String delim4 = "/?";
+    private static final String delim5 = "1";
+    private static final String delim6 = "-1";
+    private static final String delim7 = "@";
+    private static final String delim8 = "&";
+    private static final String delim9 = "_";
+    private static final String delim10 = "(";
+    private static final String delim11 = ")";
+
+
     public static Result handle(FullHttpRequest req) {
         if (req.uri().startsWith(URI_FILTER)) {
             return handleFilterv2(req);
         } else if (req.uri().startsWith(URI_NEW)) {
-            if (req.uri().substring(14).charAt(0) != '?') {
+            if (req.uri().substring(14).charAt(0) != delim3) {
                 return NOT_FOUND;
             } else {
                 return handleNew(req);
             }
         } else if (req.uri().startsWith(URI_LIKES)) {
-            if (req.uri().substring(16).charAt(0) != '?') {
+            if (req.uri().substring(16).charAt(0) != delim3) {
                 return NOT_FOUND;
             } else {
                 return handleLikes(req);
             }
         } else if (req.uri().startsWith(URI_GROUP)) {
+            //interests, country, city. todo 3 справочника
             return handleGroup(req);
         } else if (req.uri().contains(URI_SUGGEST)) {
             return handleSuggest(req);
@@ -102,7 +124,7 @@ public class Service {
     }
 
     private static Result handleUpdate(FullHttpRequest req) {
-        String curId = req.uri().substring(req.uri().indexOf(ACCOUNTS) + 10,req.uri().lastIndexOf("/?"));
+        String curId = req.uri().substring(req.uri().indexOf(ACCOUNTS) + 10,req.uri().lastIndexOf(delim4));
         if (!Character.isDigit(curId.charAt(0))) {
             return NOT_FOUND;
         }
@@ -110,8 +132,8 @@ public class Service {
             try {
                 Account account = mapper.readValue(req.content().toString(StandardCharsets.UTF_8),Account.class);
                 if (account.getSex() != null) {
-                    if (!account.getSex().equals("f")
-                            && !account.getSex().equals("m")) {
+                    if (!account.getSex().equals(F)
+                            && !account.getSex().equals(M)) {
                         return BAD_REQUEST;
                     }
                 }
@@ -123,7 +145,7 @@ public class Service {
                     }
                 }
                 if (account.getEmail() != null) {
-                    if (!account.getEmail().contains("@")) {
+                    if (!account.getEmail().contains(delim7)) {
                         return BAD_REQUEST;
                     }
                     if (Repository.emails.containsKey(account.getEmail())) {
@@ -160,23 +182,43 @@ public class Service {
     }
 
     private static Result handleGroup(FullHttpRequest req) {
-        StringTokenizer t = new StringTokenizer(req.uri().substring(17),",");
+        StringTokenizer t = new StringTokenizer(req.uri().substring(17),delim);
         while(t.hasMoreTokens()) {
             String param = t.nextToken();
-            if (param.startsWith("keys")) {
+            if (param.startsWith(ORDER)) {
                 String value = getValue(param);
-                if (!SEX.equals(value)
-                        && !STATUS.equals(value)
-                        && !INTERESTS.equals(value)
-                        && !COUNTRY.equals(value)
-                        && !CITY.equals(value)) {
+                if (!delim5.equals(value) && !delim6.equals(value)) {
                     return BAD_REQUEST;
                 }
             }
-            if (param.startsWith("order")) {
+
+            if (param.startsWith(KEYS)) {
                 String value = getValue(param);
-                if (!"1".equals(value) && !"-1".equals(value)) {
-                    return BAD_REQUEST;
+                StringTokenizer t2 = new StringTokenizer(value,delim);
+                while(t2.hasMoreTokens()) {
+                    String keyValue = t2.nextToken();
+                    if (!SEX.equals(keyValue)
+                            && !STATUS.equals(keyValue)
+                            && !INTERESTS.equals(keyValue)
+                            && !COUNTRY.equals(keyValue)
+                            && !CITY.equals(keyValue)) {
+                        return BAD_REQUEST;
+                    }
+                }
+            }
+            if (param.startsWith(SEX)) {
+                String value = getValue(param);
+                if (!value.equals(F)
+                        && !value.equals(M)) {
+                    return NOT_FOUND;
+                }
+            }
+            if (param.startsWith(STATUS)) {
+                String value = getValue(param);
+                if (!value.equals(STATUS1)
+                        && !value.equals(STATUS2)
+                        && !value.equals(STATUS3)) {
+                    return NOT_FOUND;
                 }
             }
         }
@@ -210,24 +252,24 @@ public class Service {
                 return BAD_REQUEST;
             }
             if (account.getSex() != null) {
-                if (!account.getSex().equals("f")
-                        && !account.getSex().equals("m")) {
+                if (!account.getSex().equals(F)
+                        && !account.getSex().equals(M)) {
                     return BAD_REQUEST;
                 }
             } else {
                 return BAD_REQUEST;
             }
             if (account.getStatus() != null) {
-                if (!account.getStatus().equals("свободны")
-                        && !account.getStatus().equals("всё сложно")
-                        && !account.getStatus().equals("заняты")) {
+                if (!account.getStatus().equals(STATUS1)
+                        && !account.getStatus().equals(STATUS2)
+                        && !account.getStatus().equals(STATUS3)) {
                     return BAD_REQUEST;
                 }
             } else {
                 return BAD_REQUEST;
             }
             if (account.getEmail() != null) {
-                if (!account.getEmail().contains("@")) {
+                if (!account.getEmail().contains(delim7)) {
                     return BAD_REQUEST;
                 }
                 if (Repository.emails.containsKey(account.getEmail())) {
@@ -348,18 +390,18 @@ public class Service {
 
     private static String getValue(String param) {
         try {
-            return URLDecoder.decode(param.substring(param.indexOf("=") + 1), "UTF-8");
+            return URLDecoder.decode(param.substring(param.indexOf(delim2) + 1), utf8);
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException();
         }
     }
 
     private static String getPredicate(String param) {
-        return param.substring(param.indexOf("_") + 1,param.indexOf("="));
+        return param.substring(param.indexOf(delim9) + 1,param.indexOf(delim2));
     }
 
     private static Result handleFilterv2(FullHttpRequest req) {
-        List<String> params = getTokens(req.uri().substring(18),"&");
+        List<String> params = getTokens(req.uri().substring(18),delim8);
         int i = 0;
         int limit = 0;
         for (String param : params) {
@@ -485,8 +527,8 @@ public class Service {
                     if (predicate.equals(CODE_PR)) {
                         if (account.getPhone() != null) {
                             if (account.getPhone()
-                                    .substring(account.getPhone().indexOf("(") + 1
-                                            , account.getPhone().indexOf(")"))
+                                    .substring(account.getPhone().indexOf(delim10) + 1
+                                            , account.getPhone().indexOf(delim11))
                                     .equals(valueCache.get(param))) {
                                 enableProp.add(PHONE);
                             } else {
@@ -578,6 +620,7 @@ public class Service {
                 if (param.startsWith(BIRTH)) {
                     String predicate = predicateCache.get(param);
                     if (predicate.equals(YEAR_PR)) {
+                        //todo
                         Date date = new Date(Long.parseLong(account.getBirth() + "000"));
                         Calendar calendar = new GregorianCalendar();
                         calendar.setTime(date);
@@ -613,7 +656,7 @@ public class Service {
                             break;
                         }
                     } else if (predicate.equals(ANY_PR)) {
-                        StringTokenizer t = new StringTokenizer(valueCache.get(param),",");
+                        StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
                         while(t.hasMoreTokens()) {
                             if (t.nextToken().equals(account.getCity())) {
                                 enableProp.add(CITY);
@@ -651,7 +694,7 @@ public class Service {
                             break;
                         }
                     } else if (predicate.equals(ANY_PR)) {
-                        StringTokenizer t = new StringTokenizer(valueCache.get(param),",");
+                        StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
                         while(t.hasMoreTokens()) {
                             if (t.nextToken().equals(account.getFname())) {
                                 enableProp.add(FNAME);
@@ -682,7 +725,7 @@ public class Service {
                     String predicate = predicateCache.get(param);
                     if (account.getInterests() != null) {
                         if (predicate.equals(ANY_PR)) {
-                            StringTokenizer t = new StringTokenizer(valueCache.get(param),",");
+                            StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
                             while(t.hasMoreTokens()) {
                                 if (account.getInterests().contains(t.nextToken())) {
                                     enableProp.add(INTERESTS);
@@ -690,7 +733,7 @@ public class Service {
                                 }
                             }
                         } else if (predicate.equals(CONTAINS_PR)) {
-                            List<String> splitedValue = getTokens(valueCache.get(param),",");
+                            List<String> splitedValue = getTokens(valueCache.get(param),delim);
                             if (splitedValue.size() <= account.getInterests().size()) {
                                 enableProp.add(INTERESTS);
                                 for (String value : splitedValue) {
@@ -713,7 +756,7 @@ public class Service {
                 //LIKES ============================================
                 if (param.startsWith(LIKES)) {
                     if (account.getLikesArr() != null) {
-                        List<String> splitedValue = getTokens(valueCache.get(param),",");
+                        List<String> splitedValue = getTokens(valueCache.get(param),delim);
                         if (splitedValue.size() <= account.getLikesArr().size()) {
                             enableProp.add(LIKES);
                             for (String value : splitedValue) {
