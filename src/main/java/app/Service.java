@@ -74,13 +74,13 @@ public class Service {
         if (req.uri().startsWith(URI_FILTER)) {
             return handleFilterv2(req);
         } else if (req.uri().startsWith(URI_NEW)) {
-            if (req.uri().replace(URI_NEW,"").charAt(0) != '?') {
+            if (req.uri().substring(14).charAt(0) != '?') {
                 return NOT_FOUND;
             } else {
                 return handleNew(req);
             }
         } else if (req.uri().startsWith(URI_LIKES)) {
-            if (req.uri().replace(URI_LIKES,"").charAt(0) != '?') {
+            if (req.uri().substring(16).charAt(0) != '?') {
                 return NOT_FOUND;
             } else {
                 return handleLikes(req);
@@ -142,11 +142,13 @@ public class Service {
     }
 
     private static Result handleSuggest(FullHttpRequest req) {
+         ///accounts/2148/suggest/?limit=0 Expected code: 400
+        //Received code: 404
         return NOT_FOUND;
     }
 
     private static Result handleGroup(FullHttpRequest req) {
-        StringTokenizer t = new StringTokenizer(req.uri().replace(URI_GROUP,""),",");
+        StringTokenizer t = new StringTokenizer(req.uri().substring(17),",");
         while(t.hasMoreTokens()) {
             String param = t.nextToken();
             if (param.startsWith("keys")) {
@@ -221,6 +223,7 @@ public class Service {
                 } else {
                     Repository.emails.put(account.getEmail(),Repository.PRESENT);
                     Repository.ids.put(account.getId().toString(),Repository.PRESENT);
+                    //todo swap полями в листе
                     return CREATED;
                 }
             }
@@ -344,7 +347,7 @@ public class Service {
     }
 
     private static Result handleFilterv2(FullHttpRequest req) {
-        List<String> params = getTokens(req.uri().replace(URI_FILTER,""),"&");
+        List<String> params = getTokens(req.uri().substring(18),"&");
         int i = 0;
         int limit = 0;
         for (String param : params) {
@@ -362,7 +365,7 @@ public class Service {
                 fillValueCacheValue(param,valueCache);
             }
         }
-        List<String> enableProp = new ArrayList<>();
+        List<String> enableProp = new ArrayList<>(10);
         List<Account> accounts = new ArrayList<>(limit);
 
         for (Account account : Repository.list) {
@@ -770,5 +773,30 @@ public class Service {
             tokens.add(tokenizer.nextToken());
         }
         return tokens;
+    }
+
+    public static String replaceString(String source, String os) {
+        if (source == null) {
+            return null;
+        }
+        int i = 0;
+        if ((i = source.indexOf(os, i)) >= 0) {
+            char[] sourceArray = source.toCharArray();
+            char[] nsArray = "".toCharArray();
+            int oLength = os.length();
+            StringBuilder buf = new StringBuilder (sourceArray.length);
+            buf.append (sourceArray, 0, i).append(nsArray);
+            i += oLength;
+            int j = i;
+            while ((i = source.indexOf(os, i)) > 0) {
+                buf.append (sourceArray, j, i - j).append(nsArray);
+                i += oLength;
+                j = i;
+            }
+            buf.append (sourceArray, j, sourceArray.length - j);
+            source = buf.toString();
+            buf.setLength (0);
+        }
+        return source;
     }
 }
