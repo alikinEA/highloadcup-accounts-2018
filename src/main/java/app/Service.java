@@ -264,7 +264,7 @@ public class Service {
     }
 
 
-    private static boolean validate(String param, Map<String, String> predicateCache) {
+    private static boolean fillCacheAndvalidate(String param, Map<String, String> predicateCache) {
         String predicate = getPredicate(param);
         if (param.startsWith(SEX)) {
             if (!predicate.equals(EQ_PR)) {
@@ -346,15 +346,16 @@ public class Service {
 
     }
 
-    private static boolean compareArrays(List<String> params, List<String> enableProp) {
+    private static boolean compareArrays(List<String> params, Map<String,Object> enableProp) {
         if (params.size() != enableProp.size()) {
             return false;
         }
-        for (String prop : enableProp) {
+        for (String key : enableProp.keySet()) {
             boolean isValid = false;
             for (String param : params) {
-                if (param.contains(prop)) {
-                    return true;
+                if (param.startsWith(key)) {
+                    isValid = true;
+                    break;
                 }
             }
             if (!isValid) {
@@ -388,26 +389,27 @@ public class Service {
 
         Map<String,String> valueCache = new HashMap<>(10);
         Map<String,String> predicateCache = new HashMap<>(10);
+        Map<String,Object> finalFieldSet = null;
         for (String param : params) {
-            if (!validate(param,predicateCache)) {
+            if (!fillCacheAndvalidate(param,predicateCache)) {
                 return BAD_REQUEST;
             } else {
                 fillValueCacheValue(param,valueCache);
             }
         }
-        List<String> enableProp = new ArrayList<>(10);
+        Map<String,Object> enableProp = new HashMap<>(valueCache.size());
         List<Account> accounts = new ArrayList<>(limit);
 
         for (Account account : Repository.list) {
-            enableProp.clear();
             if (i == limit) {
                 break;
             }
+            enableProp.clear();
             for (String param : params) {
                 //SEX ============================================
                 if (param.startsWith(SEX)) {
                     if (account.getSex().equals(valueCache.get(param))) {
-                        enableProp.add(SEX);
+                        enableProp.put(SEX,Repository.PRESENT);
                     } else {
                         break;
                     }
@@ -419,19 +421,19 @@ public class Service {
                     String predicate = predicateCache.get(param);
                     if (predicate.equals(DOMAIN_PR)) {
                         if (account.getEmail().contains(valueCache.get(param))) {
-                            enableProp.add(EMAIL);
+                            enableProp.put(EMAIL,Repository.PRESENT);
                         } else {
                             break;
                         }
                     } else if (predicate.equals(LT_PR)) {
                         if (account.getEmail().compareTo(valueCache.get(param)) < 0) {
-                            enableProp.add(EMAIL);
+                            enableProp.put(EMAIL,Repository.PRESENT);
                         } else {
                             break;
                         }
                     } else if (predicate.equals(GT_PR)) {
                         if (account.getEmail().compareTo(valueCache.get(param)) > 0) {
-                            enableProp.add(EMAIL);
+                            enableProp.put(EMAIL,Repository.PRESENT);
                         } else {
                             break;
                         }
@@ -444,13 +446,13 @@ public class Service {
                     String predicate = predicateCache.get(param);
                     if (predicate.equals(EQ_PR)) {
                         if (account.getStatus().equals(valueCache.get(param))) {
-                            enableProp.add(STATUS);
+                            enableProp.put(STATUS,Repository.PRESENT);
                         } else {
                             break;
                         }
                     } else if (predicate.equals(NEQ_PR)) {
                         if (!account.getStatus().equals(valueCache.get(param))) {
-                            enableProp.add(STATUS);
+                            enableProp.put(STATUS,Repository.PRESENT);
                         } else {
                             break;
                         }
@@ -466,7 +468,7 @@ public class Service {
 
                     if (predicate.equals(EQ_PR)) {
                         if (valueCache.get(param).equals(account.getSname())) {
-                            enableProp.add(SNAME);
+                            enableProp.put(SNAME,Repository.PRESENT);
                         } else {
                             break;
                         }
@@ -474,13 +476,13 @@ public class Service {
                         String value = valueCache.get(param);
                         if (value.equals(NULL_PR_VAL_ONE)) {
                             if (account.getSname() == null) {
-                                enableProp.add(SNAME);
+                                enableProp.put(SNAME,Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else {
                             if (account.getSname() != null) {
-                                enableProp.add(SNAME);
+                                enableProp.put(SNAME,Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -488,7 +490,7 @@ public class Service {
                     } else if (predicate.equals(STARTS_PR)) {
                         if (account.getSname() != null)
                             if (account.getSname().startsWith(valueCache.get(param))) {
-                                enableProp.add(SNAME);
+                                enableProp.put(SNAME,Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -506,7 +508,7 @@ public class Service {
                                     .substring(account.getPhone().indexOf(delim10) + 1
                                             , account.getPhone().indexOf(delim11))
                                     .equals(valueCache.get(param))) {
-                                enableProp.add(PHONE);
+                                enableProp.put(PHONE,Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -515,13 +517,13 @@ public class Service {
                         String value = valueCache.get(param);
                         if (value.equals(NULL_PR_VAL_ONE)) {
                             if (account.getPhone() == null) {
-                                enableProp.add(PHONE);
+                                enableProp.put(PHONE,Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else {
                             if (account.getPhone() != null) {
-                                enableProp.add(PHONE);
+                                enableProp.put(PHONE,Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -538,7 +540,7 @@ public class Service {
 
                     if (predicate.equals(EQ_PR)) {
                         if (valueCache.get(param).equals(account.getCountry())) {
-                            enableProp.add(COUNTRY);
+                            enableProp.put(COUNTRY,Repository.PRESENT);
                         } else {
                             break;
                         }
@@ -546,13 +548,13 @@ public class Service {
                         String value = valueCache.get(param);
                         if (value.equals(NULL_PR_VAL_ONE)) {
                             if (account.getCountry() == null) {
-                                enableProp.add(COUNTRY);
+                                enableProp.put(COUNTRY,Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else {
                             if (account.getCountry() != null) {
-                                enableProp.add(COUNTRY);
+                                enableProp.put(COUNTRY,Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -569,7 +571,7 @@ public class Service {
                         if (account.getPremium() != null) {
                             if (Repository.currentTimeStamp2 < account.getPremium().getFinish()
                                     && Repository.currentTimeStamp2 > account.getPremium().getStart()) {
-                                enableProp.add(PREMIUM);
+                                enableProp.put(PREMIUM,Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -578,13 +580,13 @@ public class Service {
                         String value = valueCache.get(param);
                         if (value.equals(NULL_PR_VAL_ONE)) {
                             if (account.getPremium() == null) {
-                                enableProp.add(PREMIUM);
+                                enableProp.put(PREMIUM,Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else {
                             if (account.getPremium() != null) {
-                                enableProp.add(PREMIUM);
+                                enableProp.put(PREMIUM,Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -601,19 +603,19 @@ public class Service {
                         Calendar calendar = new GregorianCalendar();
                         calendar.setTime(date);
                         if (Integer.parseInt(getValue(param)) == calendar.get(Calendar.YEAR)) {
-                            enableProp.add(BIRTH);
+                            enableProp.put(BIRTH,Repository.PRESENT);
                         } else {
                             break;
                         }
                     } else if (predicate.equals(LT_PR)) {
                         if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) < 0) {
-                            enableProp.add(BIRTH);
+                            enableProp.put(BIRTH,Repository.PRESENT);
                         } else {
                             break;
                         }
                     } else if (predicate.equals(GT_PR)) {
                         if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) > 0) {
-                            enableProp.add(BIRTH);
+                            enableProp.put(BIRTH,Repository.PRESENT);
                         } else {
                             break;
                         }
@@ -627,7 +629,7 @@ public class Service {
 
                     if (predicate.equals(EQ_PR)) {
                         if (getValue(param).equals(account.getCity())) {
-                            enableProp.add(CITY);
+                            enableProp.put(CITY,Repository.PRESENT);
                         } else {
                             break;
                         }
@@ -635,7 +637,7 @@ public class Service {
                         StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
                         while(t.hasMoreTokens()) {
                             if (t.nextToken().equals(account.getCity())) {
-                                enableProp.add(CITY);
+                                enableProp.put(CITY,Repository.PRESENT);
                                 break;
                             }
                         }
@@ -643,13 +645,13 @@ public class Service {
                         String value = valueCache.get(param);
                         if (value.equals(NULL_PR_VAL_ONE)) {
                             if (account.getCity() == null) {
-                                enableProp.add(CITY);
+                                enableProp.put(CITY,Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else {
                             if (account.getCity() != null) {
-                                enableProp.add(CITY);
+                                enableProp.put(CITY,Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -665,7 +667,7 @@ public class Service {
 
                     if (predicate.equals(EQ_PR)) {
                         if (valueCache.get(param).equals(account.getFname())) {
-                            enableProp.add(FNAME);
+                            enableProp.put(FNAME,Repository.PRESENT);
                         } else {
                             break;
                         }
@@ -673,7 +675,7 @@ public class Service {
                         StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
                         while(t.hasMoreTokens()) {
                             if (t.nextToken().equals(account.getFname())) {
-                                enableProp.add(FNAME);
+                                enableProp.put(FNAME,Repository.PRESENT);
                                 break;
                             }
                         }
@@ -681,13 +683,13 @@ public class Service {
                         String value = valueCache.get(param);
                         if (value.equals(NULL_PR_VAL_ONE)) {
                             if (account.getFname() == null) {
-                                enableProp.add(FNAME);
+                                enableProp.put(FNAME,Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else {
                             if (account.getFname() != null) {
-                                enableProp.add(FNAME);
+                                enableProp.put(FNAME,Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -704,17 +706,17 @@ public class Service {
                             StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
                             while(t.hasMoreTokens()) {
                                 if (account.getInterests().contains(t.nextToken())) {
-                                    enableProp.add(INTERESTS);
+                                    enableProp.put(INTERESTS,Repository.PRESENT);
                                     break;
                                 }
                             }
                         } else if (predicate.equals(CONTAINS_PR)) {
                             List<String> splitedValue = getTokens(valueCache.get(param),delim);
                             if (splitedValue.size() <= account.getInterests().size()) {
-                                enableProp.add(INTERESTS);
+                                enableProp.put(INTERESTS,Repository.PRESENT);
                                 for (String value : splitedValue) {
                                     if (!account.getInterests().contains(value)) {
-                                        enableProp.remove(enableProp.size()-1);
+                                        enableProp.remove(INTERESTS);
                                         break;
                                     }
                                 }
@@ -734,10 +736,10 @@ public class Service {
                     if (account.getLikesArr() != null) {
                         List<String> splitedValue = getTokens(valueCache.get(param),delim);
                         if (splitedValue.size() <= account.getLikesArr().size()) {
-                            enableProp.add(LIKES);
+                            enableProp.put(LIKES,Repository.PRESENT);
                             for (String value : splitedValue) {
                                 if (!account.getLikesArr().contains(value)) {
-                                    enableProp.remove(enableProp.size()-1);
+                                    enableProp.remove(LIKES);
                                     break;
                                 }
                             }
@@ -749,48 +751,25 @@ public class Service {
                 //LIKES ============================================
 
             }
-            enableProp.add(QUERY_ID);
-            enableProp.add(LIMIT);
+            enableProp.put(QUERY_ID,Repository.PRESENT);
+            enableProp.put(LIMIT,Repository.PRESENT);
             if (compareArrays(params,enableProp)) {
-                Account result = new Account();
-                result.setId(account.getId());
-                result.setEmail(account.getEmail());
-                if (enableProp.contains(SEX)) {
-                    result.setSex(account.getSex());
+                if (finalFieldSet == null) {
+                    finalFieldSet = new HashMap<>(enableProp.size());
+                    for (String key : enableProp.keySet()) {
+                        finalFieldSet.put(key,Repository.PRESENT);
+                    }
                 }
-                if (enableProp.contains(STATUS)) {
-                    result.setStatus(account.getStatus());
-                }
-                if (enableProp.contains(FNAME)) {
-                    result.setFname(account.getFname());
-                }
-                if (enableProp.contains(SNAME)) {
-                    result.setSname(account.getSname());
-                }
-                if (enableProp.contains(PHONE)) {
-                    result.setPhone(account.getPhone());
-                }
-                if (enableProp.contains(COUNTRY)) {
-                    result.setCountry(account.getCountry());
-                }
-                if (enableProp.contains(CITY)) {
-                    result.setCity(account.getCity());
-                }
-                if (enableProp.contains(BIRTH)) {
-                    result.setBirth(account.getBirth());
-                }
-                if (enableProp.contains(PREMIUM)) {
-                    result.setPremium(account.getPremium());
-                }
-                accounts.add(result);
+                accounts.add(account);
                 i++;
             }
         }
         try {
-            return new Result(mapper.writeValueAsBytes(new Accounts(accounts)),HttpResponseStatus.OK);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException();
+            return new Result(accountToString(accounts,finalFieldSet).getBytes(utf8),HttpResponseStatus.OK);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
+        return OK_EMPTY_ACCOUNTS;
     }
 
     private static void fillValueCacheValue(String param, Map<String, String> valueCache) {
@@ -829,5 +808,100 @@ public class Service {
             buf.setLength (0);
         }
         return source;
+    }
+
+    public static String accountToString(List<Account> accounts, Map<String,Object> enableProp) {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"accounts\":[");
+        for (Account account : accounts) {
+
+            sb.append("{");
+
+            sb.append("\"id\":");
+            sb.append(account.getId());
+            sb.append(",");
+
+            sb.append("\"email\":");
+            sb.append("\"");
+            sb.append(account.getEmail());
+            sb.append("\",");
+
+            if (enableProp.containsKey(SEX) && account.getSex() != null) {
+                sb.append("\"sex\":");
+                sb.append("\"");
+                sb.append(account.getSex());
+                sb.append("\",");
+            }
+
+            if (enableProp.containsKey(FNAME) && account.getFname() != null) {
+                sb.append("\"fname\":");
+                sb.append("\"");
+                sb.append(account.getFname());
+                sb.append("\",");
+            }
+
+            if (enableProp.containsKey(STATUS) && account.getStatus() != null) {
+                sb.append("\"status\":");
+                sb.append("\"");
+                sb.append(account.getStatus());
+                sb.append("\",");
+            }
+
+            if (enableProp.containsKey(PHONE) && account.getPhone() != null) {
+                sb.append("\"phone\":");
+                sb.append("\"");
+                sb.append(account.getPhone());
+                sb.append("\",");
+            }
+
+            if (enableProp.containsKey(BIRTH) && account.getBirth() != null) {
+                sb.append("\"birth\":");
+                sb.append(account.getBirth());
+                sb.append(",");
+            }
+
+            if (enableProp.containsKey(CITY) && account.getCity() != null) {
+                sb.append("\"city\":");
+                sb.append("\"");
+                sb.append(account.getCity());
+                sb.append("\",");
+            }
+
+            if (enableProp.containsKey(COUNTRY) && account.getCountry() != null) {
+                sb.append("\"country\":");
+                sb.append("\"");
+                sb.append(account.getCountry());
+                sb.append("\",");
+            }
+
+            if (enableProp.containsKey(SNAME) && account.getSname() != null) {
+                sb.append("\"sname\":");
+                sb.append("\"");
+                sb.append(account.getSname());
+                sb.append("\",");
+            }
+
+            if (enableProp.containsKey(PREMIUM) && account.getPremium() != null) {
+                sb.append("\"premium\":");
+                sb.append("{");
+
+                sb.append("\"start\":");
+                sb.append(account.getPremium().getStart());
+                sb.append(",");
+
+                sb.append("\"finish\":");
+                sb.append(account.getPremium().getFinish());
+
+                sb.append("},");
+            }
+            sb.setLength(sb.length() -1);
+            sb.append("},");
+        }
+        if (accounts.size() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+        sb.append("]}");
+        return sb.toString();
     }
 }
