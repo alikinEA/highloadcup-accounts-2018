@@ -158,7 +158,16 @@ public class Service {
                         Account accountData = Repository.list.ceiling(account);
                         if (accountData != null) {
                             if (account.getLikes() != null) {
-                                accountData.setLikesArr(account.getLikes().stream().map(like -> String.valueOf(like.getId())).collect(Collectors.toList()));
+                                List<Integer> likesNew;
+                                if (accountData.getLikesArr() != null) {
+                                    likesNew = accountData.getLikesArr();
+                                } else {
+                                    likesNew = new ArrayList<>(10);
+                                }
+                                for (Like like : account.getLikes()) {
+                                    likesNew.add(like.getId());
+                                }
+                                accountData.setLikesArr(likesNew);
                             }
                             accountData.setEmail(account.getEmail());
                             accountData.setSex(account.getSex());
@@ -244,15 +253,18 @@ public class Service {
                 account.setId(like.getLiker());
                 Account accountData = Repository.list.ceiling(account);
                 if (accountData != null) {
-                    accountData.getLikesArr().add(like.getLikee().toString());
+                    if (accountData.getLikesArr() == null) {
+                        List<Integer> likesArr = new ArrayList<>(20);
+                        likesArr.add(like.getLikee());
+                        accountData.setLikesArr(likesArr);
+                    } else {
+                        accountData.getLikesArr().add(like.getLikee());
+                    }
                 }
             }
             return ACCEPTED;
-        } catch (JsonException e) {
-            return BAD_REQUEST;
         } catch (Exception e) {
-            System.out.println(Arrays.toString(e.getStackTrace()));
-            return ACCEPTED;
+            return BAD_REQUEST;
         }
     }
 
@@ -293,7 +305,17 @@ public class Service {
                     Repository.ids.put(account.getId().toString(),Repository.PRESENT);
                     Repository.emails.put(account.getEmail(),Repository.PRESENT);
                     if (account.getLikes() != null) {
-                        account.setLikesArr(account.getLikes().stream().map(like -> String.valueOf(like.getId())).collect(Collectors.toList()));
+                        List<Integer> likesNew;
+                        if (account.getLikesArr() != null) {
+                            likesNew = account.getLikesArr();
+                            likesNew.clear();
+                        } else {
+                            likesNew = new ArrayList<>(10);
+                        }
+                        for (Like like : account.getLikes()) {
+                            likesNew.add(like.getId());
+                        }
+                        account.setLikesArr(likesNew);
                         account.setLikes(null);
                     }
                     account.setJoined(null);
@@ -642,10 +664,8 @@ public class Service {
                 if (param.startsWith(BIRTH)) {
                     String predicate = predicateCache.get(param);
                     if (predicate.equals(YEAR_PR)) {
-                        //todo
-                        Date date = new Date(Long.parseLong(account.getBirth() + "000"));
                         Calendar calendar = new GregorianCalendar();
-                        calendar.setTime(date);
+                        calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
                         if (Integer.parseInt(getValue(param)) == calendar.get(Calendar.YEAR)) {
                             enableProp.put(BIRTH,Repository.PRESENT);
                         } else {
@@ -782,7 +802,7 @@ public class Service {
                         if (splitedValue.size() <= account.getLikesArr().size()) {
                             enableProp.put(LIKES,Repository.PRESENT);
                             for (String value : splitedValue) {
-                                if (!account.getLikesArr().contains(value)) {
+                                if (!account.getLikesArr().contains(Integer.parseInt(value))) {
                                     enableProp.remove(LIKES);
                                     break;
                                 }

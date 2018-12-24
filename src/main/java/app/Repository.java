@@ -2,8 +2,8 @@ package app;
 
 import app.models.Account;
 import app.models.Accounts;
+import app.models.Like;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jsoniter.JsonIterator;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
 
@@ -11,9 +11,6 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -28,7 +25,7 @@ public class Repository {
     //private static final String dataPath = "/mnt/data/";
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    public static final List<String> fileNames = new ArrayList<>();
+    //public static final List<String> fileNames = new ArrayList<>();
 
     private static final List<String> availableNames =
             Arrays.asList("accounts_50.json"
@@ -43,10 +40,11 @@ public class Repository {
                     ,"accounts_41.json"
                     ,"accounts_40.json"*/
                     );
+    private static final int elementCount = availableNames.size() * 10_000 + 11_000;
 
     static final Object PRESENT = new Object();
-    static final Map<String,Object> ids = Collections.synchronizedMap(new HashMap<>());
-    static final Map<String,Object> emails = Collections.synchronizedMap(new HashMap<>());
+    static final Map<String,Object> ids = Collections.synchronizedMap(new HashMap<>(elementCount));
+    static final Map<String,Object> emails = Collections.synchronizedMap(new HashMap<>(elementCount));
     static final NavigableSet<Account> list = Collections.synchronizedNavigableSet(new TreeSet<>(Comparator.comparing(Account::getId).reversed()));
     //static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
     //static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
@@ -69,14 +67,14 @@ public class Repository {
                 if (Integer.parseInt(flag) == 1) {
                     isRait = true;
                 }
-                if (isRait) {
+                /*if (isRait) {
                     for (int i = 1; i < 51; i++) {
                         fileNames.add("accounts_" + i + ".json");
                     }
                 } else {
                     fileNames.add("accounts_1.json");
                 }
-                System.out.println("fileName count = " + fileNames.size());
+                System.out.println("fileName count = " + fileNames.size());*/
                 System.out.println("isRait = " + isRait);
                 System.out.println("external timestamp = " + currentTimeStamp);
             } catch (Exception e) {
@@ -91,40 +89,19 @@ public class Repository {
                                 List<Account> accounts = mapper
                                         .readValue(zipFile.getInputStream(fileHeader), Accounts.class)
                                         .getAccounts();
-                                if (availableNames.contains(fileHeader.getFileName()) || fileHeader.getFileName().equals("accounts_1.json")) {
-                                   // accounts.sort(Comparator.comparingInt(Account::getId).reversed());
-                                }
                                 for (Account account : accounts) {
                                     emails.put(account.getEmail(),PRESENT);
                                     ids.put(String.valueOf(account.getId()), PRESENT);
-                                    /*if (account.getCity() != null) {
-                                        if (!cityDir.containsKey(account.getCity())) {
-                                            cityDir.put(account.getCity(),PRESENT);
-                                        }
-                                    }
-                                    if (account.getCountry() != null) {
-                                        if (!countryDir.containsKey(account.getCountry())) {
-                                            countryDir.put(account.getCountry(),PRESENT);
-                                        }
-                                    }
-                                    if (account.getInterests() != null) {
-                                        for (String interest : account.getInterests()) {
-                                            if (!interestDir.containsKey(interest)) {
-                                                interestDir.put(interest,PRESENT);
-                                            }
-                                        }
-                                    }*/
-                                    //writer.write(mapper.writeValueAsString(account));
                                     if (isRait && availableNames.contains(fileHeader.getFileName())) {
                                         if (account.getLikes() != null) {
-                                            account.setLikesArr(account.getLikes().stream().map(like -> String.valueOf(like.getId())).collect(Collectors.toList()));
+                                            account.setLikesArr(account.getLikes().stream().map(Like::getId).collect(Collectors.toList()));
                                             account.setLikes(null);
                                         }
                                         account.setJoined(null);
                                         list.add(account);
                                     } else if (!isRait && fileHeader.getFileName().equals("accounts_1.json")) {
                                         if (account.getLikes() != null) {
-                                            account.setLikesArr(account.getLikes().stream().map(like -> String.valueOf(like.getId())).collect(Collectors.toList()));
+                                            account.setLikesArr(account.getLikes().stream().map(Like::getId).collect(Collectors.toList()));
                                             account.setLikes(null);
                                         }
                                         account.setJoined(null);

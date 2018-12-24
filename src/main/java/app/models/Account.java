@@ -35,7 +35,7 @@ public class Account {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Like> likes;
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<String> likesArr;
+    private List<Integer> likesArr;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer birth;
     @JsonInclude(JsonInclude.Include.NON_NULL)
