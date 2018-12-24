@@ -10,10 +10,7 @@ import net.lingala.zip4j.model.FileHeader;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -35,8 +32,8 @@ public class Repository {
 
     private static final List<String> availableNames =
             Arrays.asList("accounts_50.json"
-                    /*,"accounts_49.json"
-                    ,"accounts_48.json"
+                    ,"accounts_49.json"
+                    /*,"accounts_48.json"
                     ,"accounts_47.json"
                     ,"accounts_46.json"
                     ,"accounts_45.json"
@@ -48,9 +45,14 @@ public class Repository {
                     );
 
     static final Object PRESENT = new Object();
-    static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
-    static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
-    static final ConcurrentSkipListSet<Account> list = new ConcurrentSkipListSet<>(Comparator.comparing(Account::getId).reversed());
+    static final Map<String,Object> ids = Collections.synchronizedMap(new HashMap<>());
+    static final Map<String,Object> emails = Collections.synchronizedMap(new HashMap<>());
+    static final NavigableSet<Account> list = Collections.synchronizedNavigableSet(new TreeSet<>(Comparator.comparing(Account::getId).reversed()));
+    //static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
+    //static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
+    //static final ConcurrentSkipListSet<Account> list = new ConcurrentSkipListSet<>(Comparator.comparing(Account::getId).reversed());
+
+
     //static final ConcurrentHashMap<String,Object> cityDir = new ConcurrentHashMap<>();
     //static final ConcurrentHashMap<String,Object> countryDir = new ConcurrentHashMap<>();
     //static final ConcurrentHashMap<String,Object> interestDir = new ConcurrentHashMap<>();
