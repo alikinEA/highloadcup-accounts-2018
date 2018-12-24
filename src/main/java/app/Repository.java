@@ -3,6 +3,7 @@ package app;
 import app.models.Account;
 import app.models.Accounts;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jsoniter.JsonIterator;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
 
@@ -14,6 +15,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -48,7 +50,7 @@ public class Repository {
     static final Object PRESENT = new Object();
     static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
     static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
-    static final CopyOnWriteArrayList<Account> list = new CopyOnWriteArrayList<>();
+    static final ConcurrentSkipListSet<Account> list = new ConcurrentSkipListSet<>(Comparator.comparing(Account::getId).reversed());
     //static final ConcurrentHashMap<String,Object> cityDir = new ConcurrentHashMap<>();
     //static final ConcurrentHashMap<String,Object> countryDir = new ConcurrentHashMap<>();
     //static final ConcurrentHashMap<String,Object> interestDir = new ConcurrentHashMap<>();
@@ -88,7 +90,7 @@ public class Repository {
                                         .readValue(zipFile.getInputStream(fileHeader), Accounts.class)
                                         .getAccounts();
                                 if (availableNames.contains(fileHeader.getFileName()) || fileHeader.getFileName().equals("accounts_1.json")) {
-                                    accounts.sort(Comparator.comparingInt(Account::getId).reversed());
+                                   // accounts.sort(Comparator.comparingInt(Account::getId).reversed());
                                 }
                                 for (Account account : accounts) {
                                     emails.put(account.getEmail(),PRESENT);

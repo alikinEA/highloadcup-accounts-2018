@@ -4,6 +4,8 @@ import app.models.*;
 import app.server.Server;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jsoniter.JsonIterator;
+import com.jsoniter.spi.JsonException;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.internal.StringUtil;
@@ -129,7 +131,8 @@ public class Service {
         }
         if (Repository.ids.containsKey(curId)) {
             try {
-                Account account = mapper.readValue(req.content().toString(StandardCharsets.UTF_8),Account.class);
+                Account account = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8),Account.class);
+               // Account account = mapper.readValue(req.content().toString(StandardCharsets.UTF_8),Account.class);
                 if (account.getSex() != null) {
                     if (!account.getSex().equals(F)
                             && !account.getSex().equals(M)) {
@@ -151,10 +154,28 @@ public class Service {
                         return BAD_REQUEST;
                     } else {
                         Repository.emails.put(account.getEmail(),Repository.PRESENT);
+                        account.setId(Integer.parseInt(curId));
+                        Account accountData = Repository.list.ceiling(account);
+                        if (accountData != null) {
+                            if (account.getLikes() != null) {
+                                accountData.setLikesArr(account.getLikes().stream().map(like -> String.valueOf(like.getId())).collect(Collectors.toList()));
+                            }
+                            accountData.setEmail(account.getEmail());
+                            accountData.setSex(account.getSex());
+                            accountData.setFname(account.getFname());
+                            accountData.setInterests(account.getInterests());
+                            accountData.setStatus(account.getStatus());
+                            accountData.setPremium(account.getPremium());
+                            accountData.setPhone(account.getPhone());
+                            accountData.setBirth(account.getBirth());
+                            accountData.setCity(account.getCity());
+                            accountData.setCountry(account.getCountry());
+                            accountData.setSname(account.getSname());
+                        }
                         return ACCEPTED;
                     }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 return BAD_REQUEST;
             }
         } else {
@@ -203,24 +224,42 @@ public class Service {
 
     private static Result handleLikes(FullHttpRequest req) {
         try {
-            LikesRequest likesReq = mapper.readValue(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
+            LikesRequest likesReq = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
+            //LikesRequest likesReq = mapper.readValue(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
             for (LikeRequest like : likesReq.getLikes()) {
-                if (like.getLiker() == null || !Repository.ids.containsKey(like.getLiker().toString())) {
+                if (like.getTs() == null) {
                     return BAD_REQUEST;
                 }
-                if (like.getLikee() == null || !Repository.ids.containsKey(like.getLikee().toString())) {
+                if (like.getLiker() == null
+                        || !Repository.ids.containsKey(like.getLiker().toString())) {
+                    return BAD_REQUEST;
+                }
+                if (like.getLikee() == null
+                        || !Repository.ids.containsKey(like.getLikee().toString())) {
                     return BAD_REQUEST;
                 }
             }
-        } catch (IOException e) {
+            for (LikeRequest like : likesReq.getLikes()) {
+                Account account = new Account();
+                account.setId(like.getLiker());
+                Account accountData = Repository.list.ceiling(account);
+                if (accountData != null) {
+                    accountData.getLikesArr().add(like.getLikee().toString());
+                }
+            }
+            return ACCEPTED;
+        } catch (JsonException e) {
             return BAD_REQUEST;
+        } catch (Exception e) {
+            System.out.println(Arrays.toString(e.getStackTrace()));
+            return ACCEPTED;
         }
-        return ACCEPTED;
     }
 
     private static Result handleNew(FullHttpRequest req) {
         try {
-            Account account = mapper.readValue(req.content().toString(StandardCharsets.UTF_8),Account.class);
+            Account account = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8),Account.class);
+            //Account account = mapper.readValue(req.content().toString(StandardCharsets.UTF_8),Account.class);
             if (account.getId() == null) {
                 return BAD_REQUEST;
             }
@@ -251,13 +290,18 @@ public class Service {
                 if (Repository.emails.containsKey(account.getEmail())) {
                     return BAD_REQUEST;
                 } else {
-                    Repository.emails.put(account.getEmail(),Repository.PRESENT);
                     Repository.ids.put(account.getId().toString(),Repository.PRESENT);
-                    //todo swap полями в листе
+                    Repository.emails.put(account.getEmail(),Repository.PRESENT);
+                    if (account.getLikes() != null) {
+                        account.setLikesArr(account.getLikes().stream().map(like -> String.valueOf(like.getId())).collect(Collectors.toList()));
+                        account.setLikes(null);
+                    }
+                    account.setJoined(null);
+                    Repository.list.add(account);
                     return CREATED;
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             return BAD_REQUEST;
         }
         return CREATED;
