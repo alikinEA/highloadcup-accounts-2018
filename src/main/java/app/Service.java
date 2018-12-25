@@ -43,10 +43,9 @@ public class Service {
     private static final String INTERESTS = "interests";
     private static final String LIKES = "likes";
     private static final String PREMIUM = "premium";
-    private static final String ID = "id";
     private static final String QUERY_ID = "query_id";
     private static final String LIMIT = "limit";
-    private static final String ORDER = "order";
+    //private static final String ORDER = "order";
     private static final String KEYS = "keys";
 
 
@@ -89,8 +88,8 @@ public class Service {
     private static final String delim2 = "=";
     private static final char delim3 = '?';
     private static final String delim4 = "/?";
-    private static final String delim5 = "1";
-    private static final String delim6 = "-1";
+    //private static final String delim5 = "1";
+    //private static final String delim6 = "-1";
     private static final String delim7 = "@";
     private static final String delim8 = "&";
     private static final String delim9 = "_";
@@ -153,7 +152,6 @@ public class Service {
                     if (Repository.emails.containsKey(account.getEmail())) {
                         return BAD_REQUEST;
                     } else {
-                        Repository.emails.put(account.getEmail(),Repository.PRESENT);
                         account.setId(Integer.parseInt(curId));
                         Account accountData = Repository.list.ceiling(account);
                         if (accountData != null) {
@@ -169,17 +167,41 @@ public class Service {
                                 }
                                 accountData.setLikesArr(likesNew);
                             }
-                            accountData.setEmail(account.getEmail());
-                            accountData.setSex(account.getSex());
-                            accountData.setFname(account.getFname());
-                            accountData.setInterests(account.getInterests());
-                            accountData.setStatus(account.getStatus());
-                            accountData.setPremium(account.getPremium());
-                            accountData.setPhone(account.getPhone());
-                            accountData.setBirth(account.getBirth());
-                            accountData.setCity(account.getCity());
-                            accountData.setCountry(account.getCountry());
-                            accountData.setSname(account.getSname());
+                            if (account.getEmail() != null) {
+                                Repository.emails.remove(accountData.getEmail());
+                                Repository.emails.put(account.getEmail(),Repository.PRESENT);
+                                accountData.setEmail(account.getEmail());
+                            }
+                            if (account.getSex() != null) {
+                                accountData.setSex(account.getSex());
+                            }
+                            if (account.getFname() != null) {
+                                accountData.setFname(account.getFname());
+                            }
+                            if (account.getInterests() != null) {
+                                accountData.setInterests(account.getInterests());
+                            }
+                            if (account.getStatus() != null) {
+                                accountData.setStatus(account.getStatus());
+                            }
+                            if (account.getPremium() != null) {
+                                accountData.setPremium(account.getPremium());
+                            }
+                            if (account.getPhone() != null) {
+                                accountData.setPhone(account.getPhone());
+                            }
+                            if (account.getBirth() != null) {
+                                accountData.setBirth(account.getBirth());
+                            }
+                            if (account.getCity() != null) {
+                                accountData.setCity(account.getCity());
+                            }
+                            if (account.getCountry() != null) {
+                                accountData.setCountry(account.getCountry());
+                            }
+                            if (account.getSname() != null) {
+                                accountData.setSname(account.getSname());
+                            }
                         }
                         return ACCEPTED;
                     }
