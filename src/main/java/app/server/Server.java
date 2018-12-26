@@ -34,7 +34,6 @@ public class Server {
     }
 
     public static void main(String[] args) throws Exception {
-        printCurrentMemoryUsage();
         Repository.initData();
         printCurrentMemoryUsage();
         new Server().run();

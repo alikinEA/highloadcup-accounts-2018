@@ -156,12 +156,7 @@ public class Service {
                         Account accountData = Repository.list.ceiling(account);
                         if (accountData != null) {
                             if (account.getLikes() != null) {
-                                List<Integer> likesNew;
-                                if (accountData.getLikesArr() != null) {
-                                    likesNew = accountData.getLikesArr();
-                                } else {
-                                    likesNew = new ArrayList<>(10);
-                                }
+                                List<Integer> likesNew = new ArrayList<>(10);
                                 for (Like like : account.getLikes()) {
                                     likesNew.add(like.getId());
                                 }
@@ -327,13 +322,7 @@ public class Service {
                     Repository.ids.put(account.getId().toString(),Repository.PRESENT);
                     Repository.emails.put(account.getEmail(),Repository.PRESENT);
                     if (account.getLikes() != null) {
-                        List<Integer> likesNew;
-                        if (account.getLikesArr() != null) {
-                            likesNew = account.getLikesArr();
-                            likesNew.clear();
-                        } else {
-                            likesNew = new ArrayList<>(10);
-                        }
+                        List<Integer> likesNew = new ArrayList<>(10);
                         for (Like like : account.getLikes()) {
                             likesNew.add(like.getId());
                         }
