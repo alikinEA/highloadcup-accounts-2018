@@ -99,7 +99,7 @@ public class Service {
 
     public static Result handle(FullHttpRequest req) {
         if (req.uri().startsWith(URI_FILTER)) {
-            return handleFilterv2(req);
+            return handleFilterv2(req.uri());
         } else if (req.uri().startsWith(URI_NEW)) {
             if (req.uri().substring(14).charAt(0) != delim3) {
                 return NOT_FOUND;
@@ -470,8 +470,8 @@ public class Service {
         return param.substring(param.indexOf(delim9) + 1,param.indexOf(delim2));
     }
 
-    private static Result handleFilterv2(FullHttpRequest req) {
-        List<String> params = getTokens(req.uri().substring(18),delim8);
+    public static Result handleFilterv2(String uri) {
+        List<String> params = getTokens(uri.substring(18),delim8);
         int i = 0;
         int limit = 0;
         for (String param : params) {

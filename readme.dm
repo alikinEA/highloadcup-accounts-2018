@@ -4,6 +4,11 @@ docker build -t highloadcup2019 . --force-rm=true
 docker tag highloadcup2019 stor.highloadcup.ru/accounts/naive_owl
 docker push stor.highloadcup.ru/accounts/naive_owl
 
+docker build -t highloadcup2019 . --force-rm=true
+docker tag highloadcup2019 stor.highloadcup.ru/accounts/skilled_dolphin
+docker push stor.highloadcup.ru/accounts/skilled_dolphin
+
+
 docker run -d -p 8099:80 --name highloadcup2019 -t highloadcup2019
 docker rm -f highloadcup2019
 

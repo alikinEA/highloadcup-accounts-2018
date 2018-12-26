@@ -49,7 +49,7 @@ public class Server {
                     .channel(EpollServerSocketChannel.class)
                     //.handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new HttpServerInitializer())
-                    .option(ChannelOption.SO_BACKLOG, 512)
+                    //.option(ChannelOption.SO_BACKLOG, 512)
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
                     .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2_000);
 

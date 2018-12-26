@@ -30,7 +30,7 @@ public class Repository {
     //public static final List<String> fileNames = new ArrayList<>();
 
     private static final List<String> availableNames =
-            Arrays.asList("accounts_50.json"
+            Arrays.asList("accounts_130.json"
                     /*,"accounts_49.json"
                     ,"accounts_48.json"
                     ,"accounts_47.json"
@@ -42,6 +42,12 @@ public class Repository {
                     ,"accounts_41.json"
                     ,"accounts_40.json"*/
                     );
+    private static final List<String> availableNamesTest =
+            Arrays.asList("accounts_1.json"
+                    ,"accounts_2.json"
+                    ,"accounts_3.json"
+
+            );
     private static final int elementCount = availableNames.size() * 10_000 + 11_000;
 
     static final Object PRESENT = new Object();
@@ -91,6 +97,7 @@ public class Repository {
                     try {
                         FileHeader fileHeader = (FileHeader)item;
                         if (fileHeader.getFileName().contains("accounts")) {
+                                System.out.println(fileHeader.getFileName());
                                 List<Account> accounts = mapper
                                         .readValue(zipFile.getInputStream(fileHeader), Accounts.class)
                                         .getAccounts();
@@ -107,7 +114,7 @@ public class Repository {
                                         /*if (account.getSex().equals(Service.F) && account.getStatus().equals(Service.STATUS1)) {
                                             list_f_status1.add(account);
                                         }*/
-                                    } else if (!isRait && fileHeader.getFileName().equals("accounts_1.json")) {
+                                    } else if (!isRait && availableNamesTest.contains(fileHeader.getFileName())) {
                                         if (account.getLikes() != null) {
                                             account.setLikesArr(account.getLikes().stream().map(Like::getId).collect(Collectors.toList()));
                                             account.setLikes(null);
@@ -130,8 +137,12 @@ public class Repository {
             System.out.println("list ids = " + ids.size());
             System.out.println("list emails = " + emails.size());
             System.out.println("list size = " + list.size());
-            System.out.println("End unzip");
             System.gc();//¯\_(ツ)_/¯
+            for (int i = 0; i < 1000; i++) {
+                Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
+            }
+            System.gc();//¯\_(ツ)_/¯
+            System.out.println("End ");
         } catch (Exception e) {
             e.printStackTrace();
         }
