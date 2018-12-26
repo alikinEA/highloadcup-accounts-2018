@@ -1,12 +1,13 @@
 package app.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by Alikin E.A. on 13.12.18.
@@ -15,7 +16,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Account {
+public class Account implements Comparable<Account>{
 
     private String email;
     private Integer id;
@@ -46,4 +47,24 @@ public class Account {
     private Integer joined;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String sname;
+
+    // Two Employees are equal if their IDs are equal
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return id == account.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public int compareTo(Account account) {
+        return this.getId() - account.getId();
+    }
+
 }

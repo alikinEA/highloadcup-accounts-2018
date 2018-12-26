@@ -74,13 +74,13 @@ public class Service {
     private static final String URI_RECOMENDED = "/recommend";
     private static final String ACCOUNTS =  "/accounts/";
 
-    private static final String F =  "f";
-    private static final String M =  "m";
+    public static final String F =  "f";
+    public static final String M =  "m";
 
 
-    private static final String STATUS1 = "свободны";
-    private static final String STATUS2 = "всё сложно";
-    private static final String STATUS3 = "заняты";
+    public static final String STATUS1 = "свободны";
+    public static final String STATUS2 = "всё сложно";
+    public static final String STATUS3 = "заняты";
 
 
     private static final String utf8 = "UTF-8";
@@ -153,50 +153,55 @@ public class Service {
                         return BAD_REQUEST;
                     } else {
                         account.setId(Integer.parseInt(curId));
-                        Account accountData = Repository.list.ceiling(account);
-                        if (accountData != null) {
-                            if (account.getLikes() != null) {
-                                List<Integer> likesNew = new ArrayList<>(10);
-                                for (Like like : account.getLikes()) {
-                                    likesNew.add(like.getId());
+                        Repository.lock.writeLock().lock();
+                        try {
+                            Account accountData = Repository.list.ceiling(account);
+                            if (accountData != null) {
+                                if (account.getLikes() != null) {
+                                    List<Integer> likesNew = new ArrayList<>(10);
+                                    for (Like like : account.getLikes()) {
+                                        likesNew.add(like.getId());
+                                    }
+                                    accountData.setLikesArr(likesNew);
                                 }
-                                accountData.setLikesArr(likesNew);
+                                if (account.getEmail() != null) {
+                                    Repository.emails.remove(accountData.getEmail());
+                                    Repository.emails.put(account.getEmail(), Repository.PRESENT);
+                                    accountData.setEmail(account.getEmail());
+                                }
+                                if (account.getSex() != null) {
+                                    accountData.setSex(account.getSex());
+                                }
+                                if (account.getFname() != null) {
+                                    accountData.setFname(account.getFname());
+                                }
+                                if (account.getInterests() != null) {
+                                    accountData.setInterests(account.getInterests());
+                                }
+                                if (account.getStatus() != null) {
+                                    accountData.setStatus(account.getStatus());
+                                }
+                                if (account.getPremium() != null) {
+                                    accountData.setPremium(account.getPremium());
+                                }
+                                if (account.getPhone() != null) {
+                                    accountData.setPhone(account.getPhone());
+                                }
+                                if (account.getBirth() != null) {
+                                    accountData.setBirth(account.getBirth());
+                                }
+                                if (account.getCity() != null) {
+                                    accountData.setCity(account.getCity());
+                                }
+                                if (account.getCountry() != null) {
+                                    accountData.setCountry(account.getCountry());
+                                }
+                                if (account.getSname() != null) {
+                                    accountData.setSname(account.getSname());
+                                }
                             }
-                            if (account.getEmail() != null) {
-                                Repository.emails.remove(accountData.getEmail());
-                                Repository.emails.put(account.getEmail(),Repository.PRESENT);
-                                accountData.setEmail(account.getEmail());
-                            }
-                            if (account.getSex() != null) {
-                                accountData.setSex(account.getSex());
-                            }
-                            if (account.getFname() != null) {
-                                accountData.setFname(account.getFname());
-                            }
-                            if (account.getInterests() != null) {
-                                accountData.setInterests(account.getInterests());
-                            }
-                            if (account.getStatus() != null) {
-                                accountData.setStatus(account.getStatus());
-                            }
-                            if (account.getPremium() != null) {
-                                accountData.setPremium(account.getPremium());
-                            }
-                            if (account.getPhone() != null) {
-                                accountData.setPhone(account.getPhone());
-                            }
-                            if (account.getBirth() != null) {
-                                accountData.setBirth(account.getBirth());
-                            }
-                            if (account.getCity() != null) {
-                                accountData.setCity(account.getCity());
-                            }
-                            if (account.getCountry() != null) {
-                                accountData.setCountry(account.getCountry());
-                            }
-                            if (account.getSname() != null) {
-                                accountData.setSname(account.getSname());
-                            }
+                        } finally {
+                            Repository.lock.writeLock().unlock();
                         }
                         return ACCEPTED;
                     }
@@ -265,20 +270,26 @@ public class Service {
                     return BAD_REQUEST;
                 }
             }
-            for (LikeRequest like : likesReq.getLikes()) {
-                Account account = new Account();
-                account.setId(like.getLiker());
-                Account accountData = Repository.list.ceiling(account);
-                if (accountData != null) {
-                    if (accountData.getLikesArr() == null) {
-                        List<Integer> likesArr = new ArrayList<>(20);
-                        likesArr.add(like.getLikee());
-                        accountData.setLikesArr(likesArr);
-                    } else {
-                        accountData.getLikesArr().add(like.getLikee());
+            try {
+                Repository.lock.writeLock().lock();
+                for (LikeRequest like : likesReq.getLikes()) {
+                    Account account = new Account();
+                    account.setId(like.getLiker());
+                    Account accountData = Repository.list.ceiling(account);
+                    if (accountData != null) {
+                        if (accountData.getLikesArr() == null) {
+                            List<Integer> likesArr = new ArrayList<>(20);
+                            likesArr.add(like.getLikee());
+                            accountData.setLikesArr(likesArr);
+                        } else {
+                            accountData.getLikesArr().add(like.getLikee());
+                        }
                     }
                 }
+            } finally {
+                Repository.lock.writeLock().unlock();
             }
+
             return ACCEPTED;
         } catch (Exception e) {
             return BAD_REQUEST;
@@ -330,7 +341,12 @@ public class Service {
                         account.setLikes(null);
                     }
                     account.setJoined(null);
-                    Repository.list.add(account);
+                    try {
+                        Repository.lock.writeLock().lock();
+                        Repository.list.add(account);
+                    } finally {
+                        Repository.lock.writeLock().unlock();
+                    }
                     return CREATED;
                 }
             }
@@ -476,322 +492,346 @@ public class Service {
         }
         Map<String,Object> enableProp = new HashMap<>(valueCache.size());
         List<Account> accounts = new ArrayList<>(limit);
-
-        for (Account account : Repository.list) {
-            if (i == limit) {
-                break;
-            }
-            enableProp.clear();
-            for (String param : params) {
-                //SEX ============================================
-                if (param.startsWith(SEX)) {
-                    if (account.getSex().equals(valueCache.get(param))) {
-                        enableProp.put(SEX,Repository.PRESENT);
-                    } else {
-                        break;
-                    }
+        try {
+            Repository.lock.readLock().lock();
+            for (Account account : Repository.list) {
+                if (i == limit) {
+                    break;
                 }
-                //SEX ============================================
-
-                //EMAIL ============================================
-                if (param.startsWith(EMAIL)) {
-                    String predicate = predicateCache.get(param);
-                    if (predicate.equals(DOMAIN_PR)) {
-                        if (account.getEmail().contains(valueCache.get(param))) {
-                            enableProp.put(EMAIL,Repository.PRESENT);
-                        } else {
-                            break;
-                        }
-                    } else if (predicate.equals(LT_PR)) {
-                        if (account.getEmail().compareTo(valueCache.get(param)) < 0) {
-                            enableProp.put(EMAIL,Repository.PRESENT);
-                        } else {
-                            break;
-                        }
-                    } else if (predicate.equals(GT_PR)) {
-                        if (account.getEmail().compareTo(valueCache.get(param)) > 0) {
-                            enableProp.put(EMAIL,Repository.PRESENT);
+                enableProp.clear();
+                for (String param : params) {
+                    //SEX ============================================
+                    if (param.startsWith(SEX)) {
+                        if (account.getSex().equals(valueCache.get(param))) {
+                            enableProp.put(SEX,Repository.PRESENT);
                         } else {
                             break;
                         }
                     }
-                }
-                //EMAIL ============================================
+                    //SEX ============================================
 
-                //STATUS ============================================
-                if (param.startsWith(STATUS)) {
-                    String predicate = predicateCache.get(param);
-                    if (predicate.equals(EQ_PR)) {
-                        if (account.getStatus().equals(valueCache.get(param))) {
-                            enableProp.put(STATUS,Repository.PRESENT);
-                        } else {
-                            break;
-                        }
-                    } else if (predicate.equals(NEQ_PR)) {
-                        if (!account.getStatus().equals(valueCache.get(param))) {
-                            enableProp.put(STATUS,Repository.PRESENT);
-                        } else {
-                            break;
+                    //EMAIL ============================================
+                    if (param.startsWith(EMAIL)) {
+                        String predicate = predicateCache.get(param);
+                        if (predicate.equals(DOMAIN_PR)) {
+                            if (account.getEmail().contains(valueCache.get(param))) {
+                                enableProp.put(EMAIL,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
+                        } else if (predicate.equals(LT_PR)) {
+                            if (account.getEmail().compareTo(valueCache.get(param)) < 0) {
+                                enableProp.put(EMAIL,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
+                        } else if (predicate.equals(GT_PR)) {
+                            if (account.getEmail().compareTo(valueCache.get(param)) > 0) {
+                                enableProp.put(EMAIL,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
                         }
                     }
-                }
-                //STATUS ============================================
+                    //EMAIL ============================================
 
-
-
-                //SNAME ============================================
-                if (param.startsWith(SNAME)) {
-                    String predicate = predicateCache.get(param);
-
-                    if (predicate.equals(EQ_PR)) {
-                        if (valueCache.get(param).equals(account.getSname())) {
-                            enableProp.put(SNAME,Repository.PRESENT);
-                        } else {
-                            break;
+                    //STATUS ============================================
+                    if (param.startsWith(STATUS)) {
+                        String predicate = predicateCache.get(param);
+                        if (predicate.equals(EQ_PR)) {
+                            if (account.getStatus().equals(valueCache.get(param))) {
+                                enableProp.put(STATUS,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
+                        } else if (predicate.equals(NEQ_PR)) {
+                            if (!account.getStatus().equals(valueCache.get(param))) {
+                                enableProp.put(STATUS,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
                         }
-                    } else if (predicate.equals(NULL_PR)) {
-                        String value = valueCache.get(param);
-                        if (value.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getSname() == null) {
+                    }
+                    //STATUS ============================================
+
+
+
+                    //SNAME ============================================
+                    if (param.startsWith(SNAME)) {
+                        String predicate = predicateCache.get(param);
+
+                        if (predicate.equals(EQ_PR)) {
+                            if (valueCache.get(param).equals(account.getSname())) {
                                 enableProp.put(SNAME,Repository.PRESENT);
                             } else {
                                 break;
                             }
-                        } else {
-                            if (account.getSname() != null) {
-                                enableProp.put(SNAME,Repository.PRESENT);
+                        } else if (predicate.equals(NULL_PR)) {
+                            String value = valueCache.get(param);
+                            if (value.equals(NULL_PR_VAL_ONE)) {
+                                if (account.getSname() == null) {
+                                    enableProp.put(SNAME,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
                             } else {
-                                break;
-                            }
-                        }
-                    } else if (predicate.equals(STARTS_PR)) {
-                        if (account.getSname() != null)
-                            if (account.getSname().startsWith(valueCache.get(param))) {
-                                enableProp.put(SNAME,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                    }
-                }
-                //SNAME ============================================
-
-                //PHONE ============================================
-                if (param.startsWith(PHONE)) {
-                    String predicate = predicateCache.get(param);
-
-                    if (predicate.equals(CODE_PR)) {
-                        if (account.getPhone() != null) {
-                            if (account.getPhone()
-                                    .substring(account.getPhone().indexOf(delim10) + 1
-                                            , account.getPhone().indexOf(delim11))
-                                    .equals(valueCache.get(param))) {
-                                enableProp.put(PHONE,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        }
-                    } else if (predicate.equals(NULL_PR)) {
-                        String value = valueCache.get(param);
-                        if (value.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getPhone() == null) {
-                                enableProp.put(PHONE,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        } else {
-                            if (account.getPhone() != null) {
-                                enableProp.put(PHONE,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                }
-                //PHONE ============================================
-
-
-
-                //COUNTRY ============================================
-                if (param.startsWith(COUNTRY)) {
-                    String predicate = predicateCache.get(param);
-
-                    if (predicate.equals(EQ_PR)) {
-                        if (valueCache.get(param).equals(account.getCountry())) {
-                            enableProp.put(COUNTRY,Repository.PRESENT);
-                        } else {
-                            break;
-                        }
-                    } else if (predicate.equals(NULL_PR)) {
-                        String value = valueCache.get(param);
-                        if (value.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getCountry() == null) {
-                                enableProp.put(COUNTRY,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        } else {
-                            if (account.getCountry() != null) {
-                                enableProp.put(COUNTRY,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                }
-                //COUNTRY ============================================
-
-
-                //PREMIUM ============================================
-                if (param.startsWith(PREMIUM)) {
-                    String predicate = predicateCache.get(param);
-                    if (predicate.equals(NOW_PR)) {
-                        if (account.getPremium() != null) {
-                            if (Repository.currentTimeStamp2 < account.getPremium().getFinish()
-                                    && Repository.currentTimeStamp2 > account.getPremium().getStart()) {
-                                enableProp.put(PREMIUM,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        }
-                    } else if (predicate.equals(NULL_PR)) {
-                        String value = valueCache.get(param);
-                        if (value.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getPremium() == null) {
-                                enableProp.put(PREMIUM,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        } else {
-                            if (account.getPremium() != null) {
-                                enableProp.put(PREMIUM,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                }
-                //PREMIUM ============================================
-                //BIRTH ============================================
-                if (param.startsWith(BIRTH)) {
-                    String predicate = predicateCache.get(param);
-                    if (predicate.equals(YEAR_PR)) {
-                        Calendar calendar = new GregorianCalendar();
-                        calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
-                        if (Integer.parseInt(getValue(param)) == calendar.get(Calendar.YEAR)) {
-                            enableProp.put(BIRTH,Repository.PRESENT);
-                        } else {
-                            break;
-                        }
-                    } else if (predicate.equals(LT_PR)) {
-                        if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) < 0) {
-                            enableProp.put(BIRTH,Repository.PRESENT);
-                        } else {
-                            break;
-                        }
-                    } else if (predicate.equals(GT_PR)) {
-                        if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) > 0) {
-                            enableProp.put(BIRTH,Repository.PRESENT);
-                        } else {
-                            break;
-                        }
-                    }
-                }
-                //BIRTH ============================================
-
-                //CITY ============================================
-                if (param.startsWith(CITY)) {
-                    String predicate = predicateCache.get(param);
-
-                    if (predicate.equals(EQ_PR)) {
-                        if (getValue(param).equals(account.getCity())) {
-                            enableProp.put(CITY,Repository.PRESENT);
-                        } else {
-                            break;
-                        }
-                    } else if (predicate.equals(ANY_PR)) {
-                        StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
-                        while(t.hasMoreTokens()) {
-                            if (t.nextToken().equals(account.getCity())) {
-                                enableProp.put(CITY,Repository.PRESENT);
-                                break;
-                            }
-                        }
-                    } else if (predicate.equals(NULL_PR)) {
-                        String value = valueCache.get(param);
-                        if (value.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getCity() == null) {
-                                enableProp.put(CITY,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        } else {
-                            if (account.getCity() != null) {
-                                enableProp.put(CITY,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                }
-                //CITY ============================================
-
-
-                //FNAME ============================================
-                if (param.startsWith(FNAME)) {
-                    String predicate = predicateCache.get(param);
-
-                    if (predicate.equals(EQ_PR)) {
-                        if (valueCache.get(param).equals(account.getFname())) {
-                            enableProp.put(FNAME,Repository.PRESENT);
-                        } else {
-                            break;
-                        }
-                    } else if (predicate.equals(ANY_PR)) {
-                        StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
-                        while(t.hasMoreTokens()) {
-                            if (t.nextToken().equals(account.getFname())) {
-                                enableProp.put(FNAME,Repository.PRESENT);
-                                break;
-                            }
-                        }
-                    } else if (predicate.equals(NULL_PR)) {
-                        String value = valueCache.get(param);
-                        if (value.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getFname() == null) {
-                                enableProp.put(FNAME,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        } else {
-                            if (account.getFname() != null) {
-                                enableProp.put(FNAME,Repository.PRESENT);
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                }
-                //FNAME ============================================
-
-                //INTERESTS ============================================
-                if (param.startsWith(INTERESTS)) {
-                    String predicate = predicateCache.get(param);
-                    if (account.getInterests() != null) {
-                        if (predicate.equals(ANY_PR)) {
-                            StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
-                            while(t.hasMoreTokens()) {
-                                if (account.getInterests().contains(t.nextToken())) {
-                                    enableProp.put(INTERESTS,Repository.PRESENT);
+                                if (account.getSname() != null) {
+                                    enableProp.put(SNAME,Repository.PRESENT);
+                                } else {
                                     break;
                                 }
                             }
-                        } else if (predicate.equals(CONTAINS_PR)) {
+                        } else if (predicate.equals(STARTS_PR)) {
+                            if (account.getSname() != null)
+                                if (account.getSname().startsWith(valueCache.get(param))) {
+                                    enableProp.put(SNAME,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                        }
+                    }
+                    //SNAME ============================================
+
+                    //PHONE ============================================
+                    if (param.startsWith(PHONE)) {
+                        String predicate = predicateCache.get(param);
+
+                        if (predicate.equals(CODE_PR)) {
+                            if (account.getPhone() != null) {
+                                if (account.getPhone()
+                                        .substring(account.getPhone().indexOf(delim10) + 1
+                                                , account.getPhone().indexOf(delim11))
+                                        .equals(valueCache.get(param))) {
+                                    enableProp.put(PHONE,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            }
+                        } else if (predicate.equals(NULL_PR)) {
+                            String value = valueCache.get(param);
+                            if (value.equals(NULL_PR_VAL_ONE)) {
+                                if (account.getPhone() == null) {
+                                    enableProp.put(PHONE,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                if (account.getPhone() != null) {
+                                    enableProp.put(PHONE,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    //PHONE ============================================
+
+
+
+                    //COUNTRY ============================================
+                    if (param.startsWith(COUNTRY)) {
+                        String predicate = predicateCache.get(param);
+
+                        if (predicate.equals(EQ_PR)) {
+                            if (valueCache.get(param).equals(account.getCountry())) {
+                                enableProp.put(COUNTRY,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
+                        } else if (predicate.equals(NULL_PR)) {
+                            String value = valueCache.get(param);
+                            if (value.equals(NULL_PR_VAL_ONE)) {
+                                if (account.getCountry() == null) {
+                                    enableProp.put(COUNTRY,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                if (account.getCountry() != null) {
+                                    enableProp.put(COUNTRY,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    //COUNTRY ============================================
+
+
+                    //PREMIUM ============================================
+                    if (param.startsWith(PREMIUM)) {
+                        String predicate = predicateCache.get(param);
+                        if (predicate.equals(NOW_PR)) {
+                            if (account.getPremium() != null) {
+                                if (Repository.currentTimeStamp2 < account.getPremium().getFinish()
+                                        && Repository.currentTimeStamp2 > account.getPremium().getStart()) {
+                                    enableProp.put(PREMIUM,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            }
+                        } else if (predicate.equals(NULL_PR)) {
+                            String value = valueCache.get(param);
+                            if (value.equals(NULL_PR_VAL_ONE)) {
+                                if (account.getPremium() == null) {
+                                    enableProp.put(PREMIUM,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                if (account.getPremium() != null) {
+                                    enableProp.put(PREMIUM,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    //PREMIUM ============================================
+                    //BIRTH ============================================
+                    if (param.startsWith(BIRTH)) {
+                        String predicate = predicateCache.get(param);
+                        if (predicate.equals(YEAR_PR)) {
+                            Calendar calendar = new GregorianCalendar();
+                            calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
+                            if (Integer.parseInt(getValue(param)) == calendar.get(Calendar.YEAR)) {
+                                enableProp.put(BIRTH,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
+                        } else if (predicate.equals(LT_PR)) {
+                            if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) < 0) {
+                                enableProp.put(BIRTH,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
+                        } else if (predicate.equals(GT_PR)) {
+                            if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) > 0) {
+                                enableProp.put(BIRTH,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                    //BIRTH ============================================
+
+                    //CITY ============================================
+                    if (param.startsWith(CITY)) {
+                        String predicate = predicateCache.get(param);
+
+                        if (predicate.equals(EQ_PR)) {
+                            if (getValue(param).equals(account.getCity())) {
+                                enableProp.put(CITY,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
+                        } else if (predicate.equals(ANY_PR)) {
+                            StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
+                            while(t.hasMoreTokens()) {
+                                if (t.nextToken().equals(account.getCity())) {
+                                    enableProp.put(CITY,Repository.PRESENT);
+                                    break;
+                                }
+                            }
+                        } else if (predicate.equals(NULL_PR)) {
+                            String value = valueCache.get(param);
+                            if (value.equals(NULL_PR_VAL_ONE)) {
+                                if (account.getCity() == null) {
+                                    enableProp.put(CITY,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                if (account.getCity() != null) {
+                                    enableProp.put(CITY,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    //CITY ============================================
+
+
+                    //FNAME ============================================
+                    if (param.startsWith(FNAME)) {
+                        String predicate = predicateCache.get(param);
+
+                        if (predicate.equals(EQ_PR)) {
+                            if (valueCache.get(param).equals(account.getFname())) {
+                                enableProp.put(FNAME,Repository.PRESENT);
+                            } else {
+                                break;
+                            }
+                        } else if (predicate.equals(ANY_PR)) {
+                            StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
+                            while(t.hasMoreTokens()) {
+                                if (t.nextToken().equals(account.getFname())) {
+                                    enableProp.put(FNAME,Repository.PRESENT);
+                                    break;
+                                }
+                            }
+                        } else if (predicate.equals(NULL_PR)) {
+                            String value = valueCache.get(param);
+                            if (value.equals(NULL_PR_VAL_ONE)) {
+                                if (account.getFname() == null) {
+                                    enableProp.put(FNAME,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                if (account.getFname() != null) {
+                                    enableProp.put(FNAME,Repository.PRESENT);
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    //FNAME ============================================
+
+                    //INTERESTS ============================================
+                    if (param.startsWith(INTERESTS)) {
+                        String predicate = predicateCache.get(param);
+                        if (account.getInterests() != null) {
+                            if (predicate.equals(ANY_PR)) {
+                                StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
+                                while(t.hasMoreTokens()) {
+                                    if (account.getInterests().contains(t.nextToken())) {
+                                        enableProp.put(INTERESTS,Repository.PRESENT);
+                                        break;
+                                    }
+                                }
+                            } else if (predicate.equals(CONTAINS_PR)) {
+                                List<String> splitedValue = getTokens(valueCache.get(param),delim);
+                                if (splitedValue.size() <= account.getInterests().size()) {
+                                    enableProp.put(INTERESTS,Repository.PRESENT);
+                                    for (String value : splitedValue) {
+                                        if (!account.getInterests().contains(value)) {
+                                            enableProp.remove(INTERESTS);
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    break;
+                                }
+                            }
+
+                        }
+                    }
+                    //INTERESTS ============================================
+
+
+
+                    //LIKES ============================================
+                    if (param.startsWith(LIKES)) {
+                        if (account.getLikesArr() != null) {
                             List<String> splitedValue = getTokens(valueCache.get(param),delim);
-                            if (splitedValue.size() <= account.getInterests().size()) {
-                                enableProp.put(INTERESTS,Repository.PRESENT);
+                            if (splitedValue.size() <= account.getLikesArr().size()) {
+                                enableProp.put(LIKES,Repository.PRESENT);
                                 for (String value : splitedValue) {
-                                    if (!account.getInterests().contains(value)) {
-                                        enableProp.remove(INTERESTS);
+                                    if (!account.getLikesArr().contains(Integer.parseInt(value))) {
+                                        enableProp.remove(LIKES);
                                         break;
                                     }
                                 }
@@ -799,45 +839,25 @@ public class Service {
                                 break;
                             }
                         }
-
                     }
+                    //LIKES ============================================
+
                 }
-                //INTERESTS ============================================
-
-
-
-                //LIKES ============================================
-                if (param.startsWith(LIKES)) {
-                    if (account.getLikesArr() != null) {
-                        List<String> splitedValue = getTokens(valueCache.get(param),delim);
-                        if (splitedValue.size() <= account.getLikesArr().size()) {
-                            enableProp.put(LIKES,Repository.PRESENT);
-                            for (String value : splitedValue) {
-                                if (!account.getLikesArr().contains(Integer.parseInt(value))) {
-                                    enableProp.remove(LIKES);
-                                    break;
-                                }
-                            }
-                        } else {
-                            break;
+                enableProp.put(QUERY_ID,Repository.PRESENT);
+                enableProp.put(LIMIT,Repository.PRESENT);
+                if (compareArrays(params,enableProp)) {
+                    if (finalFieldSet == null) {
+                        finalFieldSet = new HashMap<>(enableProp.size());
+                        for (String key : enableProp.keySet()) {
+                            finalFieldSet.put(key,Repository.PRESENT);
                         }
                     }
+                    accounts.add(account);
+                    i++;
                 }
-                //LIKES ============================================
-
             }
-            enableProp.put(QUERY_ID,Repository.PRESENT);
-            enableProp.put(LIMIT,Repository.PRESENT);
-            if (compareArrays(params,enableProp)) {
-                if (finalFieldSet == null) {
-                    finalFieldSet = new HashMap<>(enableProp.size());
-                    for (String key : enableProp.keySet()) {
-                        finalFieldSet.put(key,Repository.PRESENT);
-                    }
-                }
-                accounts.add(account);
-                i++;
-            }
+        } finally {
+            Repository.lock.readLock().unlock();
         }
         try {
             return new Result(accountToString(accounts,finalFieldSet).getBytes(utf8),HttpResponseStatus.OK);

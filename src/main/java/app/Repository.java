@@ -11,6 +11,8 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +47,9 @@ public class Repository {
     static final Object PRESENT = new Object();
     static final Map<String,Object> ids = Collections.synchronizedMap(new HashMap<>(elementCount));
     static final Map<String,Object> emails = Collections.synchronizedMap(new HashMap<>(elementCount));
-    static final NavigableSet<Account> list = Collections.synchronizedNavigableSet(new TreeSet<>(Comparator.comparing(Account::getId).reversed()));
+    static final NavigableSet<Account> list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    //static final NavigableSet<Account> list_f_status1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final ReadWriteLock lock = new ReentrantReadWriteLock(true);
     //static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
     //static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
     //static final ConcurrentSkipListSet<Account> list = new ConcurrentSkipListSet<>(Comparator.comparing(Account::getId).reversed());
@@ -81,6 +85,7 @@ public class Repository {
                 e.printStackTrace();
             }
             ZipFile zipFile = new ZipFile(dataPath + "data.zip");
+            lock.writeLock().lock();
             zipFile.getFileHeaders().stream().forEach(item -> {
                 if (item != null) {
                     try {
@@ -99,6 +104,9 @@ public class Repository {
                                         }
                                         account.setJoined(null);
                                         list.add(account);
+                                        /*if (account.getSex().equals(Service.F) && account.getStatus().equals(Service.STATUS1)) {
+                                            list_f_status1.add(account);
+                                        }*/
                                     } else if (!isRait && fileHeader.getFileName().equals("accounts_1.json")) {
                                         if (account.getLikes() != null) {
                                             account.setLikesArr(account.getLikes().stream().map(Like::getId).collect(Collectors.toList()));
@@ -106,6 +114,9 @@ public class Repository {
                                         }
                                         account.setJoined(null);
                                         list.add(account);
+                                        /*if (account.getSex().equals(Service.F) && account.getStatus().equals(Service.STATUS1)) {
+                                            list_f_status1.add(account);
+                                        }*/
                                     }
                                 }
                                 accounts = null;
@@ -115,6 +126,7 @@ public class Repository {
                     }
                 }
             });
+            lock.writeLock().unlock();
             System.out.println("list ids = " + ids.size());
             System.out.println("list emails = " + emails.size());
             System.out.println("list size = " + list.size());
