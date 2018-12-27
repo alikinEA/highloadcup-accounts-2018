@@ -328,6 +328,13 @@ public class Service {
                     } else {
                         Repository.list_f.add(account);
                     }
+                    if (account.getStatus().equals(Service.STATUS1)) {
+                        Repository.list_status_1.add(account);
+                    } else if (account.getStatus().equals(Service.STATUS2)) {
+                        Repository.list_status_2.add(account);
+                    } else {
+                        Repository.list_status_3.add(account);
+                    }
                     Repository.ids.put(account.getId().toString(), Repository.PRESENT);
                     Repository.emails.put(account.getEmail(), Repository.PRESENT);
                     return CREATED;
@@ -470,6 +477,15 @@ public class Service {
                     return BAD_REQUEST;
                 } else {
                     fillValueCacheValue(param, valueCache);
+                    if (param.startsWith(STATUS)) {
+                        if (valueCache.get(param).equals(Service.STATUS1)) {
+                            listForRearch = Repository.list_status_1;
+                        } else if (valueCache.get(param).equals(Service.STATUS2)) {
+                            listForRearch = Repository.list_status_2;
+                        } else {
+                            listForRearch = Repository.list_status_3;
+                        }
+                    }
                     if (param.startsWith(SEX)) {
                         if (valueCache.get(param).equals(M)) {
                             listForRearch = Repository.list_m;
@@ -477,6 +493,7 @@ public class Service {
                             listForRearch = Repository.list_f;
                         }
                     }
+
                 }
             }
             Map<String, Object> enableProp = new HashMap<>(valueCache.size());

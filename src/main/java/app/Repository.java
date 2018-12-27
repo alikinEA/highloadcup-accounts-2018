@@ -41,6 +41,9 @@ public class Repository {
     static final TreeSet<Account> list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> list_status_1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> list_status_2 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> list_status_3 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     //static final NavigableSet<Account> list_f_status1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     //static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
     //static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
@@ -84,6 +87,13 @@ public class Repository {
                                     } else {
                                         list_f.add(account);
                                     }
+                                    if (account.getStatus().equals(Service.STATUS1)) {
+                                        list_status_1.add(account);
+                                    } else if (account.getStatus().equals(Service.STATUS2)) {
+                                        list_status_2.add(account);
+                                    } else {
+                                        list_status_3.add(account);
+                                    }
                                  }
                                 if (!isRait && availableNamesTest.contains(fileHeader.getFileName())) {
                                     list.add(account);
@@ -91,6 +101,13 @@ public class Repository {
                                         list_m.add(account);
                                     } else {
                                         list_f.add(account);
+                                    }
+                                    if (account.getStatus().equals(Service.STATUS1)) {
+                                        list_status_1.add(account);
+                                    } else if (account.getStatus().equals(Service.STATUS2)) {
+                                        list_status_2.add(account);
+                                    } else {
+                                        list_status_3.add(account);
                                     }
                                 }
                             }
