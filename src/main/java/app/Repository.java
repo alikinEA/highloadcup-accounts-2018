@@ -44,6 +44,15 @@ public class Repository {
     static final TreeSet<Account> list_status_1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_status_2 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_status_3 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+
+    static final TreeSet<Account> list_status_1_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> list_status_2_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> list_status_3_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+
+    static final TreeSet<Account> list_status_1_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> list_status_2_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> list_status_3_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+
     //static final NavigableSet<Account> list_f_status1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     //static final ConcurrentHashMap<String,Object> ids = new ConcurrentHashMap<>();
     //static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
@@ -94,6 +103,37 @@ public class Repository {
                                     } else {
                                         list_status_3.add(account);
                                     }
+
+                                    if (account.getSex().equals(Service.M)
+                                            && account.getStatus().equals(Service.STATUS1)) {
+                                        list_status_1_m.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.M)
+                                            && account.getStatus().equals(Service.STATUS2)) {
+                                        list_status_2_m.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.M)
+                                            && account.getStatus().equals(Service.STATUS3)) {
+                                        list_status_3_m.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.F)
+                                            && account.getStatus().equals(Service.STATUS1)) {
+                                        list_status_1_f.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.F)
+                                            && account.getStatus().equals(Service.STATUS2)) {
+                                        list_status_2_f.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.F)
+                                            && account.getStatus().equals(Service.STATUS3)) {
+                                        list_status_3_f.add(account);
+                                    }
+
                                  }
                                 if (!isRait && availableNamesTest.contains(fileHeader.getFileName())) {
                                     list.add(account);
@@ -108,6 +148,36 @@ public class Repository {
                                         list_status_2.add(account);
                                     } else {
                                         list_status_3.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.M)
+                                            && account.getStatus().equals(Service.STATUS1)) {
+                                        list_status_1_m.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.M)
+                                            && account.getStatus().equals(Service.STATUS2)) {
+                                        list_status_2_m.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.M)
+                                            && account.getStatus().equals(Service.STATUS3)) {
+                                        list_status_3_m.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.F)
+                                            && account.getStatus().equals(Service.STATUS1)) {
+                                        list_status_1_f.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.F)
+                                            && account.getStatus().equals(Service.STATUS2)) {
+                                        list_status_2_f.add(account);
+                                    }
+
+                                    if (account.getSex().equals(Service.F)
+                                            && account.getStatus().equals(Service.STATUS3)) {
+                                        list_status_3_f.add(account);
                                     }
                                 }
                             }

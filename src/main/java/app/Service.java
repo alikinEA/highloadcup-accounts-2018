@@ -335,6 +335,36 @@ public class Service {
                     } else {
                         Repository.list_status_3.add(account);
                     }
+
+                    if (account.getSex().equals(Service.M)
+                            && account.getStatus().equals(Service.STATUS1)) {
+                        Repository.list_status_1_m.add(account);
+                    }
+
+                    if (account.getSex().equals(Service.M)
+                            && account.getStatus().equals(Service.STATUS2)) {
+                        Repository.list_status_2_m.add(account);
+                    }
+
+                    if (account.getSex().equals(Service.M)
+                            && account.getStatus().equals(Service.STATUS3)) {
+                        Repository.list_status_3_m.add(account);
+                    }
+
+                    if (account.getSex().equals(Service.F)
+                            && account.getStatus().equals(Service.STATUS1)) {
+                        Repository.list_status_1_f.add(account);
+                    }
+
+                    if (account.getSex().equals(Service.F)
+                            && account.getStatus().equals(Service.STATUS2)) {
+                        Repository.list_status_2_f.add(account);
+                    }
+
+                    if (account.getSex().equals(Service.F)
+                            && account.getStatus().equals(Service.STATUS3)) {
+                        Repository.list_status_3_f.add(account);
+                    }
                     Repository.ids.put(account.getId().toString(), Repository.PRESENT);
                     Repository.emails.put(account.getEmail(), Repository.PRESENT);
                     return CREATED;
@@ -471,31 +501,68 @@ public class Service {
             Map<String, String> valueCache = new HashMap<>(params.size());
             Map<String, String> predicateCache = new HashMap<>(params.size());
             Map<String, Object> finalFieldSet = null;
-            TreeSet<Account> listForRearch = Repository.list;
+
+            String sex = null;
+            String status = null;
             for (String param : params) {
                 if (!fillCacheAndvalidate(param, predicateCache)) {
                     return BAD_REQUEST;
                 } else {
                     fillValueCacheValue(param, valueCache);
                     if (param.startsWith(STATUS)) {
-                        if (valueCache.get(param).equals(Service.STATUS1)) {
-                            listForRearch = Repository.list_status_1;
-                        } else if (valueCache.get(param).equals(Service.STATUS2)) {
-                            listForRearch = Repository.list_status_2;
-                        } else {
-                            listForRearch = Repository.list_status_3;
+                        String predicate = predicateCache.get(param);
+                        if (predicate.equals(EQ_PR)) {
+                            status = valueCache.get(param);
                         }
                     }
                     if (param.startsWith(SEX)) {
-                        if (valueCache.get(param).equals(M)) {
-                            listForRearch = Repository.list_m;
-                        } else {
-                            listForRearch = Repository.list_f;
-                        }
+                        sex = valueCache.get(param);
                     }
-
                 }
             }
+
+            TreeSet<Account> listForRearch = Repository.list;
+            if (sex == null && Service.STATUS1.equals(status)) {
+                listForRearch = Repository.list_status_1;
+            }
+            if (sex == null && Service.STATUS2.equals(status)) {
+                listForRearch = Repository.list_status_2;
+            }
+            if (sex == null && Service.STATUS3.equals(status)) {
+                listForRearch = Repository.list_status_3;
+            }
+
+            if (status == null && Service.F.equals(sex)) {
+                listForRearch = Repository.list_f;
+            }
+            if (status == null && Service.M.equals(sex)) {
+                listForRearch = Repository.list_m;
+            }
+
+            if (Service.STATUS1.equals(status) && Service.F.equals(sex)) {
+               listForRearch = Repository.list_status_1_f;
+            }
+
+            if (Service.STATUS2.equals(status) && Service.F.equals(sex)) {
+                listForRearch = Repository.list_status_2_f;
+            }
+
+            if (Service.STATUS3.equals(status) && Service.F.equals(sex)) {
+                listForRearch = Repository.list_status_3_f;
+            }
+
+            if (Service.STATUS1.equals(status) && Service.M.equals(sex)) {
+                listForRearch = Repository.list_status_1_m;
+            }
+
+            if (Service.STATUS2.equals(status) && Service.M.equals(sex)) {
+                listForRearch = Repository.list_status_2_m;
+            }
+
+            if (Service.STATUS3.equals(status) && Service.M.equals(sex)) {
+                listForRearch = Repository.list_status_3_m;
+            }
+
             Map<String, Object> enableProp = new HashMap<>(valueCache.size());
             List<Account> accounts = new ArrayList<>(limit);
 
