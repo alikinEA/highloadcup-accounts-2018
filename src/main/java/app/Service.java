@@ -1,16 +1,21 @@
 package app;
 
-import app.models.*;
+import app.models.Account;
+import app.models.LikeRequest;
+import app.models.LikesRequest;
+import app.models.Result;
+import app.server.Server;
 import com.jsoniter.JsonIterator;
-import com.jsoniter.any.Any;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
-import java.io.*;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Created by Alikin E.A. on 15.12.18.
@@ -80,6 +85,7 @@ public class Service {
 
     private static final AtomicInteger count = new AtomicInteger(0);
 
+    private static ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public static Result handle(FullHttpRequest req) throws UnsupportedEncodingException {
         if (req.uri().startsWith(URI_FILTER)) {
@@ -108,38 +114,38 @@ public class Service {
     }
 
     private static Result handleUpdate(FullHttpRequest req) {
-        String curId = req.uri().substring(req.uri().indexOf(ACCOUNTS) + 10,req.uri().lastIndexOf("/?"));
-        if (!Character.isDigit(curId.charAt(0))) {
-            return NOT_FOUND;
-        }
-        if (Repository.ids.containsKey(curId)) {
-            Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
-            if (account == null) {
-                return BAD_REQUEST;
+        lock.writeLock().lock();
+        try {
+            String curId = req.uri().substring(req.uri().indexOf(ACCOUNTS) + 10, req.uri().lastIndexOf("/?"));
+            if (!Character.isDigit(curId.charAt(0))) {
+                return NOT_FOUND;
             }
-            if (account.getSex() != null) {
-                if (!account.getSex().equals(F)
-                        && !account.getSex().equals(M)) {
+            if (Repository.ids.containsKey(curId)) {
+                Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
+                if (account == null) {
                     return BAD_REQUEST;
                 }
-            }
-            if (account.getStatus() != null) {
-                if (!account.getStatus().equals(STATUS1)
-                        && !account.getStatus().equals(STATUS2)
-                        && !account.getStatus().equals(STATUS3)) {
-                    return BAD_REQUEST;
+                if (account.getSex() != null) {
+                    if (!account.getSex().equals(F)
+                            && !account.getSex().equals(M)) {
+                        return BAD_REQUEST;
+                    }
                 }
-            }
-            if (account.getEmail() != null) {
-                if (!account.getEmail().contains("@")) {
-                    return BAD_REQUEST;
+                if (account.getStatus() != null) {
+                    if (!account.getStatus().equals(STATUS1)
+                            && !account.getStatus().equals(STATUS2)
+                            && !account.getStatus().equals(STATUS3)) {
+                        return BAD_REQUEST;
+                    }
                 }
-                if (Repository.emails.containsKey(account.getEmail())) {
-                    return BAD_REQUEST;
-                } else {
-                    account.setId(Integer.parseInt(curId));
-                    Repository.lock.writeLock().lock();
-                    try {
+                if (account.getEmail() != null) {
+                    if (!account.getEmail().contains("@")) {
+                        return BAD_REQUEST;
+                    }
+                    if (Repository.emails.containsKey(account.getEmail())) {
+                        return BAD_REQUEST;
+                    } else {
+                        account.setId(Integer.parseInt(curId));
                         Account accountData = Repository.list.ceiling(account);
                         if (accountData != null) {
                             if (account.getLikesArr() != null) {
@@ -181,16 +187,16 @@ public class Service {
                                 accountData.setSname(account.getSname());
                             }
                         }
-                    } finally {
-                        Repository.lock.writeLock().unlock();
+                        return ACCEPTED;
                     }
-                    return ACCEPTED;
                 }
+            } else {
+                return NOT_FOUND;
             }
-        } else {
-            return NOT_FOUND;
+            return ACCEPTED;
+        }finally {
+            lock.writeLock().unlock();
         }
-        return ACCEPTED;
     }
 
     private static Result handleRecomended(FullHttpRequest req) {
@@ -232,28 +238,29 @@ public class Service {
     }
 
     private static Result handleLikes(FullHttpRequest req) {
-        int countCur = count.incrementAndGet();
-        if (countCur == 200 || countCur == 2000) {
-            System.gc();
-            System.out.println("GC run (perhaps)");
-        }
+        lock.writeLock().lock();
         try {
-            LikesRequest likesReq = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
-            for (LikeRequest like : likesReq.getLikes()) {
-                if (like.getTs() == null) {
-                    return BAD_REQUEST;
-                }
-                if (like.getLiker() == null
-                        || !Repository.ids.containsKey(like.getLiker().toString())) {
-                    return BAD_REQUEST;
-                }
-                if (like.getLikee() == null
-                        || !Repository.ids.containsKey(like.getLikee().toString())) {
-                    return BAD_REQUEST;
-                }
+            int countCur = count.incrementAndGet();
+            if (countCur == 200 || countCur == 2000) {
+                System.gc();
+                Server.printCurrentMemoryUsage();
+                System.out.println("GC run (perhaps)");
             }
             try {
-                Repository.lock.writeLock().lock();
+                LikesRequest likesReq = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
+                for (LikeRequest like : likesReq.getLikes()) {
+                    if (like.getTs() == null) {
+                        return BAD_REQUEST;
+                    }
+                    if (like.getLiker() == null
+                            || !Repository.ids.containsKey(like.getLiker().toString())) {
+                        return BAD_REQUEST;
+                    }
+                    if (like.getLikee() == null
+                            || !Repository.ids.containsKey(like.getLikee().toString())) {
+                        return BAD_REQUEST;
+                    }
+                }
                 for (LikeRequest like : likesReq.getLikes()) {
                     Account account = new Account();
                     account.setId(like.getLiker());
@@ -268,63 +275,68 @@ public class Service {
                         }
                     }
                 }
-            } finally {
-                Repository.lock.writeLock().unlock();
-            }
 
-            return ACCEPTED;
-        } catch (Exception e) {
-            return BAD_REQUEST;
+                return ACCEPTED;
+            } catch (Exception e) {
+                return BAD_REQUEST;
+            }
+        }finally {
+            lock.writeLock().unlock();
         }
     }
 
     private static Result handleNew(FullHttpRequest req) {
-        Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
-        if (account == null) {
-            return BAD_REQUEST;
-        }
-        if (account.getId() == null) {
-            return BAD_REQUEST;
-        }
-        if (Repository.ids.containsKey(account.getId().toString())) {
-            return BAD_REQUEST;
-        }
-        if (account.getSex() != null) {
-            if (!account.getSex().equals(F)
-                    && !account.getSex().equals(M)) {
+        lock.writeLock().lock();
+        try {
+            Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
+            if (account == null) {
                 return BAD_REQUEST;
             }
-        } else {
-            return BAD_REQUEST;
-        }
-        if (account.getStatus() != null) {
-            if (!account.getStatus().equals(STATUS1)
-                    && !account.getStatus().equals(STATUS2)
-                    && !account.getStatus().equals(STATUS3)) {
+            if (account.getId() == null) {
                 return BAD_REQUEST;
             }
-        } else {
-            return BAD_REQUEST;
-        }
-        if (account.getEmail() != null) {
-            if (!account.getEmail().contains("@")) {
+            if (Repository.ids.containsKey(account.getId().toString())) {
                 return BAD_REQUEST;
             }
-            if (Repository.emails.containsKey(account.getEmail())) {
-                return BAD_REQUEST;
-            } else {
-                try {
-                    Repository.lock.writeLock().lock();
-                    Repository.list.add(account);
-                } finally {
-                    Repository.lock.writeLock().unlock();
+            if (account.getSex() != null) {
+                if (!account.getSex().equals(F)
+                        && !account.getSex().equals(M)) {
+                    return BAD_REQUEST;
                 }
-                Repository.ids.put(account.getId().toString(),Repository.PRESENT);
-                Repository.emails.put(account.getEmail(),Repository.PRESENT);
-                return CREATED;
+            } else {
+                return BAD_REQUEST;
             }
+            if (account.getStatus() != null) {
+                if (!account.getStatus().equals(STATUS1)
+                        && !account.getStatus().equals(STATUS2)
+                        && !account.getStatus().equals(STATUS3)) {
+                    return BAD_REQUEST;
+                }
+            } else {
+                return BAD_REQUEST;
+            }
+            if (account.getEmail() != null) {
+                if (!account.getEmail().contains("@")) {
+                    return BAD_REQUEST;
+                }
+                if (Repository.emails.containsKey(account.getEmail())) {
+                    return BAD_REQUEST;
+                } else {
+                    Repository.list.add(account);
+                    if (account.getSex().equals(Service.M)) {
+                        Repository.list_m.add(account);
+                    } else {
+                        Repository.list_f.add(account);
+                    }
+                    Repository.ids.put(account.getId().toString(), Repository.PRESENT);
+                    Repository.emails.put(account.getEmail(), Repository.PRESENT);
+                    return CREATED;
+                }
+            }
+            return CREATED;
+        } finally {
+            lock.writeLock().unlock();
         }
-        return CREATED;
     }
 
 
@@ -438,30 +450,41 @@ public class Service {
     }
 
     public static Result handleFilterv2(String uri) throws UnsupportedEncodingException {
-        List<String> params = getTokens(uri.substring(18),"&");
-        int i = 0;
-        int limit = 0;
-        for (String param : params) {
-            if (param.startsWith(LIMIT)) {
-                limit = Integer.parseInt(getValue(param));
-            }
-        }
-
-        Map<String,String> valueCache = new HashMap<>(params.size());
-        Map<String,String> predicateCache = new HashMap<>(params.size());
-        Map<String,Object> finalFieldSet = null;
-        for (String param : params) {
-            if (!fillCacheAndvalidate(param,predicateCache)) {
-                return BAD_REQUEST;
-            } else {
-                fillValueCacheValue(param,valueCache);
-            }
-        }
-        Map<String,Object> enableProp = new HashMap<>(valueCache.size());
-        List<Account> accounts = new ArrayList<>(limit);
+        lock.readLock().lock();
         try {
-            Repository.lock.readLock().lock();
-            for (Account account : Repository.list) {
+            List<String> params = getTokens(uri.substring(18), "&");
+            int i = 0;
+            int limit = 0;
+            for (String param : params) {
+                if (param.startsWith(LIMIT)) {
+                    limit = Integer.parseInt(getValue(param));
+                }
+            }
+
+            Map<String, String> valueCache = new HashMap<>(params.size());
+            Map<String, String> predicateCache = new HashMap<>(params.size());
+            Map<String, Object> finalFieldSet = null;
+            TreeSet<Account> listForRearch = Repository.list;
+            for (String param : params) {
+                if (!fillCacheAndvalidate(param, predicateCache)) {
+                    return BAD_REQUEST;
+                } else {
+                    fillValueCacheValue(param, valueCache);
+                    if (param.startsWith(SEX)) {
+                        if (valueCache.get(param).equals(M)) {
+                            listForRearch = Repository.list_m;
+                        } else {
+                            listForRearch = Repository.list_f;
+                        }
+                    }
+                }
+            }
+            Map<String, Object> enableProp = new HashMap<>(valueCache.size());
+            List<Account> accounts = new ArrayList<>(limit);
+
+            Iterator<Account> listIterator = listForRearch.iterator();
+            while (listIterator.hasNext()) {
+                Account account = listIterator.next();
                 if (i == limit) {
                     break;
                 }
@@ -470,7 +493,7 @@ public class Service {
                     //SEX ============================================
                     if (param.startsWith(SEX)) {
                         if (account.getSex().equals(valueCache.get(param))) {
-                            enableProp.put(SEX,Repository.PRESENT);
+                            enableProp.put(SEX, Repository.PRESENT);
                         } else {
                             break;
                         }
@@ -482,19 +505,19 @@ public class Service {
                         String predicate = predicateCache.get(param);
                         if (predicate.equals(DOMAIN_PR)) {
                             if (account.getEmail().contains(valueCache.get(param))) {
-                                enableProp.put(EMAIL,Repository.PRESENT);
+                                enableProp.put(EMAIL, Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(LT_PR)) {
                             if (account.getEmail().compareTo(valueCache.get(param)) < 0) {
-                                enableProp.put(EMAIL,Repository.PRESENT);
+                                enableProp.put(EMAIL, Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(GT_PR)) {
                             if (account.getEmail().compareTo(valueCache.get(param)) > 0) {
-                                enableProp.put(EMAIL,Repository.PRESENT);
+                                enableProp.put(EMAIL, Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -507,13 +530,13 @@ public class Service {
                         String predicate = predicateCache.get(param);
                         if (predicate.equals(EQ_PR)) {
                             if (account.getStatus().equals(valueCache.get(param))) {
-                                enableProp.put(STATUS,Repository.PRESENT);
+                                enableProp.put(STATUS, Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(NEQ_PR)) {
                             if (!account.getStatus().equals(valueCache.get(param))) {
-                                enableProp.put(STATUS,Repository.PRESENT);
+                                enableProp.put(STATUS, Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -522,14 +545,13 @@ public class Service {
                     //STATUS ============================================
 
 
-
                     //SNAME ============================================
                     if (param.startsWith(SNAME)) {
                         String predicate = predicateCache.get(param);
 
                         if (predicate.equals(EQ_PR)) {
                             if (valueCache.get(param).equals(account.getSname())) {
-                                enableProp.put(SNAME,Repository.PRESENT);
+                                enableProp.put(SNAME, Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -537,13 +559,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getSname() == null) {
-                                    enableProp.put(SNAME,Repository.PRESENT);
+                                    enableProp.put(SNAME, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getSname() != null) {
-                                    enableProp.put(SNAME,Repository.PRESENT);
+                                    enableProp.put(SNAME, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
@@ -551,7 +573,7 @@ public class Service {
                         } else if (predicate.equals(STARTS_PR)) {
                             if (account.getSname() != null)
                                 if (account.getSname().startsWith(valueCache.get(param))) {
-                                    enableProp.put(SNAME,Repository.PRESENT);
+                                    enableProp.put(SNAME, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
@@ -569,7 +591,7 @@ public class Service {
                                         .substring(account.getPhone().indexOf("(") + 1
                                                 , account.getPhone().indexOf(")"))
                                         .equals(valueCache.get(param))) {
-                                    enableProp.put(PHONE,Repository.PRESENT);
+                                    enableProp.put(PHONE, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
@@ -578,13 +600,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getPhone() == null) {
-                                    enableProp.put(PHONE,Repository.PRESENT);
+                                    enableProp.put(PHONE, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getPhone() != null) {
-                                    enableProp.put(PHONE,Repository.PRESENT);
+                                    enableProp.put(PHONE, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
@@ -594,14 +616,13 @@ public class Service {
                     //PHONE ============================================
 
 
-
                     //COUNTRY ============================================
                     if (param.startsWith(COUNTRY)) {
                         String predicate = predicateCache.get(param);
 
                         if (predicate.equals(EQ_PR)) {
                             if (valueCache.get(param).equals(account.getCountry())) {
-                                enableProp.put(COUNTRY,Repository.PRESENT);
+                                enableProp.put(COUNTRY, Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -609,13 +630,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getCountry() == null) {
-                                    enableProp.put(COUNTRY,Repository.PRESENT);
+                                    enableProp.put(COUNTRY, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getCountry() != null) {
-                                    enableProp.put(COUNTRY,Repository.PRESENT);
+                                    enableProp.put(COUNTRY, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
@@ -632,7 +653,7 @@ public class Service {
                             if (account.getPremium() != null) {
                                 if (Repository.currentTimeStamp2 < account.getPremium().getFinish()
                                         && Repository.currentTimeStamp2 > account.getPremium().getStart()) {
-                                    enableProp.put(PREMIUM,Repository.PRESENT);
+                                    enableProp.put(PREMIUM, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
@@ -641,13 +662,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getPremium() == null) {
-                                    enableProp.put(PREMIUM,Repository.PRESENT);
+                                    enableProp.put(PREMIUM, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getPremium() != null) {
-                                    enableProp.put(PREMIUM,Repository.PRESENT);
+                                    enableProp.put(PREMIUM, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
@@ -662,19 +683,19 @@ public class Service {
                             Calendar calendar = new GregorianCalendar();
                             calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
                             if (Integer.parseInt(getValue(param)) == calendar.get(Calendar.YEAR)) {
-                                enableProp.put(BIRTH,Repository.PRESENT);
+                                enableProp.put(BIRTH, Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(LT_PR)) {
                             if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) < 0) {
-                                enableProp.put(BIRTH,Repository.PRESENT);
+                                enableProp.put(BIRTH, Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(GT_PR)) {
                             if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) > 0) {
-                                enableProp.put(BIRTH,Repository.PRESENT);
+                                enableProp.put(BIRTH, Repository.PRESENT);
                             } else {
                                 break;
                             }
@@ -688,15 +709,15 @@ public class Service {
 
                         if (predicate.equals(EQ_PR)) {
                             if (getValue(param).equals(account.getCity())) {
-                                enableProp.put(CITY,Repository.PRESENT);
+                                enableProp.put(CITY, Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(ANY_PR)) {
-                            StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
-                            while(t.hasMoreTokens()) {
+                            StringTokenizer t = new StringTokenizer(valueCache.get(param), delim);
+                            while (t.hasMoreTokens()) {
                                 if (t.nextToken().equals(account.getCity())) {
-                                    enableProp.put(CITY,Repository.PRESENT);
+                                    enableProp.put(CITY, Repository.PRESENT);
                                     break;
                                 }
                             }
@@ -704,13 +725,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getCity() == null) {
-                                    enableProp.put(CITY,Repository.PRESENT);
+                                    enableProp.put(CITY, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getCity() != null) {
-                                    enableProp.put(CITY,Repository.PRESENT);
+                                    enableProp.put(CITY, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
@@ -726,15 +747,15 @@ public class Service {
 
                         if (predicate.equals(EQ_PR)) {
                             if (valueCache.get(param).equals(account.getFname())) {
-                                enableProp.put(FNAME,Repository.PRESENT);
+                                enableProp.put(FNAME, Repository.PRESENT);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(ANY_PR)) {
-                            StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
-                            while(t.hasMoreTokens()) {
+                            StringTokenizer t = new StringTokenizer(valueCache.get(param), delim);
+                            while (t.hasMoreTokens()) {
                                 if (t.nextToken().equals(account.getFname())) {
-                                    enableProp.put(FNAME,Repository.PRESENT);
+                                    enableProp.put(FNAME, Repository.PRESENT);
                                     break;
                                 }
                             }
@@ -742,13 +763,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getFname() == null) {
-                                    enableProp.put(FNAME,Repository.PRESENT);
+                                    enableProp.put(FNAME, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getFname() != null) {
-                                    enableProp.put(FNAME,Repository.PRESENT);
+                                    enableProp.put(FNAME, Repository.PRESENT);
                                 } else {
                                     break;
                                 }
@@ -762,17 +783,17 @@ public class Service {
                         String predicate = predicateCache.get(param);
                         if (account.getInterests() != null) {
                             if (predicate.equals(ANY_PR)) {
-                                StringTokenizer t = new StringTokenizer(valueCache.get(param),delim);
-                                while(t.hasMoreTokens()) {
+                                StringTokenizer t = new StringTokenizer(valueCache.get(param), delim);
+                                while (t.hasMoreTokens()) {
                                     if (account.getInterests().contains(t.nextToken())) {
-                                        enableProp.put(INTERESTS,Repository.PRESENT);
+                                        enableProp.put(INTERESTS, Repository.PRESENT);
                                         break;
                                     }
                                 }
                             } else if (predicate.equals(CONTAINS_PR)) {
-                                List<String> splitedValue = getTokens(valueCache.get(param),delim);
+                                List<String> splitedValue = getTokens(valueCache.get(param), delim);
                                 if (splitedValue.size() <= account.getInterests().size()) {
-                                    enableProp.put(INTERESTS,Repository.PRESENT);
+                                    enableProp.put(INTERESTS, Repository.PRESENT);
                                     for (String value : splitedValue) {
                                         if (!account.getInterests().contains(value)) {
                                             enableProp.remove(INTERESTS);
@@ -789,13 +810,12 @@ public class Service {
                     //INTERESTS ============================================
 
 
-
                     //LIKES ============================================
                     if (param.startsWith(LIKES)) {
                         if (account.getLikesArr() != null) {
-                            List<String> splitedValue = getTokens(valueCache.get(param),delim);
+                            List<String> splitedValue = getTokens(valueCache.get(param), delim);
                             if (splitedValue.size() <= account.getLikesArr().size()) {
-                                enableProp.put(LIKES,Repository.PRESENT);
+                                enableProp.put(LIKES, Repository.PRESENT);
                                 for (String value : splitedValue) {
                                     if (!account.getLikesArr().contains(Integer.parseInt(value))) {
                                         enableProp.remove(LIKES);
@@ -810,28 +830,28 @@ public class Service {
                     //LIKES ============================================
 
                 }
-                enableProp.put(QUERY_ID,Repository.PRESENT);
-                enableProp.put(LIMIT,Repository.PRESENT);
-                if (compareArrays(params,enableProp)) {
+                enableProp.put(QUERY_ID, Repository.PRESENT);
+                enableProp.put(LIMIT, Repository.PRESENT);
+                if (compareArrays(params, enableProp)) {
                     if (finalFieldSet == null) {
                         finalFieldSet = new HashMap<>(enableProp.size());
                         for (String key : enableProp.keySet()) {
-                            finalFieldSet.put(key,Repository.PRESENT);
+                            finalFieldSet.put(key, Repository.PRESENT);
                         }
                     }
                     accounts.add(account);
                     i++;
                 }
             }
+            try {
+                return new Result(Utils.accountToString(accounts, finalFieldSet).getBytes(utf8), HttpResponseStatus.OK);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            return OK_EMPTY_ACCOUNTS;
         } finally {
-            Repository.lock.readLock().unlock();
+            lock.readLock().unlock();
         }
-        try {
-            return new Result(Utils.accountToString(accounts,finalFieldSet).getBytes(utf8),HttpResponseStatus.OK);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return OK_EMPTY_ACCOUNTS;
     }
 
     private static void fillValueCacheValue(String param, Map<String, String> valueCache) throws UnsupportedEncodingException {
