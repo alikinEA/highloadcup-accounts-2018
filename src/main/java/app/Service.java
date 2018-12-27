@@ -1,21 +1,16 @@
 package app;
 
 import app.models.*;
-import app.server.Server;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jsoniter.JsonIterator;
-import com.jsoniter.spi.JsonException;
+import com.jsoniter.any.Any;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.util.internal.StringUtil;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Alikin E.A. on 15.12.18.
@@ -31,23 +26,25 @@ public class Service {
     private static final Result NOT_FOUND = new Result(EMPTY,HttpResponseStatus.NOT_FOUND);
 
 
-    private static final String SEX = "sex";
-    private static final String EMAIL = "email";
-    private static final String STATUS = "status";
-    private static final String FNAME = "fname";
-    private static final String SNAME = "sname";
-    private static final String PHONE = "phone";
-    private static final String COUNTRY = "country";
-    private static final String CITY = "city";
-    private static final String BIRTH = "birth";
-    private static final String INTERESTS = "interests";
-    private static final String LIKES = "likes";
-    private static final String PREMIUM = "premium";
-    private static final String QUERY_ID = "query_id";
-    private static final String LIMIT = "limit";
-    //private static final String ORDER = "order";
-    private static final String KEYS = "keys";
-
+    public static final String SEX = "sex";
+    public static final String EMAIL = "email";
+    public static final String STATUS = "status";
+    public static final String FNAME = "fname";
+    public static final String JOINED = "joined";
+    public static final String SNAME = "sname";
+    public static final String PHONE = "phone";
+    public static final String COUNTRY = "country";
+    public static final String CITY = "city";
+    public static final String BIRTH = "birth";
+    public static final String INTERESTS = "interests";
+    public static final String LIKES = "likes";
+    public static final String LIKE = "like";
+    public static final String PREMIUM = "premium";
+    public static final String QUERY_ID = "query_id";
+    public static final String LIMIT = "limit";
+    public static final String ID = "id";
+    public static final String TS = "ts";
+    public static final String KEYS = "keys";
 
     private static final String EQ_PR = "eq";
     private static final String NEQ_PR = "neq";
@@ -63,9 +60,6 @@ public class Service {
     private static final String NOW_PR = "now";
     private static final String NULL_PR_VAL_ONE = "1";
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-
-
     private static final String URI_FILTER = "/accounts/filter/?";
     private static final String URI_NEW = "/accounts/new/";
     private static final String URI_LIKES = "/accounts/likes/";
@@ -77,37 +71,27 @@ public class Service {
     public static final String F =  "f";
     public static final String M =  "m";
 
-
     public static final String STATUS1 = "свободны";
     public static final String STATUS2 = "всё сложно";
     public static final String STATUS3 = "заняты";
 
-
     private static final String utf8 = "UTF-8";
     private static final String delim = ",";
-    private static final String delim2 = "=";
-    private static final char delim3 = '?';
-    private static final String delim4 = "/?";
-    //private static final String delim5 = "1";
-    //private static final String delim6 = "-1";
-    private static final String delim7 = "@";
-    private static final String delim8 = "&";
-    private static final String delim9 = "_";
-    private static final String delim10 = "(";
-    private static final String delim11 = ")";
+
+    private static final AtomicInteger count = new AtomicInteger(0);
 
 
-    public static Result handle(FullHttpRequest req) {
+    public static Result handle(FullHttpRequest req) throws UnsupportedEncodingException {
         if (req.uri().startsWith(URI_FILTER)) {
             return handleFilterv2(req.uri());
         } else if (req.uri().startsWith(URI_NEW)) {
-            if (req.uri().substring(14).charAt(0) != delim3) {
+            if (req.uri().substring(14).charAt(0) != '?') {
                 return NOT_FOUND;
             } else {
                 return handleNew(req);
             }
         } else if (req.uri().startsWith(URI_LIKES)) {
-            if (req.uri().substring(16).charAt(0) != delim3) {
+            if (req.uri().substring(16).charAt(0) != '?') {
                 return NOT_FOUND;
             } else {
                 return handleLikes(req);
@@ -124,90 +108,84 @@ public class Service {
     }
 
     private static Result handleUpdate(FullHttpRequest req) {
-        String curId = req.uri().substring(req.uri().indexOf(ACCOUNTS) + 10,req.uri().lastIndexOf(delim4));
+        String curId = req.uri().substring(req.uri().indexOf(ACCOUNTS) + 10,req.uri().lastIndexOf("/?"));
         if (!Character.isDigit(curId.charAt(0))) {
             return NOT_FOUND;
         }
         if (Repository.ids.containsKey(curId)) {
-            try {
-                Account account = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8),Account.class);
-               // Account account = mapper.readValue(req.content().toString(StandardCharsets.UTF_8),Account.class);
-                if (account.getSex() != null) {
-                    if (!account.getSex().equals(F)
-                            && !account.getSex().equals(M)) {
-                        return BAD_REQUEST;
-                    }
-                }
-                if (account.getStatus() != null) {
-                    if (!account.getStatus().equals(STATUS1)
-                            && !account.getStatus().equals(STATUS2)
-                            && !account.getStatus().equals(STATUS3)) {
-                        return BAD_REQUEST;
-                    }
-                }
-                if (account.getEmail() != null) {
-                    if (!account.getEmail().contains(delim7)) {
-                        return BAD_REQUEST;
-                    }
-                    if (Repository.emails.containsKey(account.getEmail())) {
-                        return BAD_REQUEST;
-                    } else {
-                        account.setId(Integer.parseInt(curId));
-                        Repository.lock.writeLock().lock();
-                        try {
-                            Account accountData = Repository.list.ceiling(account);
-                            if (accountData != null) {
-                                if (account.getLikes() != null) {
-                                    List<Integer> likesNew = new ArrayList<>(10);
-                                    for (Like like : account.getLikes()) {
-                                        likesNew.add(like.getId());
-                                    }
-                                    accountData.setLikesArr(likesNew);
-                                }
-                                if (account.getEmail() != null) {
-                                    Repository.emails.remove(accountData.getEmail());
-                                    Repository.emails.put(account.getEmail(), Repository.PRESENT);
-                                    accountData.setEmail(account.getEmail());
-                                }
-                                if (account.getSex() != null) {
-                                    accountData.setSex(account.getSex());
-                                }
-                                if (account.getFname() != null) {
-                                    accountData.setFname(account.getFname());
-                                }
-                                if (account.getInterests() != null) {
-                                    accountData.setInterests(account.getInterests());
-                                }
-                                if (account.getStatus() != null) {
-                                    accountData.setStatus(account.getStatus());
-                                }
-                                if (account.getPremium() != null) {
-                                    accountData.setPremium(account.getPremium());
-                                }
-                                if (account.getPhone() != null) {
-                                    accountData.setPhone(account.getPhone());
-                                }
-                                if (account.getBirth() != null) {
-                                    accountData.setBirth(account.getBirth());
-                                }
-                                if (account.getCity() != null) {
-                                    accountData.setCity(account.getCity());
-                                }
-                                if (account.getCountry() != null) {
-                                    accountData.setCountry(account.getCountry());
-                                }
-                                if (account.getSname() != null) {
-                                    accountData.setSname(account.getSname());
-                                }
-                            }
-                        } finally {
-                            Repository.lock.writeLock().unlock();
-                        }
-                        return ACCEPTED;
-                    }
-                }
-            } catch (Exception e) {
+            Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
+            if (account == null) {
                 return BAD_REQUEST;
+            }
+            if (account.getSex() != null) {
+                if (!account.getSex().equals(F)
+                        && !account.getSex().equals(M)) {
+                    return BAD_REQUEST;
+                }
+            }
+            if (account.getStatus() != null) {
+                if (!account.getStatus().equals(STATUS1)
+                        && !account.getStatus().equals(STATUS2)
+                        && !account.getStatus().equals(STATUS3)) {
+                    return BAD_REQUEST;
+                }
+            }
+            if (account.getEmail() != null) {
+                if (!account.getEmail().contains("@")) {
+                    return BAD_REQUEST;
+                }
+                if (Repository.emails.containsKey(account.getEmail())) {
+                    return BAD_REQUEST;
+                } else {
+                    account.setId(Integer.parseInt(curId));
+                    Repository.lock.writeLock().lock();
+                    try {
+                        Account accountData = Repository.list.ceiling(account);
+                        if (accountData != null) {
+                            if (account.getLikesArr() != null) {
+                                accountData.setLikesArr(account.getLikesArr());
+                            }
+                            if (account.getEmail() != null) {
+                                Repository.emails.remove(accountData.getEmail());
+                                Repository.emails.put(account.getEmail(), Repository.PRESENT);
+                                accountData.setEmail(account.getEmail());
+                            }
+                            if (account.getSex() != null) {
+                                accountData.setSex(account.getSex());
+                            }
+                            if (account.getFname() != null) {
+                                accountData.setFname(account.getFname());
+                            }
+                            if (account.getInterests() != null) {
+                                accountData.setInterests(account.getInterests());
+                            }
+                            if (account.getStatus() != null) {
+                                accountData.setStatus(account.getStatus());
+                            }
+                            if (account.getPremium() != null) {
+                                accountData.setPremium(account.getPremium());
+                            }
+                            if (account.getPhone() != null) {
+                                accountData.setPhone(account.getPhone());
+                            }
+                            if (account.getBirth() != null) {
+                                accountData.setBirth(account.getBirth());
+                            }
+                            if (account.getCity() != null) {
+                                accountData.setCity(account.getCity());
+                            }
+                            if (account.getCountry() != null) {
+                                accountData.setCountry(account.getCountry());
+                            }
+                            if (account.getSname() != null) {
+                                accountData.setSname(account.getSname());
+                            }
+                        }
+                    } finally {
+                        Repository.lock.writeLock().unlock();
+                    }
+                    return ACCEPTED;
+                }
             }
         } else {
             return NOT_FOUND;
@@ -230,8 +208,8 @@ public class Service {
         return NOT_FOUND;
     }
 
-    private static Result handleGroup(FullHttpRequest req) {
-        StringTokenizer t = new StringTokenizer(req.uri().substring(17),delim8);
+    private static Result handleGroup(FullHttpRequest req) throws UnsupportedEncodingException {
+        StringTokenizer t = new StringTokenizer(req.uri().substring(17),"&");
         while(t.hasMoreTokens()) {
             String param = t.nextToken();
 
@@ -254,9 +232,13 @@ public class Service {
     }
 
     private static Result handleLikes(FullHttpRequest req) {
+        int countCur = count.incrementAndGet();
+        if (countCur == 200 || countCur == 2000) {
+            System.gc();
+            System.out.println("GC run (perhaps)");
+        }
         try {
             LikesRequest likesReq = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
-            //LikesRequest likesReq = mapper.readValue(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
             for (LikeRequest like : likesReq.getLikes()) {
                 if (like.getTs() == null) {
                     return BAD_REQUEST;
@@ -297,61 +279,50 @@ public class Service {
     }
 
     private static Result handleNew(FullHttpRequest req) {
-        try {
-            Account account = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8),Account.class);
-            //Account account = mapper.readValue(req.content().toString(StandardCharsets.UTF_8),Account.class);
-            if (account.getId() == null) {
-                return BAD_REQUEST;
-            }
-            if (Repository.ids.containsKey(account.getId().toString())) {
-                return BAD_REQUEST;
-            }
-            if (account.getSex() != null) {
-                if (!account.getSex().equals(F)
-                        && !account.getSex().equals(M)) {
-                    return BAD_REQUEST;
-                }
-            } else {
-                return BAD_REQUEST;
-            }
-            if (account.getStatus() != null) {
-                if (!account.getStatus().equals(STATUS1)
-                        && !account.getStatus().equals(STATUS2)
-                        && !account.getStatus().equals(STATUS3)) {
-                    return BAD_REQUEST;
-                }
-            } else {
-                return BAD_REQUEST;
-            }
-            if (account.getEmail() != null) {
-                if (!account.getEmail().contains(delim7)) {
-                    return BAD_REQUEST;
-                }
-                if (Repository.emails.containsKey(account.getEmail())) {
-                    return BAD_REQUEST;
-                } else {
-                    Repository.ids.put(account.getId().toString(),Repository.PRESENT);
-                    Repository.emails.put(account.getEmail(),Repository.PRESENT);
-                    if (account.getLikes() != null) {
-                        List<Integer> likesNew = new ArrayList<>(10);
-                        for (Like like : account.getLikes()) {
-                            likesNew.add(like.getId());
-                        }
-                        account.setLikesArr(likesNew);
-                        account.setLikes(null);
-                    }
-                    account.setJoined(null);
-                    try {
-                        Repository.lock.writeLock().lock();
-                        Repository.list.add(account);
-                    } finally {
-                        Repository.lock.writeLock().unlock();
-                    }
-                    return CREATED;
-                }
-            }
-        } catch (Exception e) {
+        Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
+        if (account == null) {
             return BAD_REQUEST;
+        }
+        if (account.getId() == null) {
+            return BAD_REQUEST;
+        }
+        if (Repository.ids.containsKey(account.getId().toString())) {
+            return BAD_REQUEST;
+        }
+        if (account.getSex() != null) {
+            if (!account.getSex().equals(F)
+                    && !account.getSex().equals(M)) {
+                return BAD_REQUEST;
+            }
+        } else {
+            return BAD_REQUEST;
+        }
+        if (account.getStatus() != null) {
+            if (!account.getStatus().equals(STATUS1)
+                    && !account.getStatus().equals(STATUS2)
+                    && !account.getStatus().equals(STATUS3)) {
+                return BAD_REQUEST;
+            }
+        } else {
+            return BAD_REQUEST;
+        }
+        if (account.getEmail() != null) {
+            if (!account.getEmail().contains("@")) {
+                return BAD_REQUEST;
+            }
+            if (Repository.emails.containsKey(account.getEmail())) {
+                return BAD_REQUEST;
+            } else {
+                try {
+                    Repository.lock.writeLock().lock();
+                    Repository.list.add(account);
+                } finally {
+                    Repository.lock.writeLock().unlock();
+                }
+                Repository.ids.put(account.getId().toString(),Repository.PRESENT);
+                Repository.emails.put(account.getEmail(),Repository.PRESENT);
+                return CREATED;
+            }
         }
         return CREATED;
     }
@@ -458,20 +429,16 @@ public class Service {
         return true;
     }
 
-    private static String getValue(String param) {
-        try {
-            return URLDecoder.decode(param.substring(param.indexOf(delim2) + 1), utf8);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException();
-        }
+    private static String getValue(String param) throws UnsupportedEncodingException {
+        return URLDecoder.decode(param.substring(param.indexOf("=") + 1), utf8);
     }
 
     private static String getPredicate(String param) {
-        return param.substring(param.indexOf(delim9) + 1,param.indexOf(delim2));
+        return param.substring(param.indexOf("_") + 1,param.indexOf("="));
     }
 
-    public static Result handleFilterv2(String uri) {
-        List<String> params = getTokens(uri.substring(18),delim8);
+    public static Result handleFilterv2(String uri) throws UnsupportedEncodingException {
+        List<String> params = getTokens(uri.substring(18),"&");
         int i = 0;
         int limit = 0;
         for (String param : params) {
@@ -480,8 +447,8 @@ public class Service {
             }
         }
 
-        Map<String,String> valueCache = new HashMap<>(10);
-        Map<String,String> predicateCache = new HashMap<>(10);
+        Map<String,String> valueCache = new HashMap<>(params.size());
+        Map<String,String> predicateCache = new HashMap<>(params.size());
         Map<String,Object> finalFieldSet = null;
         for (String param : params) {
             if (!fillCacheAndvalidate(param,predicateCache)) {
@@ -599,8 +566,8 @@ public class Service {
                         if (predicate.equals(CODE_PR)) {
                             if (account.getPhone() != null) {
                                 if (account.getPhone()
-                                        .substring(account.getPhone().indexOf(delim10) + 1
-                                                , account.getPhone().indexOf(delim11))
+                                        .substring(account.getPhone().indexOf("(") + 1
+                                                , account.getPhone().indexOf(")"))
                                         .equals(valueCache.get(param))) {
                                     enableProp.put(PHONE,Repository.PRESENT);
                                 } else {
@@ -860,14 +827,14 @@ public class Service {
             Repository.lock.readLock().unlock();
         }
         try {
-            return new Result(accountToString(accounts,finalFieldSet).getBytes(utf8),HttpResponseStatus.OK);
+            return new Result(Utils.accountToString(accounts,finalFieldSet).getBytes(utf8),HttpResponseStatus.OK);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         return OK_EMPTY_ACCOUNTS;
     }
 
-    private static void fillValueCacheValue(String param, Map<String, String> valueCache) {
+    private static void fillValueCacheValue(String param, Map<String, String> valueCache) throws UnsupportedEncodingException {
         valueCache.put(param,getValue(param));
     }
 
@@ -880,123 +847,4 @@ public class Service {
         return tokens;
     }
 
-    public static String replaceString(String source, String os) {
-        if (source == null) {
-            return null;
-        }
-        int i = 0;
-        if ((i = source.indexOf(os, i)) >= 0) {
-            char[] sourceArray = source.toCharArray();
-            char[] nsArray = "".toCharArray();
-            int oLength = os.length();
-            StringBuilder buf = new StringBuilder (sourceArray.length);
-            buf.append (sourceArray, 0, i).append(nsArray);
-            i += oLength;
-            int j = i;
-            while ((i = source.indexOf(os, i)) > 0) {
-                buf.append (sourceArray, j, i - j).append(nsArray);
-                i += oLength;
-                j = i;
-            }
-            buf.append (sourceArray, j, sourceArray.length - j);
-            source = buf.toString();
-            buf.setLength (0);
-        }
-        return source;
-    }
-
-    public static String accountToString(List<Account> accounts, Map<String,Object> enableProp) {
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"accounts\":[");
-        for (Account account : accounts) {
-
-            sb.append("{");
-
-            sb.append("\"id\":");
-            sb.append(account.getId());
-            sb.append(",");
-
-            sb.append("\"email\":");
-            sb.append("\"");
-            sb.append(account.getEmail());
-            sb.append("\",");
-
-            if (enableProp.containsKey(SEX) && account.getSex() != null) {
-                sb.append("\"sex\":");
-                sb.append("\"");
-                sb.append(account.getSex());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(FNAME) && account.getFname() != null) {
-                sb.append("\"fname\":");
-                sb.append("\"");
-                sb.append(account.getFname());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(STATUS) && account.getStatus() != null) {
-                sb.append("\"status\":");
-                sb.append("\"");
-                sb.append(account.getStatus());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(PHONE) && account.getPhone() != null) {
-                sb.append("\"phone\":");
-                sb.append("\"");
-                sb.append(account.getPhone());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(BIRTH) && account.getBirth() != null) {
-                sb.append("\"birth\":");
-                sb.append(account.getBirth());
-                sb.append(",");
-            }
-
-            if (enableProp.containsKey(CITY) && account.getCity() != null) {
-                sb.append("\"city\":");
-                sb.append("\"");
-                sb.append(account.getCity());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(COUNTRY) && account.getCountry() != null) {
-                sb.append("\"country\":");
-                sb.append("\"");
-                sb.append(account.getCountry());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(SNAME) && account.getSname() != null) {
-                sb.append("\"sname\":");
-                sb.append("\"");
-                sb.append(account.getSname());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(PREMIUM) && account.getPremium() != null) {
-                sb.append("\"premium\":");
-                sb.append("{");
-
-                sb.append("\"start\":");
-                sb.append(account.getPremium().getStart());
-                sb.append(",");
-
-                sb.append("\"finish\":");
-                sb.append(account.getPremium().getFinish());
-
-                sb.append("},");
-            }
-            sb.setLength(sb.length() -1);
-            sb.append("},");
-        }
-        if (accounts.size() > 0) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("]}");
-        return sb.toString();
-    }
 }
