@@ -85,7 +85,7 @@ public class Service {
 
     private static final AtomicInteger count = new AtomicInteger(0);
 
-    private static ReadWriteLock lock = new ReentrantReadWriteLock();
+    public static ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public static Result handle(FullHttpRequest req) throws UnsupportedEncodingException {
         if (req.uri().startsWith(URI_FILTER)) {

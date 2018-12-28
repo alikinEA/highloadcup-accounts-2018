@@ -21,6 +21,7 @@ public class Repository {
     static volatile long currentTimeStamp = 0l;
     static volatile long currentTimeStamp2 = 0l;
     static volatile boolean isRait = false;
+
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
 
@@ -58,8 +59,9 @@ public class Repository {
     //static final ConcurrentHashMap<String,Object> emails = new ConcurrentHashMap<>();
     //static final ConcurrentSkipListSet<Account> list = new ConcurrentSkipListSet<>(Comparator.comparing(Account::getId).reversed());
 
-    public static synchronized void initData() {
+    public static void initData() {
         try {
+            Service.lock.writeLock().lock();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(dataPath + "options.txt")))){
                 String timestamp = reader.readLine();
                 currentTimeStamp = new Long(timestamp + "000");
@@ -79,14 +81,9 @@ public class Repository {
                     try {
                         FileHeader fileHeader = (FileHeader)item;
                         if (fileHeader.getFileName().contains("accounts")) {
-                                Any json = JsonIterator.deserialize(Utils.readBytes(zipFile.getInputStream(fileHeader)));
+                            Any json = JsonIterator.deserialize(Utils.readBytes(zipFile.getInputStream(fileHeader)));
                             for (Any accountAny : json.get("accounts").asList()) {
                                 Account account = Utils.anyToAccount(accountAny);
-                                if (account == null) {
-                                    System.out.println("invalid field");
-                                    System.out.println(accountAny.toString());
-                                    throw new RuntimeException("invalid field");
-                                }
                                 emails.put(account.getEmail(),PRESENT);
                                 ids.put(String.valueOf(account.getId()), PRESENT);
                                 if (isRait && availableNames.contains(fileHeader.getFileName())) {
@@ -134,8 +131,7 @@ public class Repository {
                                         list_status_3_f.add(account);
                                     }
 
-                                 }
-                                if (!isRait && availableNamesTest.contains(fileHeader.getFileName())) {
+                                 } else if (!isRait && availableNamesTest.contains(fileHeader.getFileName())) {
                                     list.add(account);
                                     if (account.getSex().equals(Service.M)) {
                                         list_m.add(account);
@@ -198,6 +194,8 @@ public class Repository {
             System.out.println("End ");
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+            Service.lock.writeLock().unlock();
         }
 
     }
