@@ -1,7 +1,9 @@
 package app;
 
 import app.models.Account;
+import app.models.AccountC;
 import app.models.Premium;
+import app.models.Result;
 import com.jsoniter.any.Any;
 
 import java.io.ByteArrayOutputStream;
@@ -10,6 +12,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * Created by Alikin E.A. on 27.12.18.
@@ -268,5 +272,89 @@ public class Utils {
             buf.setLength (0);
         }
         return source;
+    }
+
+    public static String accountToString2(TreeSet<AccountC> accountCs, int limit) {
+        StringBuilder sb = new StringBuilder();
+        int i = 1;
+        sb.append("{\"accounts\":[");
+        for (AccountC accountC : accountCs) {
+            Account account = accountC.getAccount();
+            sb.append("{");
+
+            sb.append("\"id\":");
+            sb.append(account.getId());
+            sb.append(",");
+
+            sb.append("\"email\":");
+            sb.append("\"");
+            sb.append(account.getEmail());
+            sb.append("\",");
+
+            if (account.getFname() != null) {
+                sb.append("\"fname\":");
+                sb.append("\"");
+                sb.append(account.getFname());
+                sb.append("\",");
+            }
+
+            sb.append("\"status\":");
+            sb.append("\"");
+            sb.append(account.getStatus());
+            sb.append("\",");
+
+            sb.append("\"birth\":");
+            sb.append(account.getBirth());
+            sb.append(",");
+
+
+            if (account.getSname() != null) {
+                sb.append("\"sname\":");
+                sb.append("\"");
+                sb.append(account.getSname());
+                sb.append("\",");
+            }
+            /*sb.append("\"compac\":");
+            sb.append(accountC.getC());
+            sb.append(",");
+            sb.append("\"interests\":[" + account.getInterests().stream().collect(Collectors.joining(","))+ "],");
+            if (account.getCity() != null) {
+                sb.append("\"city\":");
+                sb.append("\"");
+                sb.append(account.getCity());
+                sb.append("\",");
+            }
+
+            if (account.getCountry() != null) {
+                sb.append("\"country\":");
+                sb.append("\"");
+                sb.append(account.getCountry());
+                sb.append("\",");
+            }*/
+            if (account.getPremium() != null) {
+                sb.append("\"premium\":");
+                sb.append("{");
+
+                sb.append("\"start\":");
+                sb.append(account.getPremium().getStart());
+                sb.append(",");
+
+                sb.append("\"finish\":");
+                sb.append(account.getPremium().getFinish());
+
+                sb.append("},");
+            }
+            sb.setLength(sb.length() - 1);
+            sb.append("},");
+            i++;
+            if (limit < i) {
+                break;
+            }
+        }
+        if (accountCs.size() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+        sb.append("]}");
+        return sb.toString();
     }
 }

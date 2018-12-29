@@ -1,9 +1,6 @@
 package app;
 
-import app.models.Account;
-import app.models.LikeRequest;
-import app.models.LikesRequest;
-import app.models.Result;
+import app.models.*;
 import app.server.Server;
 import com.jsoniter.JsonIterator;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -16,6 +13,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static app.Repository.currentTimeStamp2;
 
 /**
  * Created by Alikin E.A. on 15.12.18.
@@ -200,14 +199,119 @@ public class Service {
     }
 
     private static Result handleRecomended(FullHttpRequest req) {
-       /* String replAcc = req.uri().substring(10);
-        String id = replAcc.substring(0,replAcc.indexOf("/"));
-        if (!Repository.ids.containsKey(id)) {
-            return NOT_FOUND;
-        } else {
+        lock.readLock().lock();
+        try {
 
-        }*/
-        return NOT_FOUND;
+            String replAcc = req.uri().substring(10);
+            String id = replAcc.substring(0, replAcc.indexOf("/"));
+
+            TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
+            if (!Repository.ids.containsKey(id)) {
+                return NOT_FOUND;
+            } else {
+                List<String> params = getTokens(req.uri().substring(req.uri().indexOf(URI_RECOMENDED) + 12), "&");
+                int limit = 0;
+                String country = "";
+                String city = "";
+                for (String param : params) {
+                    if (param.startsWith(LIMIT)) {
+                        try {
+                            limit = Integer.parseInt(getValue(param));
+                        } catch (Exception e) {
+                            return BAD_REQUEST;
+                        }
+                    }
+                    if (param.startsWith(COUNTRY)) {
+                        country = getValue(param);
+                        if (country.isEmpty()) {
+                            return BAD_REQUEST;
+                        }
+                    }
+                    if (param.startsWith(CITY)) {
+                        city = getValue(param);
+                        if (city.isEmpty()) {
+                            return BAD_REQUEST;
+                        }
+                    }
+                }
+
+
+                Account account = new Account();
+                account.setId(Integer.parseInt(id));
+                Account accountData = Repository.list.ceiling(account);
+                Iterator<Account> iter;
+                if (accountData.getSex().equals(F)) {
+                    iter = Repository.list_m.descendingIterator();
+                } else {
+                    iter = Repository.list_f.descendingIterator();
+                }
+                while (iter.hasNext()) {
+                    Account account1 = iter.next();
+
+                    if (!account1.getId().equals(accountData.getId())) {
+                        if (city.isEmpty() || city.equals(account1.getCity())) {
+                            if (country.isEmpty() || country.equals(account1.getCountry())) {
+                                int c = getCompatibility(accountData, account1);
+                                if (c > 0) {
+                                    AccountC accountC = new AccountC();
+                                    accountC.setAccount(account1);
+                                    accountC.setC(c);
+                                    while (!compat.add(accountC)) {
+                                        c = c + 1;
+                                        accountC.setC(c);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return new Result(Utils.accountToString2(compat,limit).getBytes(utf8), HttpResponseStatus.OK);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.readLock().unlock();
+        }
+        return OK_EMPTY_ACCOUNTS;
+    }
+
+    private static Integer getCompatibility(Account accountData, Account account1) {
+        int compt = 0;
+        if (account1.getStatus().equals(STATUS1)) {
+            compt = compt + 50_000_0;
+        } else if (account1.getStatus().equals(STATUS2)){
+            compt = compt + 20_000_0;
+        } else {
+            compt = compt + 1_000_0;
+        }
+        boolean notComp = true;
+        if (accountData.getInterests() != null) {
+            for (String interest : accountData.getInterests()) {
+                if (account1.getInterests() != null) {
+                    if (account1.getInterests().contains(interest)) {
+                        notComp = false;
+                        compt = compt + 1_000_0;
+                    }
+                } else {
+                    return 0;
+                }
+            }
+        }
+        if (notComp) {
+            return 0;
+        }
+        if (account1.getPremium() != null) {
+            if (currentTimeStamp2 < account1.getPremium().getFinish()
+                    && currentTimeStamp2 > account1.getPremium().getStart()) {
+                compt = compt + 60_000_0;
+            }
+        }
+        int daysAcc1 = (int) (((currentTimeStamp2 - account1.getBirth())) / (60*60*24));
+        int daysAccData = (int) (((currentTimeStamp2 - accountData.getBirth())) / (60*60*24));
+
+        Integer days = 36500 - Math.abs(daysAccData - daysAcc1);
+        compt = compt + days;
+        return compt * 100;
     }
 
     private static Result handleSuggest(FullHttpRequest req) {
@@ -735,8 +839,8 @@ public class Service {
                         String predicate = predicateCache.get(param);
                         if (predicate.equals(NOW_PR)) {
                             if (account.getPremium() != null) {
-                                if (Repository.currentTimeStamp2 < account.getPremium().getFinish()
-                                        && Repository.currentTimeStamp2 > account.getPremium().getStart()) {
+                                if (currentTimeStamp2 < account.getPremium().getFinish()
+                                        && currentTimeStamp2 > account.getPremium().getStart()) {
                                     enableProp.put(PREMIUM, Repository.PRESENT);
                                 } else {
                                     break;

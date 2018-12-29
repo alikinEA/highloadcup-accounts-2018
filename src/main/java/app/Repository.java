@@ -19,7 +19,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class Repository {
 
     static volatile long currentTimeStamp = 0l;
-    static volatile long currentTimeStamp2 = 0l;
+    static volatile Long currentTimeStamp2 = 0l;
     static volatile boolean isRait = false;
 
     private static final String dataPath = "/tmp/data/";
