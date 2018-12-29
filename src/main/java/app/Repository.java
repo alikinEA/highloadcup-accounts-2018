@@ -37,7 +37,7 @@ public class Repository {
     private static final int elementCount = availableNames.size() * 10_000 + 21_600;
 
     static final Object PRESENT = new Object();
-    static final Map<String,Object> ids = new HashMap<>(elementCount);
+    static final Map<String,Account> ids = new HashMap<>(elementCount);
     static final Map<String,Object> emails = new HashMap<>(elementCount);
     static final TreeSet<Account> list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
@@ -85,7 +85,7 @@ public class Repository {
                             for (Any accountAny : json.get("accounts").asList()) {
                                 Account account = Utils.anyToAccount(accountAny);
                                 emails.put(account.getEmail(),PRESENT);
-                                ids.put(String.valueOf(account.getId()), PRESENT);
+                                ids.put(String.valueOf(account.getId()), account);
                                 if (isRait && availableNames.contains(fileHeader.getFileName())) {
                                     list.add(account);
                                     if (account.getSex().equals(Service.M)) {

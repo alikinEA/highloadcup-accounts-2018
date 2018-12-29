@@ -144,8 +144,7 @@ public class Service {
                     if (Repository.emails.containsKey(account.getEmail())) {
                         return BAD_REQUEST;
                     } else {
-                        account.setId(Integer.parseInt(curId));
-                        Account accountData = Repository.list.ceiling(account);
+                        Account accountData = Repository.ids.get(curId);
                         if (accountData != null) {
                             if (account.getLikesArr() != null) {
                                 accountData.setLikesArr(account.getLikesArr());
@@ -156,6 +155,39 @@ public class Service {
                                 accountData.setEmail(account.getEmail());
                             }
                             if (account.getSex() != null) {
+                                if (accountData.getSex().equals(F) && account.getSex().equals(M)) {
+                                    Repository.list_f.remove(accountData);
+                                    Repository.list_m.add(accountData);
+                                    if (accountData.getStatus().equals(STATUS1)) {
+                                        Repository.list_status_1_f.remove(accountData);
+                                        Repository.list_status_1_m.add(accountData);
+                                    }
+                                    if (accountData.getStatus().equals(STATUS2)) {
+                                        Repository.list_status_2_f.remove(accountData);
+                                        Repository.list_status_2_m.add(accountData);
+                                    }
+                                    if (accountData.getStatus().equals(STATUS3)) {
+                                        Repository.list_status_3_f.remove(accountData);
+                                        Repository.list_status_3_m.add(accountData);
+                                    }
+                                }
+                                if (accountData.getSex().equals(M) && account.getSex().equals(F)) {
+                                    Repository.list_m.remove(accountData);
+                                    Repository.list_f.add(accountData);
+
+                                    if (accountData.getStatus().equals(STATUS1)) {
+                                        Repository.list_status_1_m.remove(accountData);
+                                        Repository.list_status_1_f.add(accountData);
+                                    }
+                                    if (accountData.getStatus().equals(STATUS2)) {
+                                        Repository.list_status_2_m.remove(accountData);
+                                        Repository.list_status_2_f.add(accountData);
+                                    }
+                                    if (accountData.getStatus().equals(STATUS3)) {
+                                        Repository.list_status_3_m.remove(accountData);
+                                        Repository.list_status_3_f.add(accountData);
+                                    }
+                                }
                                 accountData.setSex(account.getSex());
                             }
                             if (account.getFname() != null) {
@@ -165,7 +197,47 @@ public class Service {
                                 accountData.setInterests(account.getInterests());
                             }
                             if (account.getStatus() != null) {
+                                if (accountData.getStatus().equals(STATUS1)){
+                                    if (accountData.getSex().equals(F)) {
+                                        Repository.list_status_1_f.remove(accountData);
+                                    } else {
+                                        Repository.list_status_1_m.remove(accountData);
+                                    }
+                                } else if (accountData.getStatus().equals(STATUS2)) {
+                                    if (accountData.getSex().equals(F)) {
+                                        Repository.list_status_2_f.remove(accountData);
+                                    } else {
+                                        Repository.list_status_2_m.remove(accountData);
+                                    }
+                                } else {
+                                    if (accountData.getSex().equals(F)) {
+                                        Repository.list_status_3_f.remove(accountData);
+                                    } else {
+                                        Repository.list_status_3_m.remove(accountData);
+                                    }
+                                }
+
                                 accountData.setStatus(account.getStatus());
+                                if (accountData.getStatus().equals(STATUS1)){
+                                    if (accountData.getSex().equals(F)) {
+                                        Repository.list_status_1_f.add(accountData);
+                                    } else {
+                                        Repository.list_status_1_m.add(accountData);
+                                    }
+                                } else if (accountData.getStatus().equals(STATUS2)) {
+                                    if (accountData.getSex().equals(F)) {
+                                        Repository.list_status_2_f.add(accountData);
+                                    } else {
+                                        Repository.list_status_2_m.add(accountData);
+                                    }
+                                } else {
+                                    if (accountData.getSex().equals(F)) {
+                                        Repository.list_status_3_f.add(accountData);
+                                    } else {
+                                        Repository.list_status_3_m.add(accountData);
+                                    }
+                                }
+
                             }
                             if (account.getPremium() != null) {
                                 accountData.setPremium(account.getPremium());
@@ -236,9 +308,7 @@ public class Service {
                 }
 
 
-                Account account = new Account();
-                account.setId(Integer.parseInt(id));
-                Account accountData = Repository.list.ceiling(account);
+                Account accountData = Repository.ids.get(id);
                 Iterator<Account> iter;
                 if (accountData.getSex().equals(F)) {
                     iter = Repository.list_m.descendingIterator();
@@ -366,9 +436,7 @@ public class Service {
                     }
                 }
                 for (LikeRequest like : likesReq.getLikes()) {
-                    Account account = new Account();
-                    account.setId(like.getLiker());
-                    Account accountData = Repository.list.ceiling(account);
+                    Account accountData = Repository.ids.get(like.getLiker().toString());
                     if (accountData != null) {
                         if (accountData.getLikesArr() == null) {
                             List<Integer> likesArr = new ArrayList<>(20);
@@ -469,7 +537,7 @@ public class Service {
                             && account.getStatus().equals(Service.STATUS3)) {
                         Repository.list_status_3_f.add(account);
                     }
-                    Repository.ids.put(account.getId().toString(), Repository.PRESENT);
+                    Repository.ids.put(account.getId().toString(), account);
                     Repository.emails.put(account.getEmail(), Repository.PRESENT);
                     return CREATED;
                 }
