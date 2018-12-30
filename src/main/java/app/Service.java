@@ -145,7 +145,7 @@ public class Service {
                         return BAD_REQUEST;
                     } else {
                         Account accountData = Repository.ids.get(curId);
-                        if (accountData != null) {
+                        if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
                             if (account.getLikesArr() != null) {
                                 accountData.setLikesArr(account.getLikesArr());
                             }
@@ -309,33 +309,35 @@ public class Service {
 
 
                 Account accountData = Repository.ids.get(id);
-                Iterator<Account> iter;
-                if (accountData.getSex().equals(F)) {
-                    iter = Repository.list_m.descendingIterator();
-                } else {
-                    iter = Repository.list_f.descendingIterator();
-                }
-                while (iter.hasNext()) {
-                    Account account1 = iter.next();
+                if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
+                    Iterator<Account> iter;
+                    if (accountData.getSex().equals(F)) {
+                        iter = Repository.list_m.descendingIterator();
+                    } else {
+                        iter = Repository.list_f.descendingIterator();
+                    }
+                    while (iter.hasNext()) {
+                        Account account1 = iter.next();
 
-                    if (!account1.getId().equals(accountData.getId())) {
-                        if (city.isEmpty() || city.equals(account1.getCity())) {
-                            if (country.isEmpty() || country.equals(account1.getCountry())) {
-                                int c = getCompatibility(accountData, account1);
-                                if (c > 0) {
-                                    AccountC accountC = new AccountC();
-                                    accountC.setAccount(account1);
-                                    accountC.setC(c);
-                                    while (!compat.add(accountC)) {
-                                        c = c + 1;
+                        if (!account1.getId().equals(accountData.getId())) {
+                            if (city.isEmpty() || city.equals(account1.getCity())) {
+                                if (country.isEmpty() || country.equals(account1.getCountry())) {
+                                    int c = getCompatibility(accountData, account1);
+                                    if (c > 0) {
+                                        AccountC accountC = new AccountC();
+                                        accountC.setAccount(account1);
                                         accountC.setC(c);
+                                        while (!compat.add(accountC)) {
+                                            c = c + 1;
+                                            accountC.setC(c);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    return new Result(Utils.accountToString2(compat, limit).getBytes(utf8), HttpResponseStatus.OK);
                 }
-                return new Result(Utils.accountToString2(compat,limit).getBytes(utf8), HttpResponseStatus.OK);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -437,7 +439,7 @@ public class Service {
                 }
                 for (LikeRequest like : likesReq.getLikes()) {
                     Account accountData = Repository.ids.get(like.getLiker().toString());
-                    if (accountData != null) {
+                    if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
                         if (accountData.getLikesArr() == null) {
                             List<Integer> likesArr = new ArrayList<>(20);
                             likesArr.add(like.getLikee());
