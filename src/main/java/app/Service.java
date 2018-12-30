@@ -24,11 +24,11 @@ public class Service {
 
     private static final byte[] EMPTY = "{}".getBytes();
     private static final byte[] EMPTY_ACCOUNTS = "{\"accounts\":[]}".getBytes();
-    private static final Result OK_EMPTY_ACCOUNTS = new Result(EMPTY_ACCOUNTS,HttpResponseStatus.OK);
-    private static final Result ACCEPTED = new Result(EMPTY,HttpResponseStatus.ACCEPTED);
-    private static final Result CREATED = new Result(EMPTY,HttpResponseStatus.CREATED);
-    private static final Result BAD_REQUEST = new Result(EMPTY,HttpResponseStatus.BAD_REQUEST);
-    private static final Result NOT_FOUND = new Result(EMPTY,HttpResponseStatus.NOT_FOUND);
+    private static final Result OK_EMPTY_ACCOUNTS = new Result(EMPTY_ACCOUNTS, HttpResponseStatus.OK);
+    private static final Result ACCEPTED = new Result(EMPTY, HttpResponseStatus.ACCEPTED);
+    private static final Result CREATED = new Result(EMPTY, HttpResponseStatus.CREATED);
+    private static final Result BAD_REQUEST = new Result(EMPTY, HttpResponseStatus.BAD_REQUEST);
+    private static final Result NOT_FOUND = new Result(EMPTY, HttpResponseStatus.NOT_FOUND);
 
 
     public static final String SEX = "sex";
@@ -71,10 +71,10 @@ public class Service {
     private static final String URI_GROUP = "/accounts/group/?";
     private static final String URI_SUGGEST = "/suggest";
     private static final String URI_RECOMENDED = "/recommend";
-    private static final String ACCOUNTS =  "/accounts/";
+    private static final String ACCOUNTS = "/accounts/";
 
-    public static final String F =  "f";
-    public static final String M =  "m";
+    public static final String F = "f";
+    public static final String M = "m";
 
     public static final String STATUS1 = "свободны";
     public static final String STATUS2 = "всё сложно";
@@ -144,139 +144,145 @@ public class Service {
                     }
                     if (Repository.emails.containsKey(account.getEmail())) {
                         return BAD_REQUEST;
-                    } else {
-                        Account accountData = Repository.ids.get(Integer.parseInt(curId));
-                        if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
-                            if (account.getLikes() != null) {
-                                accountData.setLikes(account.getLikes());
-                            }
-                            if (account.getEmail() != null) {
-                                Repository.emails.remove(accountData.getEmail());
-                                Repository.emails.put(account.getEmail(), Repository.PRESENT);
-                                accountData.setEmail(account.getEmail());
-                            }
-                            if (account.getSex() != null) {
-                                if (accountData.getSex().equals(F) && account.getSex().equals(M)) {
-                                    Repository.list_f.remove(accountData);
-                                    Repository.list_m.add(accountData);
-                                    if (accountData.getStatus().equals(STATUS1)) {
-                                        Repository.list_status_1_f.remove(accountData);
-                                        Repository.list_status_1_m.add(accountData);
-                                    }
-                                    if (accountData.getStatus().equals(STATUS2)) {
-                                        Repository.list_status_2_f.remove(accountData);
-                                        Repository.list_status_2_m.add(accountData);
-                                    }
-                                    if (accountData.getStatus().equals(STATUS3)) {
-                                        Repository.list_status_3_f.remove(accountData);
-                                        Repository.list_status_3_m.add(accountData);
-                                    }
-                                }
-                                if (accountData.getSex().equals(M) && account.getSex().equals(F)) {
-                                    Repository.list_m.remove(accountData);
-                                    Repository.list_f.add(accountData);
-
-                                    if (accountData.getStatus().equals(STATUS1)) {
-                                        Repository.list_status_1_m.remove(accountData);
-                                        Repository.list_status_1_f.add(accountData);
-                                    }
-                                    if (accountData.getStatus().equals(STATUS2)) {
-                                        Repository.list_status_2_m.remove(accountData);
-                                        Repository.list_status_2_f.add(accountData);
-                                    }
-                                    if (accountData.getStatus().equals(STATUS3)) {
-                                        Repository.list_status_3_m.remove(accountData);
-                                        Repository.list_status_3_f.add(accountData);
-                                    }
-                                }
-                                accountData.setSex(account.getSex());
-                            }
-                            if (account.getFname() != null) {
-                                accountData.setFname(account.getFname());
-                            }
-                            if (account.getInterests() != null) {
-                                accountData.setInterests(account.getInterests());
-                            }
-                            if (account.getStatus() != null) {
-                                if (accountData.getStatus().equals(STATUS1)){
-                                    if (accountData.getSex().equals(F)) {
-                                        Repository.list_status_1_f.remove(accountData);
-                                    } else {
-                                        Repository.list_status_1_m.remove(accountData);
-                                    }
-                                } else if (accountData.getStatus().equals(STATUS2)) {
-                                    if (accountData.getSex().equals(F)) {
-                                        Repository.list_status_2_f.remove(accountData);
-                                    } else {
-                                        Repository.list_status_2_m.remove(accountData);
-                                    }
-                                } else {
-                                    if (accountData.getSex().equals(F)) {
-                                        Repository.list_status_3_f.remove(accountData);
-                                    } else {
-                                        Repository.list_status_3_m.remove(accountData);
-                                    }
-                                }
-
-                                accountData.setStatus(account.getStatus());
-                                if (accountData.getStatus().equals(STATUS1)){
-                                    if (accountData.getSex().equals(F)) {
-                                        Repository.list_status_1_f.add(accountData);
-                                    } else {
-                                        Repository.list_status_1_m.add(accountData);
-                                    }
-                                } else if (accountData.getStatus().equals(STATUS2)) {
-                                    if (accountData.getSex().equals(F)) {
-                                        Repository.list_status_2_f.add(accountData);
-                                    } else {
-                                        Repository.list_status_2_m.add(accountData);
-                                    }
-                                } else {
-                                    if (accountData.getSex().equals(F)) {
-                                        Repository.list_status_3_f.add(accountData);
-                                    } else {
-                                        Repository.list_status_3_m.add(accountData);
-                                    }
-                                }
-
-                            }
-                            if (account.getPremium() != null) {
-                                accountData.setPremium(account.getPremium());
-                            }
-                            if (account.getPhone() != null) {
-                                accountData.setPhone(account.getPhone());
-                            }
-                            if (account.getBirth() != null) {
-                                accountData.setBirth(account.getBirth());
-                            }
-                            if (account.getCity() != null) {
-                                accountData.setCity(account.getCity());
-                            }
-                            if (account.getCountry() != null) {
-                                accountData.setCountry(account.getCountry());
-                            }
-                            if (account.getSname() != null) {
-                                accountData.setSname(account.getSname());
-                            }
-                        }
-                        return ACCEPTED;
                     }
                 }
+                Account accountData = Repository.ids.get(Integer.parseInt(curId));
+                if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
+                    if (account.getLikes() != null) {
+                        accountData.setLikes(account.getLikes());
+                    }
+                    if (account.getEmail() != null) {
+                        Repository.emails.remove(accountData.getEmail());
+                        Repository.emails.put(account.getEmail(), Repository.PRESENT);
+                        accountData.setEmail(account.getEmail());
+                    }
+                    if (account.getSex() != null) {
+                        if (accountData.getSex().equals(F) && account.getSex().equals(M)) {
+                            Repository.list_f.remove(accountData);
+                            Repository.list_m.add(accountData);
+                            if (accountData.getStatus().equals(STATUS1)) {
+                                Repository.list_status_1_f.remove(accountData);
+                                Repository.list_status_1_m.add(accountData);
+                            }
+                            if (accountData.getStatus().equals(STATUS2)) {
+                                Repository.list_status_2_f.remove(accountData);
+                                Repository.list_status_2_m.add(accountData);
+                            }
+                            if (accountData.getStatus().equals(STATUS3)) {
+                                Repository.list_status_3_f.remove(accountData);
+                                Repository.list_status_3_m.add(accountData);
+                            }
+                        }
+                        if (accountData.getSex().equals(M) && account.getSex().equals(F)) {
+                            Repository.list_m.remove(accountData);
+                            Repository.list_f.add(accountData);
+
+                            if (accountData.getStatus().equals(STATUS1)) {
+                                Repository.list_status_1_m.remove(accountData);
+                                Repository.list_status_1_f.add(accountData);
+                            }
+                            if (accountData.getStatus().equals(STATUS2)) {
+                                Repository.list_status_2_m.remove(accountData);
+                                Repository.list_status_2_f.add(accountData);
+                            }
+                            if (accountData.getStatus().equals(STATUS3)) {
+                                Repository.list_status_3_m.remove(accountData);
+                                Repository.list_status_3_f.add(accountData);
+                            }
+                        }
+                        accountData.setSex(account.getSex());
+                    }
+                    if (account.getFname() != null) {
+                        accountData.setFname(account.getFname());
+                    }
+                    if (account.getInterests() != null) {
+                        accountData.setInterests(account.getInterests());
+                    }
+                    if (account.getStatus() != null) {
+                        if (accountData.getStatus().equals(STATUS1)) {
+                            if (accountData.getSex().equals(F)) {
+                                Repository.list_status_1_f.remove(accountData);
+                            } else {
+                                Repository.list_status_1_m.remove(accountData);
+                            }
+                        } else if (accountData.getStatus().equals(STATUS2)) {
+                            if (accountData.getSex().equals(F)) {
+                                Repository.list_status_2_f.remove(accountData);
+                            } else {
+                                Repository.list_status_2_m.remove(accountData);
+                            }
+                        } else {
+                            if (accountData.getSex().equals(F)) {
+                                Repository.list_status_3_f.remove(accountData);
+                            } else {
+                                Repository.list_status_3_m.remove(accountData);
+                            }
+                        }
+
+                        accountData.setStatus(account.getStatus());
+                        if (accountData.getStatus().equals(STATUS1)) {
+                            if (accountData.getSex().equals(F)) {
+                                Repository.list_status_1_f.add(accountData);
+                            } else {
+                                Repository.list_status_1_m.add(accountData);
+                            }
+                        } else if (accountData.getStatus().equals(STATUS2)) {
+                            if (accountData.getSex().equals(F)) {
+                                Repository.list_status_2_f.add(accountData);
+                            } else {
+                                Repository.list_status_2_m.add(accountData);
+                            }
+                        } else {
+                            if (accountData.getSex().equals(F)) {
+                                Repository.list_status_3_f.add(accountData);
+                            } else {
+                                Repository.list_status_3_m.add(accountData);
+                            }
+                        }
+
+                    }
+                    if (account.getPremium() != null) {
+                        accountData.setPremium(account.getPremium());
+                    }
+                    if (account.getPhone() != null) {
+                        accountData.setPhone(account.getPhone());
+                    }
+                    if (account.getBirth() != null) {
+                        accountData.setBirth(account.getBirth());
+                    }
+                    if (account.getCity() != null) {
+                        accountData.setCity(account.getCity());
+                    }
+                    if (account.getCountry() != null) {
+                        accountData.setCountry(account.getCountry());
+                    }
+                    if (account.getSname() != null) {
+                        accountData.setSname(account.getSname());
+                    }
+                } else {
+                    return NOT_FOUND;
+                }
+                return ACCEPTED;
             } else {
                 return NOT_FOUND;
             }
-            return ACCEPTED;
-        }finally {
+        } finally {
             lock.writeLock().unlock();
         }
     }
 
     private static Result handleRecomended(FullHttpRequest req) {
+        if (count.get() > 200) {
+            return NOT_FOUND;
+        }
         lock.readLock().lock();
         try {
 
             String replAcc = req.uri().substring(10);
             String id = replAcc.substring(0, replAcc.indexOf("/"));
+            if (!Character.isDigit(id.charAt(0))) {
+                return NOT_FOUND;
+            }
 
             TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
             if (!Repository.ids.containsKey(Integer.parseInt(id))) {
@@ -341,7 +347,7 @@ public class Service {
                 }
             }
         } catch (Exception e) {
-           return NOT_FOUND;
+            return BAD_REQUEST;
         } finally {
             lock.readLock().unlock();
         }
@@ -442,11 +448,11 @@ public class Service {
                     Account accountData = Repository.ids.get(like.getLiker());
                     if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
                         if (accountData.getLikes() == null) {
-                            List<Like> likes = new ArrayList<>(20);
-                            likes.add(new Like(like.getTs(),like.getLiker()));
+                            List<Like> likes = new LinkedList<>();
+                            likes.add(new Like(like.getTs(), like.getLiker()));
                             accountData.setLikes(likes);
                         } else {
-                            accountData.getLikes().add(new Like(like.getTs(),like.getLiker()));
+                            accountData.getLikes().add(new Like(like.getTs(), like.getLiker()));
                         }
                     }
                 }
@@ -634,11 +640,11 @@ public class Service {
 
     }
 
-    private static boolean compareArrays(List<String> params, Map<String,Object> enableProp) {
+    private static boolean compareArrays(List<String> params, List<String> enableProp) {
         if (params.size() != enableProp.size()) {
             return false;
         }
-        for (String key : enableProp.keySet()) {
+        for (String key : enableProp) {
             boolean isValid = false;
             for (String param : params) {
                 if (param.startsWith(key)) {
@@ -665,7 +671,6 @@ public class Service {
         lock.readLock().lock();
         try {
             List<String> params = getTokens(uri.substring(18), "&");
-            int i = 0;
             int limit = 0;
             for (String param : params) {
                 if (param.startsWith(LIMIT)) {
@@ -673,8 +678,8 @@ public class Service {
                 }
             }
 
-            Map<String, String> valueCache = new HashMap<>(params.size());
-            Map<String, String> predicateCache = new HashMap<>(params.size());
+            Map<String, String> valueCache = new TreeMap<>();
+            Map<String, String> predicateCache = new TreeMap<>();
             Map<String, Object> finalFieldSet = null;
 
             String sex = null;
@@ -738,13 +743,11 @@ public class Service {
                 listForRearch = Repository.list_status_3_m;
             }
 
-            Map<String, Object> enableProp = new HashMap<>(valueCache.size());
-            List<Account> accounts = new ArrayList<>(limit);
+            List<String> enableProp = new LinkedList<>();
+            List<Account> accounts = new LinkedList<>();
 
-            Iterator<Account> listIterator = listForRearch.iterator();
-            while (listIterator.hasNext()) {
-                Account account = listIterator.next();
-                if (i == limit) {
+            for(Account account : listForRearch) {
+                if (accounts.size() == limit) {
                     break;
                 }
                 enableProp.clear();
@@ -752,7 +755,7 @@ public class Service {
                     //SEX ============================================
                     if (param.startsWith(SEX)) {
                         if (account.getSex().equals(valueCache.get(param))) {
-                            enableProp.put(SEX, Repository.PRESENT);
+                            enableProp.add(SEX);
                         } else {
                             break;
                         }
@@ -764,19 +767,19 @@ public class Service {
                         String predicate = predicateCache.get(param);
                         if (predicate.equals(DOMAIN_PR)) {
                             if (account.getEmail().contains(valueCache.get(param))) {
-                                enableProp.put(EMAIL, Repository.PRESENT);
+                                enableProp.add(EMAIL);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(LT_PR)) {
                             if (account.getEmail().compareTo(valueCache.get(param)) < 0) {
-                                enableProp.put(EMAIL, Repository.PRESENT);
+                                enableProp.add(EMAIL);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(GT_PR)) {
                             if (account.getEmail().compareTo(valueCache.get(param)) > 0) {
-                                enableProp.put(EMAIL, Repository.PRESENT);
+                                enableProp.add(EMAIL);
                             } else {
                                 break;
                             }
@@ -789,13 +792,13 @@ public class Service {
                         String predicate = predicateCache.get(param);
                         if (predicate.equals(EQ_PR)) {
                             if (account.getStatus().equals(valueCache.get(param))) {
-                                enableProp.put(STATUS, Repository.PRESENT);
+                                enableProp.add(STATUS);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(NEQ_PR)) {
                             if (!account.getStatus().equals(valueCache.get(param))) {
-                                enableProp.put(STATUS, Repository.PRESENT);
+                                enableProp.add(STATUS);
                             } else {
                                 break;
                             }
@@ -810,7 +813,7 @@ public class Service {
 
                         if (predicate.equals(EQ_PR)) {
                             if (valueCache.get(param).equals(account.getSname())) {
-                                enableProp.put(SNAME, Repository.PRESENT);
+                                enableProp.add(SNAME);
                             } else {
                                 break;
                             }
@@ -818,13 +821,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getSname() == null) {
-                                    enableProp.put(SNAME, Repository.PRESENT);
+                                    enableProp.add(SNAME);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getSname() != null) {
-                                    enableProp.put(SNAME, Repository.PRESENT);
+                                    enableProp.add(SNAME);
                                 } else {
                                     break;
                                 }
@@ -832,7 +835,7 @@ public class Service {
                         } else if (predicate.equals(STARTS_PR)) {
                             if (account.getSname() != null)
                                 if (account.getSname().startsWith(valueCache.get(param))) {
-                                    enableProp.put(SNAME, Repository.PRESENT);
+                                    enableProp.add(SNAME);
                                 } else {
                                     break;
                                 }
@@ -850,7 +853,7 @@ public class Service {
                                         .substring(account.getPhone().indexOf("(") + 1
                                                 , account.getPhone().indexOf(")"))
                                         .equals(valueCache.get(param))) {
-                                    enableProp.put(PHONE, Repository.PRESENT);
+                                    enableProp.add(PHONE);
                                 } else {
                                     break;
                                 }
@@ -859,13 +862,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getPhone() == null) {
-                                    enableProp.put(PHONE, Repository.PRESENT);
+                                    enableProp.add(PHONE);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getPhone() != null) {
-                                    enableProp.put(PHONE, Repository.PRESENT);
+                                    enableProp.add(PHONE);
                                 } else {
                                     break;
                                 }
@@ -881,7 +884,7 @@ public class Service {
 
                         if (predicate.equals(EQ_PR)) {
                             if (valueCache.get(param).equals(account.getCountry())) {
-                                enableProp.put(COUNTRY, Repository.PRESENT);
+                                enableProp.add(COUNTRY);
                             } else {
                                 break;
                             }
@@ -889,13 +892,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getCountry() == null) {
-                                    enableProp.put(COUNTRY, Repository.PRESENT);
+                                    enableProp.add(COUNTRY);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getCountry() != null) {
-                                    enableProp.put(COUNTRY, Repository.PRESENT);
+                                    enableProp.add(COUNTRY);
                                 } else {
                                     break;
                                 }
@@ -912,7 +915,7 @@ public class Service {
                             if (account.getPremium() != null) {
                                 if (currentTimeStamp2 < account.getPremium().getFinish()
                                         && currentTimeStamp2 > account.getPremium().getStart()) {
-                                    enableProp.put(PREMIUM, Repository.PRESENT);
+                                    enableProp.add(PREMIUM);
                                 } else {
                                     break;
                                 }
@@ -921,13 +924,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getPremium() == null) {
-                                    enableProp.put(PREMIUM, Repository.PRESENT);
+                                    enableProp.add(PREMIUM);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getPremium() != null) {
-                                    enableProp.put(PREMIUM, Repository.PRESENT);
+                                    enableProp.add(PREMIUM);
                                 } else {
                                     break;
                                 }
@@ -942,19 +945,19 @@ public class Service {
                             Calendar calendar = new GregorianCalendar();
                             calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
                             if (Integer.parseInt(getValue(param)) == calendar.get(Calendar.YEAR)) {
-                                enableProp.put(BIRTH, Repository.PRESENT);
+                                enableProp.add(BIRTH);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(LT_PR)) {
                             if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) < 0) {
-                                enableProp.put(BIRTH, Repository.PRESENT);
+                                enableProp.add(BIRTH);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(GT_PR)) {
                             if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) > 0) {
-                                enableProp.put(BIRTH, Repository.PRESENT);
+                                enableProp.add(BIRTH);
                             } else {
                                 break;
                             }
@@ -968,7 +971,7 @@ public class Service {
 
                         if (predicate.equals(EQ_PR)) {
                             if (getValue(param).equals(account.getCity())) {
-                                enableProp.put(CITY, Repository.PRESENT);
+                                enableProp.add(CITY);
                             } else {
                                 break;
                             }
@@ -976,7 +979,7 @@ public class Service {
                             StringTokenizer t = new StringTokenizer(valueCache.get(param), delim);
                             while (t.hasMoreTokens()) {
                                 if (t.nextToken().equals(account.getCity())) {
-                                    enableProp.put(CITY, Repository.PRESENT);
+                                    enableProp.add(CITY);
                                     break;
                                 }
                             }
@@ -984,13 +987,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getCity() == null) {
-                                    enableProp.put(CITY, Repository.PRESENT);
+                                    enableProp.add(CITY);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getCity() != null) {
-                                    enableProp.put(CITY, Repository.PRESENT);
+                                    enableProp.add(CITY);
                                 } else {
                                     break;
                                 }
@@ -1006,7 +1009,7 @@ public class Service {
 
                         if (predicate.equals(EQ_PR)) {
                             if (valueCache.get(param).equals(account.getFname())) {
-                                enableProp.put(FNAME, Repository.PRESENT);
+                                enableProp.add(FNAME);
                             } else {
                                 break;
                             }
@@ -1014,7 +1017,7 @@ public class Service {
                             StringTokenizer t = new StringTokenizer(valueCache.get(param), delim);
                             while (t.hasMoreTokens()) {
                                 if (t.nextToken().equals(account.getFname())) {
-                                    enableProp.put(FNAME, Repository.PRESENT);
+                                    enableProp.add(FNAME);
                                     break;
                                 }
                             }
@@ -1022,13 +1025,13 @@ public class Service {
                             String value = valueCache.get(param);
                             if (value.equals(NULL_PR_VAL_ONE)) {
                                 if (account.getFname() == null) {
-                                    enableProp.put(FNAME, Repository.PRESENT);
+                                    enableProp.add(FNAME);
                                 } else {
                                     break;
                                 }
                             } else {
                                 if (account.getFname() != null) {
-                                    enableProp.put(FNAME, Repository.PRESENT);
+                                    enableProp.add(FNAME);
                                 } else {
                                     break;
                                 }
@@ -1045,14 +1048,14 @@ public class Service {
                                 StringTokenizer t = new StringTokenizer(valueCache.get(param), delim);
                                 while (t.hasMoreTokens()) {
                                     if (account.getInterests().contains(t.nextToken())) {
-                                        enableProp.put(INTERESTS, Repository.PRESENT);
+                                        enableProp.add(INTERESTS);
                                         break;
                                     }
                                 }
                             } else if (predicate.equals(CONTAINS_PR)) {
                                 List<String> splitedValue = getTokens(valueCache.get(param), delim);
                                 if (splitedValue.size() <= account.getInterests().size()) {
-                                    enableProp.put(INTERESTS, Repository.PRESENT);
+                                    enableProp.add(INTERESTS);
                                     for (String value : splitedValue) {
                                         if (!account.getInterests().contains(value)) {
                                             enableProp.remove(INTERESTS);
@@ -1074,7 +1077,7 @@ public class Service {
                         if (account.getLikes() != null) {
                             List<String> splitedValue = getTokens(valueCache.get(param), delim);
                             if (splitedValue.size() <= account.getLikes().size()) {
-                                enableProp.put(LIKES, Repository.PRESENT);
+                                enableProp.add(LIKES);
                                 List<Integer> likerArr = account.getLikes().stream().map(Like::getId).collect(Collectors.toList());
                                 for (String value : splitedValue) {
                                     if (!likerArr.contains(Integer.parseInt(value))) {
@@ -1090,17 +1093,16 @@ public class Service {
                     //LIKES ============================================
 
                 }
-                enableProp.put(QUERY_ID, Repository.PRESENT);
-                enableProp.put(LIMIT, Repository.PRESENT);
+                enableProp.add(QUERY_ID);
+                enableProp.add(LIMIT);
                 if (compareArrays(params, enableProp)) {
                     if (finalFieldSet == null) {
-                        finalFieldSet = new HashMap<>(enableProp.size());
-                        for (String key : enableProp.keySet()) {
+                        finalFieldSet = new TreeMap<>();
+                        for (String key : enableProp) {
                             finalFieldSet.put(key, Repository.PRESENT);
                         }
                     }
                     accounts.add(account);
-                    i++;
                 }
             }
             try {
@@ -1118,8 +1120,8 @@ public class Service {
         valueCache.put(param,getValue(param));
     }
 
-    public static List<String> getTokens(String str,String ch) {
-        List<String> tokens = new ArrayList<>();
+    public static List<String> getTokens(String str, String ch) {
+        List<String> tokens = new LinkedList<>();
         StringTokenizer tokenizer = new StringTokenizer(str, ch);
         while (tokenizer.hasMoreElements()) {
             tokens.add(tokenizer.nextToken());

@@ -1,4 +1,4 @@
 FROM shipilev/openjdk-shenandoah:11
 ADD /target/highloadcup2019-jar-with-dependencies.jar highloadcup2019.jar
-ENV JAVA_OPTS="-XX:+UseParallelOldGC -Xmx2048m -Xms2048m -XX:NewRatio=5 -server -XX:-AggressiveOpts"
+ENV JAVA_OPTS="-XX:+UseParallelGC -Xmx2048m -Xms2048m -server -XX:-AggressiveOpts"
 ENTRYPOINT exec java $JAVA_OPTS -jar /highloadcup2019.jar

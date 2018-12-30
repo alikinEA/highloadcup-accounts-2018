@@ -6,10 +6,7 @@ import com.jsoniter.any.Any;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -99,7 +96,7 @@ public class Utils {
             }
             if (key.equals(Service.INTERESTS)) {
                 List<Any> listInter = accountAny.get(Service.INTERESTS).asList();
-                List<String> list = new ArrayList<>(listInter.size());
+                List<String> list = new LinkedList<>();
                 for (Any anyInter : listInter) {
                     list.add(anyInter.toString());
                 }
@@ -107,7 +104,7 @@ public class Utils {
             }
             if (key.equals(Service.LIKES)) {
                 List<Any> listLike = accountAny.get(Service.LIKES).asList();
-                List<Like> list = new ArrayList<>(listLike.size());
+                List<Like> list = new LinkedList<>();
                 for (Any anyLike : listLike) {
                     list.add(new Like(anyLike.get(Service.TS).toInt(),anyLike.get(Service.ID).toInt()));
                 }
