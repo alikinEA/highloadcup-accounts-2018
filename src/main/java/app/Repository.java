@@ -29,7 +29,7 @@ public class Repository {
 
 
     private static final List<String> availableNames =
-            Collections.singletonList("accounts_130.json");
+            Arrays.asList("accounts_130.json","accounts_129.json");
     private static final List<String> availableNamesTest =
             Arrays.asList("accounts_1.json"
                     ,"accounts_2.json"
@@ -40,7 +40,7 @@ public class Repository {
 
     static final Object PRESENT = new Object();
     static final Account PRESENT_AC = new Account();
-    static final Map<String,Account> ids = new HashMap<>(elementCount);
+    static final Map<Integer,Account> ids = new HashMap<>(elementCount);
     static final Map<String,Object> emails = new HashMap<>(elementCount);
     static final TreeSet<Account> list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
@@ -86,6 +86,7 @@ public class Repository {
                     try {
                         FileHeader fileHeader = (FileHeader)item;
                         if (fileHeader.getFileName().contains("accounts")) {
+                            System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
                             try (InputStream inputStream = zipFile.getInputStream(fileHeader)) {
                                 List<Any> json = JsonIterator.deserialize(Utils.readBytes(inputStream)).get("accounts").asList();
                                 for (Any accountAny : json) {
@@ -94,51 +95,8 @@ public class Repository {
                                     if ((isRait && availableNames.contains(fileHeader.getFileName()))
                                             || (!isRait && availableNamesTest.contains(fileHeader.getFileName()))) {
                                         list.add(account);
-                                        if (account.getSex().equals(Service.M)) {
-                                            list_m.add(account);
-                                        } else {
-                                            list_f.add(account);
-                                        }
-                                        if (account.getStatus().equals(Service.STATUS1)) {
-                                            list_status_1.add(account);
-                                        } else if (account.getStatus().equals(Service.STATUS2)) {
-                                            list_status_2.add(account);
-                                        } else {
-                                            list_status_3.add(account);
-                                        }
-
-                                        if (account.getSex().equals(Service.M)
-                                                && account.getStatus().equals(Service.STATUS1)) {
-                                            list_status_1_m.add(account);
-                                        }
-
-                                        if (account.getSex().equals(Service.M)
-                                                && account.getStatus().equals(Service.STATUS2)) {
-                                            list_status_2_m.add(account);
-                                        }
-
-                                        if (account.getSex().equals(Service.M)
-                                                && account.getStatus().equals(Service.STATUS3)) {
-                                            list_status_3_m.add(account);
-                                        }
-
-                                        if (account.getSex().equals(Service.F)
-                                                && account.getStatus().equals(Service.STATUS1)) {
-                                            list_status_1_f.add(account);
-                                        }
-
-                                        if (account.getSex().equals(Service.F)
-                                                && account.getStatus().equals(Service.STATUS2)) {
-                                            list_status_2_f.add(account);
-                                        }
-
-                                        if (account.getSex().equals(Service.F)
-                                                && account.getStatus().equals(Service.STATUS3)) {
-                                            list_status_3_f.add(account);
-                                        }
-                                        ids.put(String.valueOf(account.getId()), account);
                                     } else {
-                                        ids.put(String.valueOf(account.getId()), PRESENT_AC);
+                                        ids.put(account.getId(), PRESENT_AC);
                                     }
                                 }
                                 json = null;
@@ -149,15 +107,60 @@ public class Repository {
                     }
                 }
             });
+            System.out.println("list size = " + list.size());
+            for (Account account : list) {
+                if (account.getSex().equals(Service.M)) {
+                    list_m.add(account);
+                } else {
+                    list_f.add(account);
+                }
+                if (account.getStatus().equals(Service.STATUS1)) {
+                    list_status_1.add(account);
+                } else if (account.getStatus().equals(Service.STATUS2)) {
+                    list_status_2.add(account);
+                } else {
+                    list_status_3.add(account);
+                }
+
+                if (account.getSex().equals(Service.M)
+                        && account.getStatus().equals(Service.STATUS1)) {
+                    list_status_1_m.add(account);
+                }
+
+                if (account.getSex().equals(Service.M)
+                        && account.getStatus().equals(Service.STATUS2)) {
+                    list_status_2_m.add(account);
+                }
+
+                if (account.getSex().equals(Service.M)
+                        && account.getStatus().equals(Service.STATUS3)) {
+                    list_status_3_m.add(account);
+                }
+
+                if (account.getSex().equals(Service.F)
+                        && account.getStatus().equals(Service.STATUS1)) {
+                    list_status_1_f.add(account);
+                }
+
+                if (account.getSex().equals(Service.F)
+                        && account.getStatus().equals(Service.STATUS2)) {
+                    list_status_2_f.add(account);
+                }
+
+                if (account.getSex().equals(Service.F)
+                        && account.getStatus().equals(Service.STATUS3)) {
+                    list_status_3_f.add(account);
+                }
+                ids.put(account.getId(), account);
+            }
             System.out.println("list ids = " + ids.size());
             System.out.println("list emails = " + emails.size());
-            System.out.println("list size = " + list.size());
-            System.out.println("start warm up");
+            /*System.out.println("start warm up");
             for (int i = 0; i < 1000; i++) {
                 Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
-            }
+            }*/
             System.gc();//¯\_(ツ)_/¯
-            System.out.println("End ");
+            System.out.println("End " + (new Date().getTime() - start));
         } catch (Exception e) {
             e.printStackTrace();
         }finally {

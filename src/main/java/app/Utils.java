@@ -1,9 +1,6 @@
 package app;
 
-import app.models.Account;
-import app.models.AccountC;
-import app.models.Premium;
-import app.models.Result;
+import app.models.*;
 import com.jsoniter.any.Any;
 
 import java.io.ByteArrayOutputStream;
@@ -110,12 +107,11 @@ public class Utils {
             }
             if (key.equals(Service.LIKES)) {
                 List<Any> listLike = accountAny.get(Service.LIKES).asList();
-                List<Integer> list = new ArrayList<>(listLike.size());
+                List<Like> list = new ArrayList<>(listLike.size());
                 for (Any anyLike : listLike) {
-                    anyLike.get(Service.TS).toInt();
-                    list.add(anyLike.get(Service.ID).toInt());
+                    list.add(new Like(anyLike.get(Service.TS).toInt(),anyLike.get(Service.ID).toInt()));
                 }
-                account.setLikesArr(list);
+                account.setLikes(list);
             }
 
             if (key.equals(Service.PREMIUM)) {

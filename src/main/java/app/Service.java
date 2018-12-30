@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import static app.Repository.currentTimeStamp2;
 
@@ -119,7 +120,7 @@ public class Service {
             if (!Character.isDigit(curId.charAt(0))) {
                 return NOT_FOUND;
             }
-            if (Repository.ids.containsKey(curId)) {
+            if (Repository.ids.containsKey(Integer.parseInt(curId))) {
                 Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
                 if (account == null) {
                     return BAD_REQUEST;
@@ -144,10 +145,10 @@ public class Service {
                     if (Repository.emails.containsKey(account.getEmail())) {
                         return BAD_REQUEST;
                     } else {
-                        Account accountData = Repository.ids.get(curId);
+                        Account accountData = Repository.ids.get(Integer.parseInt(curId));
                         if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
-                            if (account.getLikesArr() != null) {
-                                accountData.setLikesArr(account.getLikesArr());
+                            if (account.getLikes() != null) {
+                                accountData.setLikes(account.getLikes());
                             }
                             if (account.getEmail() != null) {
                                 Repository.emails.remove(accountData.getEmail());
@@ -278,7 +279,7 @@ public class Service {
             String id = replAcc.substring(0, replAcc.indexOf("/"));
 
             TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
-            if (!Repository.ids.containsKey(id)) {
+            if (!Repository.ids.containsKey(Integer.parseInt(id))) {
                 return NOT_FOUND;
             } else {
                 List<String> params = getTokens(req.uri().substring(req.uri().indexOf(URI_RECOMENDED) + 12), "&");
@@ -308,7 +309,7 @@ public class Service {
                 }
 
 
-                Account accountData = Repository.ids.get(id);
+                Account accountData = Repository.ids.get(Integer.parseInt(id));
                 if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
                     Iterator<Account> iter;
                     if (accountData.getSex().equals(F)) {
@@ -340,7 +341,7 @@ public class Service {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+           return NOT_FOUND;
         } finally {
             lock.readLock().unlock();
         }
@@ -429,23 +430,23 @@ public class Service {
                         return BAD_REQUEST;
                     }
                     if (like.getLiker() == null
-                            || !Repository.ids.containsKey(like.getLiker().toString())) {
+                            || !Repository.ids.containsKey(like.getLiker())) {
                         return BAD_REQUEST;
                     }
                     if (like.getLikee() == null
-                            || !Repository.ids.containsKey(like.getLikee().toString())) {
+                            || !Repository.ids.containsKey(like.getLikee())) {
                         return BAD_REQUEST;
                     }
                 }
                 for (LikeRequest like : likesReq.getLikes()) {
-                    Account accountData = Repository.ids.get(like.getLiker().toString());
+                    Account accountData = Repository.ids.get(like.getLiker());
                     if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
-                        if (accountData.getLikesArr() == null) {
-                            List<Integer> likesArr = new ArrayList<>(20);
-                            likesArr.add(like.getLikee());
-                            accountData.setLikesArr(likesArr);
+                        if (accountData.getLikes() == null) {
+                            List<Like> likes = new ArrayList<>(20);
+                            likes.add(new Like(like.getTs(),like.getLiker()));
+                            accountData.setLikes(likes);
                         } else {
-                            accountData.getLikesArr().add(like.getLikee());
+                            accountData.getLikes().add(new Like(like.getTs(),like.getLiker()));
                         }
                     }
                 }
@@ -469,7 +470,7 @@ public class Service {
             if (account.getId() == null) {
                 return BAD_REQUEST;
             }
-            if (Repository.ids.containsKey(account.getId().toString())) {
+            if (Repository.ids.containsKey(account.getId())) {
                 return BAD_REQUEST;
             }
             if (account.getSex() != null) {
@@ -539,7 +540,7 @@ public class Service {
                             && account.getStatus().equals(Service.STATUS3)) {
                         Repository.list_status_3_f.add(account);
                     }
-                    Repository.ids.put(account.getId().toString(), account);
+                    Repository.ids.put(account.getId(), account);
                     Repository.emails.put(account.getEmail(), Repository.PRESENT);
                     return CREATED;
                 }
@@ -1070,12 +1071,13 @@ public class Service {
 
                     //LIKES ============================================
                     if (param.startsWith(LIKES)) {
-                        if (account.getLikesArr() != null) {
+                        if (account.getLikes() != null) {
                             List<String> splitedValue = getTokens(valueCache.get(param), delim);
-                            if (splitedValue.size() <= account.getLikesArr().size()) {
+                            if (splitedValue.size() <= account.getLikes().size()) {
                                 enableProp.put(LIKES, Repository.PRESENT);
+                                List<Integer> likerArr = account.getLikes().stream().map(Like::getId).collect(Collectors.toList());
                                 for (String value : splitedValue) {
-                                    if (!account.getLikesArr().contains(Integer.parseInt(value))) {
+                                    if (!likerArr.contains(Integer.parseInt(value))) {
                                         enableProp.remove(LIKES);
                                         break;
                                     }
