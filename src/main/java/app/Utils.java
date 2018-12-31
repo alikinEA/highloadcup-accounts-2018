@@ -41,111 +41,115 @@ public class Utils {
     }
 
     public static Account anyToAccount(Any accountAny) {
-        for (String key : accountAny.keys()) {
-            if (!key.equals(Service.ID)
-                    && !key.equals(Service.INTERESTS)
-                    && !key.equals(Service.LIKES)
-                    && !key.equals(Service.PREMIUM)
-                    && !key.equals(Service.EMAIL)
-                    && !key.equals(Service.CITY)
-                    && !key.equals(Service.COUNTRY)
-                    && !key.equals(Service.SNAME)
-                    && !key.equals(Service.PHONE)
-                    && !key.equals(Service.BIRTH)
-                    && !key.equals(Service.SEX)
-                    && !key.equals(Service.FNAME)
-                    && !key.equals(Service.STATUS)
-                    && !key.equals(Service.JOINED)
-            ) {
-                return null;
+        try {
+            for (String key : accountAny.keys()) {
+                if (!key.equals(Service.ID)
+                        && !key.equals(Service.INTERESTS)
+                        && !key.equals(Service.LIKES)
+                        && !key.equals(Service.PREMIUM)
+                        && !key.equals(Service.EMAIL)
+                        && !key.equals(Service.CITY)
+                        && !key.equals(Service.COUNTRY)
+                        && !key.equals(Service.SNAME)
+                        && !key.equals(Service.PHONE)
+                        && !key.equals(Service.BIRTH)
+                        && !key.equals(Service.SEX)
+                        && !key.equals(Service.FNAME)
+                        && !key.equals(Service.STATUS)
+                        && !key.equals(Service.JOINED)
+                ) {
+                    return null;
+                }
             }
+
+            Account account = new Account();
+            for (String key : accountAny.keys()) {
+                if (key.equals(Service.SEX)) {
+                    String valueStr = accountAny.get(Service.SEX).toString();
+                    if (valueStr.equals(Service.F)) {
+                        account.setSex(Service.F);
+                    } else if (valueStr.equals(Service.M)) {
+                        account.setSex(Service.M);
+                    } else {
+                        return null;
+                    }
+                }
+
+                if (key.equals(Service.STATUS)) {
+                    String valueStr = accountAny.get(Service.STATUS).toString();
+                    if (valueStr.equals(Service.STATUS1)) {
+                        account.setStatus(Service.STATUS1);
+                    } else if (valueStr.equals(Service.STATUS2)) {
+                        account.setStatus(Service.STATUS2);
+                    } else if (valueStr.equals(Service.STATUS3)) {
+                        account.setStatus(Service.STATUS3);
+                    } else {
+                        return null;
+                    }
+                }
+
+                if (key.equals(Service.JOINED)) {
+                    accountAny.get(Service.JOINED).toInt();
+                }
+
+                if (key.equals(Service.ID)) {
+                    account.setId(accountAny.get(Service.ID).toInt());
+                }
+                if (key.equals(Service.INTERESTS)) {
+                    List<Any> listInter = accountAny.get(Service.INTERESTS).asList();
+                    List<String> list = new LinkedList<>();
+                    for (Any anyInter : listInter) {
+                        list.add(anyInter.toString());
+                    }
+                    account.setInterests(list);
+                }
+                if (key.equals(Service.LIKES)) {
+                    List<Any> listLike = accountAny.get(Service.LIKES).asList();
+                    List<Like> list = new LinkedList<>();
+                    for (Any anyLike : listLike) {
+                        list.add(new Like(anyLike.get(Service.TS).toInt(), anyLike.get(Service.ID).toInt()));
+                    }
+                    account.setLikes(list);
+                }
+
+                if (key.equals(Service.PREMIUM)) {
+                    Any any = accountAny.get(Service.PREMIUM);
+                    if (!any.keys().contains(FINISH) || !any.keys().contains(START)) {
+                        return null;
+                    }
+                    Premium pr = new Premium();
+                    pr.setFinish(any.get(FINISH).toInt());
+                    pr.setStart(any.get(START).toInt());
+                    account.setPremium(pr);
+                }
+
+                if (key.equals(Service.EMAIL)) {
+                    account.setEmail(accountAny.get(Service.EMAIL).toString());
+                }
+
+                if (key.equals(Service.CITY)) {
+                    account.setCity(accountAny.get(Service.CITY).toString());
+                }
+                if (key.equals(Service.COUNTRY)) {
+                    account.setCountry(accountAny.get(Service.COUNTRY).toString());
+                }
+                if (key.equals(Service.SNAME)) {
+                    account.setSname(accountAny.get(Service.SNAME).toString());
+                }
+                if (key.equals(Service.PHONE)) {
+                    account.setPhone(accountAny.get(Service.PHONE).toString());
+                }
+                if (key.equals(Service.BIRTH)) {
+                    account.setBirth(accountAny.get(Service.BIRTH).toInt());
+                }
+                if (key.equals(Service.FNAME)) {
+                    account.setFname(accountAny.get(Service.FNAME).toString());
+                }
+            }
+            return account;
+        } catch (Exception e) {
+            return null;
         }
-
-        Account account = new Account();
-        for (String key : accountAny.keys()) {
-            if (key.equals(Service.SEX)) {
-                String valueStr = accountAny.get(Service.SEX).toString();
-                if (valueStr.equals(Service.F)) {
-                    account.setSex(Service.F);
-                } else if (valueStr.equals(Service.M)) {
-                    account.setSex(Service.M);
-                } else {
-                    return null;
-                }
-            }
-
-            if (key.equals(Service.STATUS)) {
-                String valueStr = accountAny.get(Service.STATUS).toString();
-                if (valueStr.equals(Service.STATUS1)) {
-                    account.setStatus(Service.STATUS1);
-                } else if (valueStr.equals(Service.STATUS2)) {
-                    account.setStatus(Service.STATUS2);
-                } else if (valueStr.equals(Service.STATUS3)) {
-                    account.setStatus(Service.STATUS3);
-                } else {
-                    return null;
-                }
-            }
-
-            if (key.equals(Service.JOINED)) {
-                accountAny.get(Service.JOINED).toInt();
-            }
-
-            if (key.equals(Service.ID)) {
-                account.setId(accountAny.get(Service.ID).toInt());
-            }
-            if (key.equals(Service.INTERESTS)) {
-                List<Any> listInter = accountAny.get(Service.INTERESTS).asList();
-                List<String> list = new LinkedList<>();
-                for (Any anyInter : listInter) {
-                    list.add(anyInter.toString());
-                }
-                account.setInterests(list);
-            }
-            if (key.equals(Service.LIKES)) {
-                List<Any> listLike = accountAny.get(Service.LIKES).asList();
-                List<Like> list = new LinkedList<>();
-                for (Any anyLike : listLike) {
-                    list.add(new Like(anyLike.get(Service.TS).toInt(),anyLike.get(Service.ID).toInt()));
-                }
-                account.setLikes(list);
-            }
-
-            if (key.equals(Service.PREMIUM)) {
-                Any any = accountAny.get(Service.PREMIUM);
-                if (!any.keys().contains(FINISH) || !any.keys().contains(START)) {
-                    return null;
-                }
-                Premium pr = new Premium();
-                pr.setFinish(any.get(FINISH).toInt());
-                pr.setStart(any.get(START).toInt());
-                account.setPremium(pr);
-            }
-
-            if (key.equals(Service.EMAIL)) {
-                account.setEmail(accountAny.get(Service.EMAIL).toString());
-            }
-
-            if (key.equals(Service.CITY)) {
-                account.setCity(accountAny.get(Service.CITY).toString());
-            }
-            if (key.equals(Service.COUNTRY)) {
-                account.setCountry(accountAny.get(Service.COUNTRY).toString());
-            }
-            if (key.equals(Service.SNAME)) {
-                account.setSname(accountAny.get(Service.SNAME).toString());
-            }
-            if (key.equals(Service.PHONE)) {
-                account.setPhone(accountAny.get(Service.PHONE).toString());
-            }
-            if (key.equals(Service.BIRTH)) {
-                account.setBirth(accountAny.get(Service.BIRTH).toInt());
-            }
-            if (key.equals(Service.FNAME)) {
-                account.setFname(accountAny.get(Service.FNAME).toString());
-            }
-        }
-        return account;
     }
 
     public static String accountToString(List<Account> accounts, Map<String,Object> enableProp) {

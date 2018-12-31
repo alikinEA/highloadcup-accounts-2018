@@ -29,14 +29,14 @@ public class Repository {
 
 
     private static final List<String> availableNames =
-            Arrays.asList("accounts_130.json","accounts_129.json");
+            Arrays.asList("accounts_130.json");
     private static final List<String> availableNamesTest =
             Arrays.asList("accounts_1.json"
                     ,"accounts_2.json"
                     ,"accounts_3.json"
 
             );
-    private static final int elementCount = 3900_000  + 21_600;
+    private static final int elementCount = 1300_000  + 21_600;
 
     static final Object PRESENT = new Object();
     static final Account PRESENT_AC = new Account();
@@ -86,7 +86,7 @@ public class Repository {
                     try {
                         FileHeader fileHeader = (FileHeader)item;
                         if (fileHeader.getFileName().contains("accounts")) {
-                            System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
+                            //System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
                             try (InputStream inputStream = zipFile.getInputStream(fileHeader)) {
                                 List<Any> json = JsonIterator.deserialize(Utils.readBytes(inputStream)).get("accounts").asList();
                                 for (Any accountAny : json) {
@@ -95,6 +95,7 @@ public class Repository {
                                     if ((isRait && availableNames.contains(fileHeader.getFileName()))
                                             || (!isRait && availableNamesTest.contains(fileHeader.getFileName()))) {
                                         list.add(account);
+                                        ids.put(account.getId(), account);
                                     } else {
                                         ids.put(account.getId(), PRESENT_AC);
                                     }
@@ -108,6 +109,7 @@ public class Repository {
                 }
             });
             System.out.println("list size = " + list.size());
+            System.out.println("list ids = " + ids.size());
             for (Account account : list) {
                 if (account.getSex().equals(Service.M)) {
                     list_m.add(account);
@@ -151,9 +153,7 @@ public class Repository {
                         && account.getStatus().equals(Service.STATUS3)) {
                     list_status_3_f.add(account);
                 }
-                ids.put(account.getId(), account);
             }
-            System.out.println("list ids = " + ids.size());
             System.out.println("list emails = " + emails.size());
             /*System.out.println("start warm up");
             for (int i = 0; i < 1000; i++) {

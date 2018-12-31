@@ -116,7 +116,7 @@ public class Service {
     private static Result handleUpdate(FullHttpRequest req) {
         lock.writeLock().lock();
         try {
-            String curId = req.uri().substring(req.uri().indexOf(ACCOUNTS) + 10, req.uri().lastIndexOf("/?"));
+            String curId = req.uri().substring(10, req.uri().lastIndexOf("/?"));
             if (!Character.isDigit(curId.charAt(0))) {
                 return NOT_FOUND;
             }
@@ -260,7 +260,7 @@ public class Service {
                         accountData.setSname(account.getSname());
                     }
                 } else {
-                    return NOT_FOUND;
+                    return ACCEPTED;
                 }
                 return ACCEPTED;
             } else {
@@ -272,9 +272,6 @@ public class Service {
     }
 
     private static Result handleRecomended(FullHttpRequest req) {
-        if (count.get() > 200) {
-            return NOT_FOUND;
-        }
         lock.readLock().lock();
         try {
 
@@ -343,7 +340,7 @@ public class Service {
                             }
                         }
                     }
-                    return new Result(Utils.accountToString2(compat, limit).getBytes(utf8), HttpResponseStatus.OK);
+                    return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
                 }
             }
         } catch (Exception e) {
@@ -660,7 +657,18 @@ public class Service {
     }
 
     private static String getValue(String param) throws UnsupportedEncodingException {
-        return URLDecoder.decode(param.substring(param.indexOf("=") + 1), utf8);
+        if (param.startsWith(COUNTRY)
+                || param.startsWith(CITY)
+                || param.startsWith(INTERESTS)
+                || param.startsWith(FNAME)
+                || param.startsWith(SNAME)
+                || param.startsWith(STATUS)
+                || param.startsWith(LIKES)
+        ) {
+            return URLDecoder.decode(param.substring(param.indexOf("=") + 1), utf8);
+        } else {
+            return param.substring(param.indexOf("=") + 1);
+        }
     }
 
     private static String getPredicate(String param) {
@@ -671,12 +679,6 @@ public class Service {
         lock.readLock().lock();
         try {
             List<String> params = getTokens(uri.substring(18), "&");
-            int limit = 0;
-            for (String param : params) {
-                if (param.startsWith(LIMIT)) {
-                    limit = Integer.parseInt(getValue(param));
-                }
-            }
 
             Map<String, String> valueCache = new TreeMap<>();
             Map<String, String> predicateCache = new TreeMap<>();
@@ -697,6 +699,18 @@ public class Service {
                     }
                     if (param.startsWith(SEX)) {
                         sex = valueCache.get(param);
+                    }
+                }
+            }
+            int limit = 0;
+            for (String param : params) {
+                if (param.startsWith(LIMIT)) {
+                    String limitStr = valueCache.get(param);
+                    if (!Character.isDigit(limitStr.charAt(0))) {
+                        return BAD_REQUEST;
+                    } else {
+                        limit = Integer.parseInt(limitStr);
+                        break;
                     }
                 }
             }
@@ -1105,12 +1119,7 @@ public class Service {
                     accounts.add(account);
                 }
             }
-            try {
-                return new Result(Utils.accountToString(accounts, finalFieldSet).getBytes(utf8), HttpResponseStatus.OK);
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            return OK_EMPTY_ACCOUNTS;
+            return new Result(Utils.accountToString(accounts, finalFieldSet).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
         } finally {
             lock.readLock().unlock();
         }

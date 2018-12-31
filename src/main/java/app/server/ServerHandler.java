@@ -48,6 +48,7 @@ public class ServerHandler  extends SimpleChannelInboundHandler<FullHttpRequest>
             response.headers().set(SERVER, SERVER_VALUE);
             ctx.writeAndFlush(response);
         } catch (Exception e) {
+            e.printStackTrace();
             FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST);
             response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes());
             response.headers().set(CONTENT_TYPE, CONTENT_TYPE_VALUE);
