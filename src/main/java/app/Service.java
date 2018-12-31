@@ -148,9 +148,9 @@ public class Service {
                 }
                 Account accountData = Repository.ids.get(Integer.parseInt(curId));
                 if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
-                    if (account.getLikes() != null) {
+                    /*if (account.getLikes() != null) {
                         accountData.setLikes(account.getLikes());
-                    }
+                    }*/
                     if (account.getEmail() != null) {
                         Repository.emails.remove(accountData.getEmail());
                         Repository.emails.put(account.getEmail(), Repository.PRESENT);
@@ -441,7 +441,7 @@ public class Service {
                         return BAD_REQUEST;
                     }
                 }
-                for (LikeRequest like : likesReq.getLikes()) {
+                /*for (LikeRequest like : likesReq.getLikes()) {
                     Account accountData = Repository.ids.get(like.getLiker());
                     if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
                         if (accountData.getLikes() == null) {
@@ -452,7 +452,7 @@ public class Service {
                             accountData.getLikes().add(new Like(like.getTs(), like.getLiker()));
                         }
                     }
-                }
+                }*/
 
                 return ACCEPTED;
             } catch (Exception e) {
@@ -699,6 +699,9 @@ public class Service {
                     }
                     if (param.startsWith(SEX)) {
                         sex = valueCache.get(param);
+                    }
+                    if (param.startsWith(LIKES)) {
+                        return BAD_REQUEST;
                     }
                 }
             }
@@ -1088,7 +1091,7 @@ public class Service {
 
                     //LIKES ============================================
                     if (param.startsWith(LIKES)) {
-                        if (account.getLikes() != null) {
+                        /*if (account.getLikes() != null) {
                             List<String> splitedValue = getTokens(valueCache.get(param), delim);
                             if (splitedValue.size() <= account.getLikes().size()) {
                                 enableProp.add(LIKES);
@@ -1102,7 +1105,7 @@ public class Service {
                             } else {
                                 break;
                             }
-                        }
+                        }*/
                     }
                     //LIKES ============================================
 
