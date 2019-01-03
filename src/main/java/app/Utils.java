@@ -355,4 +355,23 @@ public class Utils {
         sb.append("]}");
         return sb.toString();
     }
+
+    public static String[] tokenize(String string, char delimiter) {
+        String[] temp = new String[(string.length() / 2) + 1];
+        int wordCount = 0;
+        int i = 0;
+        int j = string.indexOf(delimiter);
+
+        while( j >= 0) {
+            temp[wordCount++] = string.substring(i, j);
+            i = j + 1;
+            j = string.indexOf(delimiter, i);
+        }
+
+        temp[wordCount++] = string.substring(i);
+        String[] result = new String[wordCount];
+        System.arraycopy(temp, 0, result, 0, wordCount);
+        return result;
+    }
+
 }

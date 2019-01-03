@@ -81,7 +81,7 @@ public class Service {
     public static final String STATUS3 = "заняты";
 
     private static final String utf8 = "UTF-8";
-    private static final String delim = ",";
+    private static final char delim = ',';
 
     private static final AtomicInteger count = new AtomicInteger(0);
 
@@ -288,7 +288,7 @@ public class Service {
             if (!Repository.ids.containsKey(Integer.parseInt(id))) {
                 return NOT_FOUND;
             } else {
-                List<String> params = getTokens(req.uri().substring(req.uri().indexOf(URI_RECOMENDED) + 12), "&");
+                String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(URI_RECOMENDED) + 12), '&');
                 int limit = 0;
                 String country = "";
                 String city = "";
@@ -401,20 +401,17 @@ public class Service {
         if (count.get() > 2000) {
             return NOT_FOUND;
         }
-        StringTokenizer t = new StringTokenizer(req.uri().substring(17),"&");
-        while(t.hasMoreTokens()) {
-            String param = t.nextToken();
-
+        String[] t = Utils.tokenize(req.uri().substring(17),'&');
+        for (String param : t) {
             if (param.startsWith(KEYS)) {
                 String value = getValue(param);
-                StringTokenizer t2 = new StringTokenizer(value,delim);
-                while(t2.hasMoreTokens()) {
-                    String keyValue = t2.nextToken();
-                    if (!SEX.equals(keyValue)
-                            && !STATUS.equals(keyValue)
-                            && !INTERESTS.equals(keyValue)
-                            && !COUNTRY.equals(keyValue)
-                            && !CITY.equals(keyValue)) {
+                String[] tokens = Utils.tokenize(value,delim);
+                for (String token : tokens) {
+                    if (!SEX.equals(token)
+                            && !STATUS.equals(token)
+                            && !INTERESTS.equals(token)
+                            && !COUNTRY.equals(token)
+                            && !CITY.equals(token)) {
                         return BAD_REQUEST;
                     }
                 }
@@ -643,8 +640,8 @@ public class Service {
 
     }
 
-    private static boolean compareArrays(List<String> params, List<String> enableProp) {
-        if (params.size() != enableProp.size()) {
+    private static boolean compareArrays(String[] params, List<String> enableProp) {
+        if (params.length != enableProp.size()) {
             return false;
         }
         for (String key : enableProp) {
@@ -684,7 +681,12 @@ public class Service {
     public static Result handleFilterv2(String uri) throws UnsupportedEncodingException {
         lock.readLock().lock();
         try {
-            List<String> params = getTokens(uri.substring(18), "&");
+            String[] params = Utils.tokenize(uri.substring(18), '&');
+            for (String param : params) {
+                if (param.startsWith(LIKES)) {
+                    return BAD_REQUEST;
+                }
+            }
 
             Map<String, String> valueCache = new TreeMap<>();
             Map<String, String> predicateCache = new TreeMap<>();
@@ -692,6 +694,11 @@ public class Service {
 
             String sex = null;
             String status = null;
+            Calendar calendar = null;
+            Integer year = null;
+            String[] cityArr = null;
+            String[] fnameArr = null;
+            String[] interArr = null;
             for (String param : params) {
                 if (!fillCacheAndvalidate(param, predicateCache)) {
                     return BAD_REQUEST;
@@ -706,8 +713,27 @@ public class Service {
                     if (param.startsWith(SEX)) {
                         sex = valueCache.get(param);
                     }
-                    if (param.startsWith(LIKES)) {
-                        return BAD_REQUEST;
+                    if (param.startsWith(BIRTH)) {
+                        String predicate = predicateCache.get(param);
+                        if (predicate.equals(YEAR_PR)) {
+                            calendar = new GregorianCalendar();
+                            year = Integer.parseInt(valueCache.get(param));
+                        }
+                    }
+                    if (param.startsWith(CITY)) {
+                        String predicate = predicateCache.get(param);
+                        if (predicate.equals(ANY_PR)) {
+                            cityArr = Utils.tokenize(valueCache.get(param), delim);
+                        }
+                    }
+                    if (param.startsWith(FNAME)) {
+                        String predicate = predicateCache.get(param);
+                        if (predicate.equals(ANY_PR)) {
+                            fnameArr = Utils.tokenize(valueCache.get(param), delim);
+                        }
+                    }
+                    if (param.startsWith(INTERESTS)) {
+                        interArr = Utils.tokenize(valueCache.get(param), delim);
                     }
                 }
             }
@@ -965,9 +991,8 @@ public class Service {
                     if (param.startsWith(BIRTH)) {
                         String predicate = predicateCache.get(param);
                         if (predicate.equals(YEAR_PR)) {
-                            Calendar calendar = new GregorianCalendar();
                             calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
-                            if (Integer.parseInt(getValue(param)) == calendar.get(Calendar.YEAR)) {
+                            if (year == calendar.get(Calendar.YEAR)) {
                                 enableProp.add(BIRTH);
                             } else {
                                 break;
@@ -999,9 +1024,8 @@ public class Service {
                                 break;
                             }
                         } else if (predicate.equals(ANY_PR)) {
-                            StringTokenizer t = new StringTokenizer(valueCache.get(param), delim);
-                            while (t.hasMoreTokens()) {
-                                if (t.nextToken().equals(account.getCity())) {
+                            for (String value : cityArr) {
+                                if (value.equals(account.getCity())) {
                                     enableProp.add(CITY);
                                     break;
                                 }
@@ -1037,9 +1061,8 @@ public class Service {
                                 break;
                             }
                         } else if (predicate.equals(ANY_PR)) {
-                            StringTokenizer t = new StringTokenizer(valueCache.get(param), delim);
-                            while (t.hasMoreTokens()) {
-                                if (t.nextToken().equals(account.getFname())) {
+                            for (String value : fnameArr) {
+                                if (value.equals(account.getFname())) {
                                     enableProp.add(FNAME);
                                     break;
                                 }
@@ -1068,18 +1091,16 @@ public class Service {
                         String predicate = predicateCache.get(param);
                         if (account.getInterests() != null) {
                             if (predicate.equals(ANY_PR)) {
-                                StringTokenizer t = new StringTokenizer(valueCache.get(param), delim);
-                                while (t.hasMoreTokens()) {
-                                    if (account.getInterests().contains(t.nextToken())) {
+                                for (String value : interArr) {
+                                    if (account.getInterests().contains(value)) {
                                         enableProp.add(INTERESTS);
                                         break;
                                     }
                                 }
                             } else if (predicate.equals(CONTAINS_PR)) {
-                                List<String> splitedValue = getTokens(valueCache.get(param), delim);
-                                if (splitedValue.size() <= account.getInterests().size()) {
+                                if (interArr.length <= account.getInterests().size()) {
                                     enableProp.add(INTERESTS);
-                                    for (String value : splitedValue) {
+                                    for (String value : interArr) {
                                         if (!account.getInterests().contains(value)) {
                                             enableProp.remove(INTERESTS);
                                             break;
@@ -1096,8 +1117,8 @@ public class Service {
 
 
                     //LIKES ============================================
-                    if (param.startsWith(LIKES)) {
-                        /*if (account.getLikes() != null) {
+                    /*if (param.startsWith(LIKES)) {
+                        if (account.getLikes() != null) {
                             List<String> splitedValue = getTokens(valueCache.get(param), delim);
                             if (splitedValue.size() <= account.getLikes().size()) {
                                 enableProp.add(LIKES);
@@ -1111,8 +1132,8 @@ public class Service {
                             } else {
                                 break;
                             }
-                        }*/
-                    }
+                        }
+                    }*/
                     //LIKES ============================================
 
                 }
@@ -1136,15 +1157,6 @@ public class Service {
 
     private static void fillValueCacheValue(String param, Map<String, String> valueCache) throws UnsupportedEncodingException {
         valueCache.put(param,getValue(param));
-    }
-
-    public static List<String> getTokens(String str, String ch) {
-        List<String> tokens = new LinkedList<>();
-        StringTokenizer tokenizer = new StringTokenizer(str, ch);
-        while (tokenizer.hasMoreElements()) {
-            tokens.add(tokenizer.nextToken());
-        }
-        return tokens;
     }
 
 }
