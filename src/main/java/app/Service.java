@@ -398,6 +398,9 @@ public class Service {
     }
 
     private static Result handleGroup(FullHttpRequest req) throws UnsupportedEncodingException {
+        if (count.get() > 2000) {
+            return NOT_FOUND;
+        }
         StringTokenizer t = new StringTokenizer(req.uri().substring(17),"&");
         while(t.hasMoreTokens()) {
             String param = t.nextToken();
@@ -424,7 +427,7 @@ public class Service {
         lock.writeLock().lock();
         try {
             int countCur = count.incrementAndGet();
-            if (countCur == 200 || countCur == 2000) {
+            if (countCur == 2000) {
                 System.gc();
                 Server.printCurrentMemoryUsage();
                 System.out.println("GC run (perhaps)");
