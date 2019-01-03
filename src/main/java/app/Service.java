@@ -398,9 +398,6 @@ public class Service {
     }
 
     private static Result handleGroup(FullHttpRequest req) throws UnsupportedEncodingException {
-        if (count.get() > 2000) {
-            return NOT_FOUND;
-        }
         String[] t = Utils.tokenize(req.uri().substring(17),'&');
         for (String param : t) {
             if (param.startsWith(KEYS)) {
@@ -415,6 +412,7 @@ public class Service {
                         return BAD_REQUEST;
                     }
                 }
+                return NOT_FOUND;
             }
         }
         return NOT_FOUND;
