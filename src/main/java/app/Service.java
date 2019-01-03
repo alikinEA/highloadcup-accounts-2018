@@ -272,6 +272,9 @@ public class Service {
     }
 
     private static Result handleRecomended(FullHttpRequest req) {
+        if (count.get() > 200) {
+            return NOT_FOUND;
+        }
         lock.readLock().lock();
         try {
 
@@ -281,7 +284,7 @@ public class Service {
                 return NOT_FOUND;
             }
 
-            TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
+
             if (!Repository.ids.containsKey(Integer.parseInt(id))) {
                 return NOT_FOUND;
             } else {
@@ -311,9 +314,9 @@ public class Service {
                     }
                 }
 
-
                 Account accountData = Repository.ids.get(Integer.parseInt(id));
                 if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
+                    TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
                     Iterator<Account> iter;
                     if (accountData.getSex().equals(F)) {
                         iter = Repository.list_m.descendingIterator();
