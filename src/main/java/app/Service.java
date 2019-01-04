@@ -272,9 +272,6 @@ public class Service {
     }
 
     private static Result handleRecomended(FullHttpRequest req) {
-        if (count.get() > 200) {
-            return NOT_FOUND;
-        }
         lock.readLock().lock();
         try {
 
