@@ -294,6 +294,9 @@ public class Service {
                     if (param.startsWith(LIMIT)) {
                         try {
                             limit = Integer.parseInt(getValue(param));
+                            if (limit <= 0) {
+                                return BAD_REQUEST;
+                            }
                         } catch (Exception e) {
                             return BAD_REQUEST;
                         }
@@ -391,11 +394,85 @@ public class Service {
     }
 
     private static Result handleSuggest(FullHttpRequest req) {
-        return NOT_FOUND;
+        lock.readLock().lock();
+        try {
+            String replAcc = req.uri().substring(10);
+            String id = replAcc.substring(0, replAcc.indexOf("/"));
+            if (!Character.isDigit(id.charAt(0))) {
+                return NOT_FOUND;
+            }
+
+            Account accountData = Repository.ids.get(Integer.parseInt(id));
+            if (accountData == null) {
+                return NOT_FOUND;
+            } else {
+                String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(URI_SUGGEST) + 10), '&');
+                for (String param : params) {
+                    if (param.startsWith(LIMIT)) {
+                        try {
+                            Integer limit = Integer.parseInt(getValue(param));
+                            if (limit <= 0) {
+                                return BAD_REQUEST;
+                            }
+                        } catch (Exception e) {
+                            return BAD_REQUEST;
+                        }
+                    }
+                    if (param.startsWith(COUNTRY)) {
+                        if (getValue(param).isEmpty()) {
+                            return BAD_REQUEST;
+                        }
+                    }
+                    if (param.startsWith(CITY)) {
+                        if (getValue(param).isEmpty()) {
+                            return BAD_REQUEST;
+                        }
+                    }
+                }
+
+                return OK_EMPTY_ACCOUNTS;
+            }
+        } catch (Exception e) {
+            return BAD_REQUEST;
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
-    private static Result handleGroup(FullHttpRequest req) throws UnsupportedEncodingException {
-        String[] t = Utils.tokenize(req.uri().substring(17),'&');
+    /*private static AccountSim getSimilarity(Account accountData, Account account1) {
+        if (accountData.getLikes() == null || account1.getLikes() == null) {
+            return null;
+        } else {
+            int sim = 0;
+            for (Like like : accountData.getLikes()) {
+                for (Like account1Like : account1.getLikes()) {
+                    if (like.getId() == account1Like.getId()) {
+                        if (like.getTs() == account1Like.getTs()) {
+                            sim = sim + 1;
+                        } else {
+                            sim = sim + Math.abs(like.getTs() - account1Like.getTs());
+                        }
+                    }
+                }
+            }
+            if (sim > 0) {
+                List<Integer> ids = new LinkedList<>();
+                for (Like account1Like : account1.getLikes()) {
+                    for (Like like : accountData.getLikes()) {
+                        if (like.getId() != account1Like.getId()) {
+                            ids.add(account1Like.getId());
+                        }
+                    }
+                }
+                return new AccountSim(sim,ids);
+            } else {
+                return null;
+            }
+        }
+    }*/
+
+    private static Result handleGroup(FullHttpRequest req)  {
+        /*String[] t = Utils.tokenize(req.uri().substring(17),'&');
         for (String param : t) {
             if (param.startsWith(KEYS)) {
                 String value = getValue(param);
@@ -412,7 +489,8 @@ public class Service {
                 return NOT_FOUND;
             }
         }
-        return NOT_FOUND;
+        return NOT_FOUND;*/
+        return BAD_REQUEST;
     }
 
     private static Result handleLikes(FullHttpRequest req) {
