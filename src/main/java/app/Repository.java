@@ -24,8 +24,8 @@ public class Repository {
     static volatile Long currentTimeStamp2 = 0l;
     static volatile boolean isRait = false;
 
-    private static final String dataPath = "/tmp/data/";
-    //private static final String dataPath = "/mnt/data/";
+    //private static final String dataPath = "/tmp/data/";
+    private static final String dataPath = "/mnt/data/";
 
 
     private static final List<String> availableNames =
@@ -155,10 +155,11 @@ public class Repository {
                 }
             }
             System.out.println("list emails = " + emails.size());
-            /*System.out.println("start warm up");
+            System.out.println("start warm up");
             for (int i = 0; i < 1000; i++) {
                 Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
-            }*/
+            }
+
             System.gc();//¯\_(ツ)_/¯
             System.out.println("End " + (new Date().getTime() - start));
         } catch (Exception e) {

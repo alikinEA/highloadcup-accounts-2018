@@ -16,6 +16,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import static app.Repository.currentTimeStamp2;
+import static app.Repository.list;
 
 /**
  * Created by Alikin E.A. on 15.12.18.
@@ -281,8 +282,8 @@ public class Service {
                 return NOT_FOUND;
             }
 
-
-            if (!Repository.ids.containsKey(Integer.parseInt(id))) {
+            Account accountData = Repository.ids.get(Integer.parseInt(id));
+            if (accountData == null) {
                 return NOT_FOUND;
             } else {
                 String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(URI_RECOMENDED) + 12), '&');
@@ -311,8 +312,7 @@ public class Service {
                     }
                 }
 
-                Account accountData = Repository.ids.get(Integer.parseInt(id));
-                if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
+                if (!accountData.equals(Repository.PRESENT_AC)) {
                     TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
                     Iterator<Account> iter;
                     if (accountData.getSex().equals(F)) {
@@ -348,7 +348,7 @@ public class Service {
         } finally {
             lock.readLock().unlock();
         }
-        return OK_EMPTY_ACCOUNTS;
+        return BAD_REQUEST;
     }
 
     private static Integer getCompatibility(Account accountData, Account account1) {
@@ -419,10 +419,13 @@ public class Service {
         lock.writeLock().lock();
         try {
             int countCur = count.incrementAndGet();
-            if (countCur == 2000) {
+            if (countCur == 200) {
+                for (Account account : list) {
+                    account.setLikes(null);
+                }
                 System.gc();
                 Server.printCurrentMemoryUsage();
-                System.out.println("GC run (perhaps)");
+                System.out.println("GC run (perhaps) 22700");
             }
             try {
                 LikesRequest likesReq = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
@@ -677,9 +680,11 @@ public class Service {
         lock.readLock().lock();
         try {
             String[] params = Utils.tokenize(uri.substring(18), '&');
-            for (String param : params) {
-                if (param.startsWith(LIKES)) {
-                    return BAD_REQUEST;
+            if (count.get() > 200) {
+                for (String param : params) {
+                    if (param.startsWith(LIKES)) {
+                        return BAD_REQUEST;
+                    }
                 }
             }
 
@@ -694,6 +699,7 @@ public class Service {
             String[] cityArr = null;
             String[] fnameArr = null;
             String[] interArr = null;
+            String [] likesArr = null;
             for (String param : params) {
                 if (!fillCacheAndvalidate(param, predicateCache)) {
                     return BAD_REQUEST;
@@ -729,6 +735,9 @@ public class Service {
                     }
                     if (param.startsWith(INTERESTS)) {
                         interArr = Utils.tokenize(valueCache.get(param), delim);
+                    }
+                    if (param.startsWith(LIKES)) {
+                        likesArr = Utils.tokenize(valueCache.get(param), delim);
                     }
                 }
             }
@@ -1112,13 +1121,12 @@ public class Service {
 
 
                     //LIKES ============================================
-                    /*if (param.startsWith(LIKES)) {
+                    if (param.startsWith(LIKES)) {
                         if (account.getLikes() != null) {
-                            List<String> splitedValue = getTokens(valueCache.get(param), delim);
-                            if (splitedValue.size() <= account.getLikes().size()) {
+                            if (likesArr.length <= account.getLikes().size()) {
                                 enableProp.add(LIKES);
                                 List<Integer> likerArr = account.getLikes().stream().map(Like::getId).collect(Collectors.toList());
-                                for (String value : splitedValue) {
+                                for (String value : likesArr) {
                                     if (!likerArr.contains(Integer.parseInt(value))) {
                                         enableProp.remove(LIKES);
                                         break;
@@ -1128,7 +1136,7 @@ public class Service {
                                 break;
                             }
                         }
-                    }*/
+                    }
                     //LIKES ============================================
 
                 }
