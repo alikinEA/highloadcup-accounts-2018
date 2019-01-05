@@ -106,11 +106,12 @@ public class Utils {
                 }
                 if (key.equals(Service.LIKES)) {
                     List<Any> listLike = accountAny.get(Service.LIKES).asList();
-                    List<Like> list = new LinkedList<>();
+                    List<Integer> list = new LinkedList<>();
                     for (Any anyLike : listLike) {
-                        list.add(new Like(anyLike.get(Service.TS).toInt(), anyLike.get(Service.ID).toInt()));
+                        anyLike.get(Service.TS).toInt();
+                        list.add(anyLike.get(Service.ID).toInt());
                     }
-                    account.setLikes(list);
+                    account.setLikesArr(list);
                 }
 
                 if (key.equals(Service.PREMIUM)) {

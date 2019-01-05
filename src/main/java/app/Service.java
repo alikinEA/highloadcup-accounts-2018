@@ -499,7 +499,7 @@ public class Service {
             int countCur = count.incrementAndGet();
             if (countCur == 200) {
                 for (Account account : list) {
-                    account.setLikes(null);
+                    account.setLikesArr(null);
                 }
                 System.gc();
                 Server.printCurrentMemoryUsage();
@@ -523,12 +523,12 @@ public class Service {
                 /*for (LikeRequest like : likesReq.getLikes()) {
                     Account accountData = Repository.ids.get(like.getLiker());
                     if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
-                        if (accountData.getLikes() == null) {
-                            List<Like> likes = new LinkedList<>();
-                            likes.add(new Like(like.getTs(), like.getLiker()));
-                            accountData.setLikes(likes);
+                        if (accountData.getLikesArr() == null) {
+                            List<Integer> likes = new LinkedList<>();
+                            likes.add(like.getLikee());
+                            accountData.setLikesArr(likes);
                         } else {
-                            accountData.getLikes().add(new Like(like.getTs(), like.getLiker()));
+                            accountData.getLikesArr().add(like.getLikee());
                         }
                     }
                 }*/
@@ -777,7 +777,7 @@ public class Service {
             String[] cityArr = null;
             String[] fnameArr = null;
             String[] interArr = null;
-            String [] likesArr = null;
+            Integer [] likesArr = null;
             for (String param : params) {
                 if (!fillCacheAndvalidate(param, predicateCache)) {
                     return BAD_REQUEST;
@@ -815,7 +815,11 @@ public class Service {
                         interArr = Utils.tokenize(valueCache.get(param), delim);
                     }
                     if (param.startsWith(LIKES)) {
-                        likesArr = Utils.tokenize(valueCache.get(param), delim);
+                        String [] likesArrStr = Utils.tokenize(valueCache.get(param), delim);
+                        likesArr = new Integer[likesArrStr.length];
+                        for (int i = 0; i < likesArrStr.length; i++) {
+                            likesArr[i] = Integer.parseInt(likesArrStr[i]);
+                        }
                     }
                 }
             }
@@ -1200,12 +1204,11 @@ public class Service {
 
                     //LIKES ============================================
                     if (param.startsWith(LIKES)) {
-                        if (account.getLikes() != null) {
-                            if (likesArr.length <= account.getLikes().size()) {
+                        if (account.getLikesArr() != null) {
+                            if (likesArr.length <= account.getLikesArr().size()) {
                                 enableProp.add(LIKES);
-                                List<Integer> likerArr = account.getLikes().stream().map(Like::getId).collect(Collectors.toList());
-                                for (String value : likesArr) {
-                                    if (!likerArr.contains(Integer.parseInt(value))) {
+                                for (Integer value : likesArr) {
+                                    if (!account.getLikesArr().contains(value)) {
                                         enableProp.remove(LIKES);
                                         break;
                                     }
