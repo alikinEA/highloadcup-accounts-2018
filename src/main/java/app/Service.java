@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
+import static app.Repository.country;
 import static app.Repository.currentTimeStamp2;
 import static app.Repository.list;
 
@@ -253,9 +254,25 @@ public class Service {
                     }
                     if (account.getCity() != null) {
                         accountData.setCity(account.getCity());
+                        TreeSet<Account> list = Repository.city.get(accountData.getCity());
+                        if (list != null) {
+                            list.add(accountData);
+                        } else {
+                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                            list.add(accountData);
+                            Repository.city.put(accountData.getCity(),list);
+                        }
                     }
                     if (account.getCountry() != null) {
                         accountData.setCountry(account.getCountry());
+                        TreeSet<Account> list = Repository.country.get(accountData.getCountry());
+                        if (list != null) {
+                            list.add(accountData);
+                        } else {
+                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                            list.add(accountData);
+                            Repository.country.put(accountData.getCountry(),list);
+                        }
                     }
                     if (account.getSname() != null) {
                         accountData.setSname(account.getSname());
@@ -317,26 +334,41 @@ public class Service {
 
                 if (!accountData.equals(Repository.PRESENT_AC)) {
                     TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
-                    Iterator<Account> iter;
-                    if (accountData.getSex().equals(F)) {
-                        iter = Repository.list_m.descendingIterator();
-                    } else {
-                        iter = Repository.list_f.descendingIterator();
+                    TreeSet<Account> list = null;
+                    if (!country.isEmpty()) {
+                        list = Repository.country.get(country);
+                        if (list == null) {
+                            return OK_EMPTY_ACCOUNTS;
+                        }
                     }
-                    while (iter.hasNext()) {
-                        Account account1 = iter.next();
+                    if (!city.isEmpty()) {
+                        list = Repository.city.get(city);
+                        if (list == null) {
+                            return OK_EMPTY_ACCOUNTS;
+                        }
+                    }
+                    if (list == null) {
+                        if (accountData.getSex().equals(F)) {
+                            list = Repository.list_m;
+                        } else {
+                            list = Repository.list_f;
+                        }
+                    }
 
+                    for (Account account1 : list) {
                         if (!account1.getId().equals(accountData.getId())) {
                             if (city.isEmpty() || city.equals(account1.getCity())) {
                                 if (country.isEmpty() || country.equals(account1.getCountry())) {
-                                    int c = getCompatibility(accountData, account1);
-                                    if (c > 0) {
-                                        AccountC accountC = new AccountC();
-                                        accountC.setAccount(account1);
-                                        accountC.setC(c);
-                                        while (!compat.add(accountC)) {
-                                            c = c + 1;
+                                    if (!accountData.getSex().equals(account1.getSex())) {
+                                        int c = getCompatibility(accountData, account1);
+                                        if (c > 0) {
+                                            AccountC accountC = new AccountC();
+                                            accountC.setAccount(account1);
                                             accountC.setC(c);
+                                            while (!compat.add(accountC)) {
+                                                c = c + 1;
+                                                accountC.setC(c);
+                                            }
                                         }
                                     }
                                 }
@@ -347,6 +379,7 @@ public class Service {
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return BAD_REQUEST;
         } finally {
             lock.readLock().unlock();
@@ -503,7 +536,7 @@ public class Service {
                 }
                 System.gc();
                 Server.printCurrentMemoryUsage();
-                System.out.println("GC run (perhaps) 22700");
+                System.out.println("GC run (perhaps)");
             }
             try {
                 LikesRequest likesReq = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
@@ -580,6 +613,26 @@ public class Service {
                     return BAD_REQUEST;
                 } else {
                     Repository.list.add(account);
+                    if (account.getCity()!= null) {
+                        TreeSet<Account> list = Repository.city.get(account.getCity());
+                        if (list != null) {
+                            list.add(account);
+                        } else {
+                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                            list.add(account);
+                            Repository.city.put(account.getCity(),list);
+                        }
+                    }
+                    if (account.getCountry()!= null) {
+                        TreeSet<Account> list = Repository.country.get(account.getCountry());
+                        if (list != null) {
+                            list.add(account);
+                        } else {
+                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                            list.add(account);
+                            Repository.country.put(account.getCountry(),list);
+                        }
+                    }
                     if (account.getSex().equals(Service.M)) {
                         Repository.list_m.add(account);
                     } else {
@@ -778,6 +831,8 @@ public class Service {
             String[] fnameArr = null;
             String[] interArr = null;
             Integer [] likesArr = null;
+            String city = null;
+            String country = null;
             for (String param : params) {
                 if (!fillCacheAndvalidate(param, predicateCache)) {
                     return BAD_REQUEST;
@@ -803,6 +858,15 @@ public class Service {
                         String predicate = predicateCache.get(param);
                         if (predicate.equals(ANY_PR)) {
                             cityArr = Utils.tokenize(valueCache.get(param), delim);
+                        }
+                        if (predicate.equals(EQ_PR)) {
+                            city = valueCache.get(param);
+                        }
+                    }
+                    if (param.startsWith(COUNTRY)) {
+                        String predicate = predicateCache.get(param);
+                        if (predicate.equals(EQ_PR)) {
+                            country = valueCache.get(param);
                         }
                     }
                     if (param.startsWith(FNAME)) {
@@ -876,6 +940,18 @@ public class Service {
 
             if (Service.STATUS3.equals(status) && Service.M.equals(sex)) {
                 listForRearch = Repository.list_status_3_m;
+            }
+            if (country != null) {
+                listForRearch = Repository.country.get(country);
+                if (listForRearch == null) {
+                    return OK_EMPTY_ACCOUNTS;
+                }
+            }
+            if (city != null) {
+                listForRearch = Repository.city.get(city);
+                if (listForRearch == null) {
+                    return OK_EMPTY_ACCOUNTS;
+                }
             }
 
             List<String> enableProp = new LinkedList<>();
