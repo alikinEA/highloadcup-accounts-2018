@@ -26,7 +26,7 @@ public class Repository {
 
 
     private static final List<String> availableNames =
-            Collections.singletonList("accounts_130.json");
+            Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json");
     private static final List<String> availableNamesTest =
             Arrays.asList("accounts_1.json"
                     ,"accounts_2.json"
@@ -132,7 +132,7 @@ public class Repository {
                 }
                 if (account.getSex().equals(Service.M)) {
                     list_m.add(account);
-                    /*if (account.getCity()!= null) {
+                    if (account.getCity()!= null) {
                         TreeSet<Account> list = Repository.city.get(account.getCity() + "_m");
                         if (list != null) {
                             list.add(account);
@@ -151,10 +151,10 @@ public class Repository {
                             list.add(account);
                             Repository.country.put(account.getCountry()+ "_m",list);
                         }
-                    }*/
+                    }
                 } else {
                     list_f.add(account);
-                    /*if (account.getCity()!= null) {
+                    if (account.getCity()!= null) {
                         TreeSet<Account> list = Repository.city.get(account.getCity() + "_f");
                         if (list != null) {
                             list.add(account);
@@ -173,7 +173,7 @@ public class Repository {
                             list.add(account);
                             Repository.country.put(account.getCountry()+ "_f",list);
                         }
-                    }*/
+                    }
                 }
                 if (account.getStatus().equals(Service.STATUS1)) {
                     list_status_1.add(account);

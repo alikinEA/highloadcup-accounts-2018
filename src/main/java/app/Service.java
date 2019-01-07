@@ -277,6 +277,52 @@ public class Service {
                     if (account.getSname() != null) {
                         accountData.setSname(account.getSname());
                     }
+                    if (account.getSex() != null || account.getCity() != null || account.getCountry() != null) {
+                        if (accountData.getSex().equals(Service.M)) {
+                            if (account.getCity() != null) {
+                                TreeSet<Account> list = Repository.city.get(account.getCity() + "_m");
+                                if (list != null) {
+                                    list.add(accountData);
+                                } else {
+                                    list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                                    list.add(accountData);
+                                    Repository.city.put(account.getCity() + "_m", list);
+                                }
+                            }
+                            if (account.getCountry() != null) {
+                                TreeSet<Account> list = Repository.country.get(account.getCountry() + "_m");
+                                if (list != null) {
+                                    list.add(accountData);
+                                } else {
+                                    list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                                    list.add(accountData);
+                                    Repository.country.put(account.getCountry() + "_m", list);
+                                }
+                            }
+                        }
+                        if (accountData.getSex().equals(Service.F)) {
+                            if (account.getCity() != null) {
+                                TreeSet<Account> list = Repository.city.get(account.getCity() + "_f");
+                                if (list != null) {
+                                    list.add(accountData);
+                                } else {
+                                    list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                                    list.add(accountData);
+                                    Repository.city.put(account.getCity() + "_f", list);
+                                }
+                            }
+                            if (account.getCountry() != null) {
+                                TreeSet<Account> list = Repository.country.get(account.getCountry() + "_f");
+                                if (list != null) {
+                                    list.add(accountData);
+                                } else {
+                                    list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                                    list.add(accountData);
+                                    Repository.country.put(account.getCountry() + "_f", list);
+                                }
+                            }
+                        }
+                    }
                 } else {
                     return ACCEPTED;
                 }
@@ -335,25 +381,29 @@ public class Service {
                 if (!accountData.equals(Repository.PRESENT_AC)) {
                     TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
                     TreeSet<Account> list = null;
-                    if (!country.isEmpty()) {
-                        list = Repository.country.get(country);
-                        if (list == null) {
-                            return OK_EMPTY_ACCOUNTS;
+
+                    if (accountData.getSex().equals(F)) {
+                        if (!country.isEmpty()) {
+                            list = Repository.country.get(country + "_m");
                         }
-                    }
-                    if (!city.isEmpty()) {
-                        list = Repository.city.get(city);
-                        if (list == null) {
-                            return OK_EMPTY_ACCOUNTS;
+                        if (!city.isEmpty()) {
+                            list = Repository.country.get(city + "_m");
                         }
-                    }
-                    if (list == null) {
-                        if (accountData.getSex().equals(F)) {
+                        if (list == null) {
                             list = Repository.list_m;
-                        } else {
+                        }
+                    } else {
+                        if (!country.isEmpty()) {
+                            list = Repository.country.get(country + "_f");
+                        }
+                        if (!city.isEmpty()) {
+                            list = Repository.country.get(city + "_m");
+                        }
+                        if (list == null) {
                             list = Repository.list_f;
                         }
                     }
+
 
                     for (Account account1 : list) {
                         if (!account1.getId().equals(accountData.getId())) {
@@ -631,6 +681,50 @@ public class Service {
                             list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
                             list.add(account);
                             Repository.country.put(account.getCountry(),list);
+                        }
+                    }
+                    if (account.getSex().equals(Service.M)) {
+                        if (account.getCity() != null) {
+                            TreeSet<Account> list = Repository.city.get(account.getCity() + "_m");
+                            if (list != null) {
+                                list.add(account);
+                            } else {
+                                list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                                list.add(account);
+                                Repository.city.put(account.getCity() + "_m", list);
+                            }
+                        }
+                        if (account.getCountry() != null) {
+                            TreeSet<Account> list = Repository.country.get(account.getCountry() + "_m");
+                            if (list != null) {
+                                list.add(account);
+                            } else {
+                                list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                                list.add(account);
+                                Repository.country.put(account.getCountry() + "_m", list);
+                            }
+                        }
+                    }
+                    if (account.getSex().equals(Service.F)) {
+                        if (account.getCity()!= null) {
+                            TreeSet<Account> list = Repository.city.get(account.getCity() + "_f");
+                            if (list != null) {
+                                list.add(account);
+                            } else {
+                                list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                                list.add(account);
+                                Repository.city.put(account.getCity()+ "_f",list);
+                            }
+                        }
+                        if (account.getCountry()!= null) {
+                            TreeSet<Account> list = Repository.country.get(account.getCountry() + "_f");
+                            if (list != null) {
+                                list.add(account);
+                            } else {
+                                list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                                list.add(account);
+                                Repository.country.put(account.getCountry()+ "_f",list);
+                            }
                         }
                     }
                     if (account.getSex().equals(Service.M)) {
@@ -951,6 +1045,34 @@ public class Service {
                 listForRearch = Repository.city.get(city);
                 if (listForRearch == null) {
                     return OK_EMPTY_ACCOUNTS;
+                }
+            }
+            if (Service.F.equals(sex)) {
+                if (country != null) {
+                    listForRearch = Repository.country.get(country + "_f");
+                    if (listForRearch == null) {
+                        return OK_EMPTY_ACCOUNTS;
+                    }
+                }
+                if (city != null) {
+                    listForRearch = Repository.city.get(city + "_f");
+                    if (listForRearch == null) {
+                        return OK_EMPTY_ACCOUNTS;
+                    }
+                }
+            }
+            if (Service.M.equals(sex)) {
+                if (country != null) {
+                    listForRearch = Repository.country.get(country + "_m");
+                    if (listForRearch == null) {
+                        return OK_EMPTY_ACCOUNTS;
+                    }
+                }
+                if (city != null) {
+                    listForRearch = Repository.city.get(city + "_m");
+                    if (listForRearch == null) {
+                        return OK_EMPTY_ACCOUNTS;
+                    }
                 }
             }
 
