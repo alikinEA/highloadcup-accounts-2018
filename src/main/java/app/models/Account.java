@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Created by Alikin E.A. on 13.12.18.
@@ -16,7 +17,7 @@ public class Account implements Comparable<Account>{
     private String email;
     private String sex;
     private String fname;
-    private List<String> interests;
+    private Set<String> interests;
     private String status;
     private Premium premium;
     private String phone;

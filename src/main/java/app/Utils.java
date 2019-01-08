@@ -98,7 +98,7 @@ public class Utils {
                 }
                 if (key.equals(Service.INTERESTS)) {
                     List<Any> listInter = accountAny.get(Service.INTERESTS).asList();
-                    List<String> list = new LinkedList<>();
+                    Set<String> list = new HashSet<>(listInter.size());
                     for (Any anyInter : listInter) {
                         list.add(anyInter.toString());
                     }
