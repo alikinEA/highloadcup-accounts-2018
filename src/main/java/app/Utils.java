@@ -106,7 +106,7 @@ public class Utils {
                 }
                 if (key.equals(Service.LIKES)) {
                     List<Any> listLike = accountAny.get(Service.LIKES).asList();
-                    List<Integer> list = new LinkedList<>();
+                    Set<Integer> list = new HashSet<>(listLike.size());
                     for (Any anyLike : listLike) {
                         anyLike.get(Service.TS).toInt();
                         list.add(anyLike.get(Service.ID).toInt());

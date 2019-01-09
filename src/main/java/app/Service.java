@@ -905,13 +905,6 @@ public class Service {
         lock.readLock().lock();
         try {
             String[] params = Utils.tokenize(uri.substring(18), '&');
-            if (count.get() > 200) {
-                for (String param : params) {
-                    if (param.startsWith(LIKES)) {
-                        return BAD_REQUEST;
-                    }
-                }
-            }
 
             Map<String, String> valueCache = new TreeMap<>();
             Map<String, String> predicateCache = new TreeMap<>();
@@ -927,6 +920,7 @@ public class Service {
             Integer [] likesArr = null;
             String city = null;
             String country = null;
+            int limit = 0;
             for (String param : params) {
                 if (!fillCacheAndvalidate(param, predicateCache)) {
                     return BAD_REQUEST;
@@ -979,17 +973,13 @@ public class Service {
                             likesArr[i] = Integer.parseInt(likesArrStr[i]);
                         }
                     }
-                }
-            }
-            int limit = 0;
-            for (String param : params) {
-                if (param.startsWith(LIMIT)) {
-                    String limitStr = valueCache.get(param);
-                    if (!Character.isDigit(limitStr.charAt(0))) {
-                        return BAD_REQUEST;
-                    } else {
-                        limit = Integer.parseInt(limitStr);
-                        break;
+                    if (param.startsWith(LIMIT)) {
+                        String limitStr = valueCache.get(param);
+                        if (!Character.isDigit(limitStr.charAt(0))) {
+                            return BAD_REQUEST;
+                        } else {
+                            limit = Integer.parseInt(limitStr);
+                        }
                     }
                 }
             }
@@ -1071,6 +1061,13 @@ public class Service {
                 if (city != null) {
                     listForRearch = Repository.city.get(city + "_m");
                     if (listForRearch == null) {
+                        return OK_EMPTY_ACCOUNTS;
+                    }
+                }
+            }
+            if (count.get() > 200) {
+                for (String param : params) {
+                    if (param.startsWith(LIKES)) {
                         return OK_EMPTY_ACCOUNTS;
                     }
                 }
