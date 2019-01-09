@@ -390,7 +390,7 @@ public class Service {
                             list = Repository.country.get(city + "_m");
                         }
                         if (list == null) {
-                            list = Repository.list_m;
+                            list = Repository.list_status_1_m;
                         }
                     } else {
                         if (!country.isEmpty()) {
@@ -400,32 +400,38 @@ public class Service {
                             list = Repository.country.get(city + "_m");
                         }
                         if (list == null) {
-                            list = Repository.list_f;
+                            list = Repository.list_status_1_f;
                         }
                     }
 
-
-                    for (Account account1 : list) {
-                        if (!account1.getId().equals(accountData.getId())) {
-                            if (city.isEmpty() || city.equals(account1.getCity())) {
-                                if (country.isEmpty() || country.equals(account1.getCountry())) {
-                                    if (!accountData.getSex().equals(account1.getSex())) {
-                                        int c = getCompatibility(accountData, account1);
-                                        if (c > 0) {
-                                            AccountC accountC = new AccountC();
-                                            accountC.setAccount(account1);
-                                            accountC.setC(c);
-                                            while (!compat.add(accountC)) {
-                                                c = c + 1;
-                                                accountC.setC(c);
-                                            }
-                                        }
-                                    }
+                    Iterator<Account> iterator = list.descendingIterator();
+                    calcCompat(accountData, country, city, compat, iterator);
+                    if (list.equals(Repository.list_status_1_f) || list.equals(Repository.list_status_1_m)) {
+                        if (compat.size() >= limit) {
+                            return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
+                        } else {
+                            if (list.equals(Repository.list_status_1_f)) {
+                                list = Repository.list_status_2_f;
+                            } else {
+                                list = Repository.list_status_2_m;
+                            }
+                            iterator = list.descendingIterator();
+                            calcCompat(accountData, country, city, compat, iterator);
+                            if (compat.size() >= limit) {
+                                return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
+                            } else {
+                                if (list.equals(Repository.list_status_2_f)) {
+                                    iterator = Repository.list_status_3_f.descendingIterator();
+                                } else {
+                                    iterator = Repository.list_status_3_m.descendingIterator();
                                 }
+                                calcCompat(accountData, country, city, compat, iterator);
+                                return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
                             }
                         }
+                    } else {
+                        return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
                     }
-                    return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
                 }
             }
         } catch (Exception e) {
@@ -435,6 +441,30 @@ public class Service {
             lock.readLock().unlock();
         }
         return BAD_REQUEST;
+    }
+
+    private static void calcCompat(Account accountData, String country, String city, TreeSet<AccountC> compat, Iterator<Account> iterator) {
+        while (iterator.hasNext()) {
+            Account account1 = iterator.next();
+            if (!account1.getId().equals(accountData.getId())) {
+                if (city.isEmpty() || city.equals(account1.getCity())) {
+                    if (country.isEmpty() || country.equals(account1.getCountry())) {
+                        if (!accountData.getSex().equals(account1.getSex())) {
+                            int c = getCompatibility(accountData, account1);
+                            if (c > 0) {
+                                AccountC accountC = new AccountC();
+                                accountC.setAccount(account1);
+                                accountC.setC(c);
+                                while (!compat.add(accountC)) {
+                                    c = c + 1;
+                                    accountC.setC(c);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static Integer getCompatibility(Account accountData, Account account1) {
@@ -663,102 +693,9 @@ public class Service {
                     return BAD_REQUEST;
                 } else {
                     Repository.list.add(account);
-                    TreeSet<Account> list = Repository.city.get(account.getCity());
-                    if (list != null) {
-                        list.add(account);
-                    } else {
-                        list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                        list.add(account);
-                        Repository.city.put(account.getCity(),list);
-                    }
-                    list = Repository.country.get(account.getCountry());
-                    if (list != null) {
-                        list.add(account);
-                    } else {
-                        list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                        list.add(account);
-                        Repository.country.put(account.getCountry(),list);
-                    }
-                    if (account.getSex().equals(Service.M)) {
-                        list = Repository.city.get(account.getCity() + "_m");
-                        if (list != null) {
-                            list.add(account);
-                        } else {
-                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                            list.add(account);
-                            Repository.city.put(account.getCity() + "_m", list);
-                        }
-                        list = Repository.country.get(account.getCountry() + "_m");
-                        if (list != null) {
-                            list.add(account);
-                        } else {
-                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                            list.add(account);
-                            Repository.country.put(account.getCountry() + "_m", list);
-                        }
-                    }
-                    if (account.getSex().equals(Service.F)) {
-                        list = Repository.city.get(account.getCity() + "_f");
-                        if (list != null) {
-                            list.add(account);
-                        } else {
-                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                            list.add(account);
-                            Repository.city.put(account.getCity()+ "_f",list);
-                        }
-                        list = Repository.country.get(account.getCountry() + "_f");
-                        if (list != null) {
-                            list.add(account);
-                        } else {
-                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                            list.add(account);
-                            Repository.country.put(account.getCountry()+ "_f",list);
-                        }
-                    }
-                    if (account.getSex().equals(Service.M)) {
-                        Repository.list_m.add(account);
-                    } else {
-                        Repository.list_f.add(account);
-                    }
-                    if (account.getStatus().equals(Service.STATUS1)) {
-                        Repository.list_status_1.add(account);
-                    } else if (account.getStatus().equals(Service.STATUS2)) {
-                        Repository.list_status_2.add(account);
-                    } else {
-                        Repository.list_status_3.add(account);
-                    }
-
-                    if (account.getSex().equals(Service.M)
-                            && account.getStatus().equals(Service.STATUS1)) {
-                        Repository.list_status_1_m.add(account);
-                    }
-
-                    if (account.getSex().equals(Service.M)
-                            && account.getStatus().equals(Service.STATUS2)) {
-                        Repository.list_status_2_m.add(account);
-                    }
-
-                    if (account.getSex().equals(Service.M)
-                            && account.getStatus().equals(Service.STATUS3)) {
-                        Repository.list_status_3_m.add(account);
-                    }
-
-                    if (account.getSex().equals(Service.F)
-                            && account.getStatus().equals(Service.STATUS1)) {
-                        Repository.list_status_1_f.add(account);
-                    }
-
-                    if (account.getSex().equals(Service.F)
-                            && account.getStatus().equals(Service.STATUS2)) {
-                        Repository.list_status_2_f.add(account);
-                    }
-
-                    if (account.getSex().equals(Service.F)
-                            && account.getStatus().equals(Service.STATUS3)) {
-                        Repository.list_status_3_f.add(account);
-                    }
                     Repository.ids.put(account.getId(), account);
                     Repository.emails.put(account.getEmail(), Repository.PRESENT);
+                    Repository.insertToIndex(account);
                     return CREATED;
                 }
             }
@@ -894,9 +831,14 @@ public class Service {
         try {
             String[] params = Utils.tokenize(uri.substring(18), '&');
 
-            Map<String, String> valueCache = new TreeMap<>();
-            Map<String, String> predicateCache = new TreeMap<>();
-            Map<String, Object> finalFieldSet = null;
+            Map<String, String> predicateCache = new HashMap<>(params.length);
+
+            for (String param : params) {
+                if (!fillCacheAndvalidate(param, predicateCache)) {
+                    return BAD_REQUEST;
+                }
+            }
+
 
             String sex = null;
             String status = null;
@@ -909,190 +851,86 @@ public class Service {
             String city = null;
             String country = null;
             int limit = 0;
+
+            Map<String, String> valueCache = new HashMap<>(params.length);
             for (String param : params) {
-                if (!fillCacheAndvalidate(param, predicateCache)) {
-                    return BAD_REQUEST;
-                } else {
-                    fillValueCacheValue(param, valueCache);
-                    if (param.startsWith(STATUS)) {
-                        String predicate = predicateCache.get(param);
-                        if (predicate.equals(EQ_PR)) {
-                            status = valueCache.get(param);
-                        }
-                    }
-                    if (param.startsWith(SEX)) {
-                        sex = valueCache.get(param);
-                    }
-                    if (param.startsWith(BIRTH)) {
-                        String predicate = predicateCache.get(param);
-                        if (predicate.equals(YEAR_PR)) {
-                            calendar = new GregorianCalendar();
-                            year = Integer.parseInt(valueCache.get(param));
-                        }
-                    }
-                    if (param.startsWith(CITY)) {
-                        String predicate = predicateCache.get(param);
-                        if (predicate.equals(ANY_PR)) {
-                            cityArr = Utils.tokenize(valueCache.get(param), delim);
-                        }
-                        if (predicate.equals(EQ_PR)) {
-                            city = valueCache.get(param);
-                        }
-                        if (predicate.equals(NULL_PR)) {
-                            String value = valueCache.get(param);
-                            if (value.equals(NULL_PR_VAL_ONE)) {
-                                city = "";
-                            }
-                        }
-                    }
-                    if (param.startsWith(COUNTRY)) {
-                        String predicate = predicateCache.get(param);
-                        if (predicate.equals(EQ_PR)) {
-                            country = valueCache.get(param);
-                        }
-                        if (predicate.equals(NULL_PR)) {
-                            String value = valueCache.get(param);
-                            if (value.equals(NULL_PR_VAL_ONE)) {
-                                country = "";
-                            }
-                        }
-                    }
-                    if (param.startsWith(FNAME)) {
-                        String predicate = predicateCache.get(param);
-                        if (predicate.equals(ANY_PR)) {
-                            fnameArr = Utils.tokenize(valueCache.get(param), delim);
-                        }
-                    }
-                    if (param.startsWith(INTERESTS)) {
-                        interArr = Utils.tokenize(valueCache.get(param), delim);
-                    }
-                    if (param.startsWith(LIKES)) {
-                        String [] likesArrStr = Utils.tokenize(valueCache.get(param), delim);
-                        likesArr = new Integer[likesArrStr.length];
-                        for (int i = 0; i < likesArrStr.length; i++) {
-                            likesArr[i] = Integer.parseInt(likesArrStr[i]);
-                        }
-                    }
-                    if (param.startsWith(LIMIT)) {
-                        String limitStr = valueCache.get(param);
-                        if (!Character.isDigit(limitStr.charAt(0))) {
-                            return BAD_REQUEST;
-                        } else {
-                            limit = Integer.parseInt(limitStr);
-                        }
-                    }
-                }
-            }
-
-            TreeSet<Account> listForRearch = Repository.list;
-            if (sex == null && Service.STATUS1.equals(status)) {
-                listForRearch = Repository.list_status_1;
-            }
-            if (sex == null && Service.STATUS2.equals(status)) {
-                listForRearch = Repository.list_status_2;
-            }
-            if (sex == null && Service.STATUS3.equals(status)) {
-                listForRearch = Repository.list_status_3;
-            }
-
-            if (status == null && Service.F.equals(sex)) {
-                listForRearch = Repository.list_f;
-            }
-            if (status == null && Service.M.equals(sex)) {
-                listForRearch = Repository.list_m;
-            }
-
-            if (Service.STATUS1.equals(status) && Service.F.equals(sex)) {
-               listForRearch = Repository.list_status_1_f;
-            }
-
-            if (Service.STATUS2.equals(status) && Service.F.equals(sex)) {
-                listForRearch = Repository.list_status_2_f;
-            }
-
-            if (Service.STATUS3.equals(status) && Service.F.equals(sex)) {
-                listForRearch = Repository.list_status_3_f;
-            }
-
-            if (Service.STATUS1.equals(status) && Service.M.equals(sex)) {
-                listForRearch = Repository.list_status_1_m;
-            }
-
-            if (Service.STATUS2.equals(status) && Service.M.equals(sex)) {
-                listForRearch = Repository.list_status_2_m;
-            }
-
-            if (Service.STATUS3.equals(status) && Service.M.equals(sex)) {
-                listForRearch = Repository.list_status_3_m;
-            }
-            if (country != null) {
-                if (country.isEmpty()) {
-                    listForRearch = Repository.country.get(null);
-                } else {
-                    listForRearch = Repository.country.get(country);
-                }
-                if (listForRearch == null) {
-                    return OK_EMPTY_ACCOUNTS;
-                }
-            }
-            if (city != null) {
-                if (city.isEmpty()) {
-                    listForRearch = Repository.city.get(null);
-                } else {
-                    listForRearch = Repository.city.get(city);
-                }
-                if (listForRearch == null) {
-                    return OK_EMPTY_ACCOUNTS;
-                }
-            }
-            if (Service.F.equals(sex)) {
-                if (country != null) {
-                    if (country.isEmpty()) {
-                        listForRearch = Repository.country.get("null_f");
+                String valueParam = getValue(param);
+                valueCache.put(param,valueParam);
+                if (param.startsWith(LIMIT)) {
+                    if (!Character.isDigit(valueParam.charAt(0))) {
+                        return BAD_REQUEST;
                     } else {
-                        listForRearch = Repository.country.get(country + "_f");
-                    }
-                    if (listForRearch == null) {
-                        return OK_EMPTY_ACCOUNTS;
+                        limit = Integer.parseInt(valueParam);
                     }
                 }
-                if (city != null) {
-                    if (city.isEmpty()) {
-                        listForRearch = Repository.city.get("null_f");
-                    } else {
-                        listForRearch = Repository.city.get(city + "_f");
-                    }
 
-                    if (listForRearch == null) {
-                        return OK_EMPTY_ACCOUNTS;
+                if (param.startsWith(STATUS)) {
+                    String predicate = predicateCache.get(param);
+                    if (predicate.equals(EQ_PR)) {
+                        status = valueParam;
+                    }
+                }
+                if (param.startsWith(SEX)) {
+                    sex = valueParam;
+                }
+                if (param.startsWith(BIRTH)) {
+                    String predicate = predicateCache.get(param);
+                    if (predicate.equals(YEAR_PR)) {
+                        calendar = new GregorianCalendar();
+                        year = Integer.parseInt(valueParam);
+                    }
+                }
+                if (param.startsWith(CITY)) {
+                    String predicate = predicateCache.get(param);
+                    if (predicate.equals(ANY_PR)) {
+                        cityArr = Utils.tokenize(valueParam, delim);
+                    }
+                    if (predicate.equals(EQ_PR)) {
+                        city = valueParam;
+                    }
+                    if (predicate.equals(NULL_PR)) {
+                        if (valueParam.equals(NULL_PR_VAL_ONE)) {
+                            city = "";
+                        }
+                    }
+                }
+                if (param.startsWith(COUNTRY)) {
+                    String predicate = predicateCache.get(param);
+                    if (predicate.equals(EQ_PR)) {
+                        country = valueParam;
+                    }
+                    if (predicate.equals(NULL_PR)) {
+                        if (valueParam.equals(NULL_PR_VAL_ONE)) {
+                            country = "";
+                        }
+                    }
+                }
+                if (param.startsWith(FNAME)) {
+                    String predicate = predicateCache.get(param);
+                    if (predicate.equals(ANY_PR)) {
+                        fnameArr = Utils.tokenize(valueParam, delim);
+                    }
+                }
+                if (param.startsWith(INTERESTS)) {
+                    interArr = Utils.tokenize(valueParam, delim);
+                }
+
+                if (param.startsWith(LIKES)) {
+                    String[] likesArrStr = Utils.tokenize(valueParam, delim);
+                    likesArr = new Integer[likesArrStr.length];
+                    for (int i = 0; i < likesArrStr.length; i++) {
+                        likesArr[i] = Integer.parseInt(likesArrStr[i]);
                     }
                 }
             }
-            if (Service.M.equals(sex)) {
-                if (country != null) {
-                    if (country.isEmpty()) {
-                        listForRearch = Repository.country.get("null_m");
-                    } else {
-                        listForRearch = Repository.country.get(country + "_m");
-                    }
-                    if (listForRearch == null) {
-                        return OK_EMPTY_ACCOUNTS;
-                    }
-                }
-                if (city != null) {
-                    if (city.isEmpty()) {
-                        listForRearch = Repository.city.get("null_m");
-                    } else {
-                        listForRearch = Repository.city.get(city + "_m");
-                    }
-                    if (listForRearch == null) {
-                        return OK_EMPTY_ACCOUNTS;
-                    }
-                }
+
+            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country);
+            if (listForRearch == null) {
+                return OK_EMPTY_ACCOUNTS;
             }
-            if (count.get() > 200) {
-                for (String param : params) {
-                    if (param.startsWith(LIKES)) {
+            for (String param : params) {
+                if (param.startsWith(LIKES)) {
+                    if (count.get() > 200) {
                         return OK_EMPTY_ACCOUNTS;
                     }
                 }
@@ -1100,12 +938,9 @@ public class Service {
 
             List<String> enableProp = new LinkedList<>();
             List<Account> accounts = new LinkedList<>();
+            Map<String, Object> finalFieldSet = null;
 
             for(Account account : listForRearch) {
-                if (accounts.size() == limit) {
-                    break;
-                }
-                enableProp.clear();
                 for (String param : params) {
                     //SEX ============================================
                     if (param.startsWith(SEX)) {
@@ -1452,6 +1287,10 @@ public class Service {
                     }
                     accounts.add(account);
                 }
+                if (accounts.size() == limit) {
+                    break;
+                }
+                enableProp.clear();
             }
             return new Result(Utils.accountToString(accounts, finalFieldSet).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
         } finally {
@@ -1459,8 +1298,104 @@ public class Service {
         }
     }
 
-    private static void fillValueCacheValue(String param, Map<String, String> valueCache) throws UnsupportedEncodingException {
-        valueCache.put(param,getValue(param));
+    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country) {
+        //city========================================
+        if (city != null) {
+            if (Service.F.equals(sex)) {
+                if (city.isEmpty()) {
+                    return Repository.city.get("null_f");
+                } else {
+                    return Repository.city.get(city + "_f");
+                }
+            }
+            if (Service.M.equals(sex)) {
+                if (city.isEmpty()) {
+                    return Repository.city.get("null_m");
+                } else {
+                    return Repository.city.get(city + "_m");
+                }
+            }
+
+            if (city.isEmpty()) {
+                return Repository.city.get(null);
+            } else {
+                return Repository.city.get(city);
+            }
+        }
+        //city========================================
+        //country========================================
+
+        if (country != null) {
+            if (Service.F.equals(sex)) {
+                if (country.isEmpty()) {
+                    return Repository.country.get("null_f");
+                } else {
+                    return Repository.country.get(country + "_f");
+                }
+            }
+
+            if (Service.M.equals(sex)) {
+                if (country.isEmpty()) {
+                    return Repository.country.get("null_m");
+                } else {
+                    return Repository.country.get(country + "_m");
+                }
+            }
+
+            if (country.isEmpty()) {
+                return Repository.country.get(null);
+            } else {
+                return Repository.country.get(country);
+            }
+        }
+        //country========================================
+        //status========================================
+
+        if (Service.STATUS1.equals(status) && Service.F.equals(sex)) {
+            return Repository.list_status_1_f;
+        }
+
+        if (Service.STATUS2.equals(status) && Service.F.equals(sex)) {
+            return Repository.list_status_2_f;
+        }
+
+        if (Service.STATUS3.equals(status) && Service.F.equals(sex)) {
+            return  Repository.list_status_3_f;
+        }
+
+        if (Service.STATUS1.equals(status) && Service.M.equals(sex)) {
+            return  Repository.list_status_1_m;
+        }
+
+        if (Service.STATUS2.equals(status) && Service.M.equals(sex)) {
+            return  Repository.list_status_2_m;
+        }
+
+        if (Service.STATUS3.equals(status) && Service.M.equals(sex)) {
+            return  Repository.list_status_3_m;
+        }
+
+        if (sex == null && Service.STATUS1.equals(status)) {
+            return Repository.list_status_1;
+        }
+        if (sex == null && Service.STATUS2.equals(status)) {
+            return Repository.list_status_2;
+        }
+        if (sex == null && Service.STATUS3.equals(status)) {
+            return Repository.list_status_3;
+        }
+        //status========================================
+        //sex========================================
+        if (status == null && Service.F.equals(sex)) {
+            return Repository.list_f;
+        }
+        if (status == null && Service.M.equals(sex)) {
+            return Repository.list_m;
+        }
+        //sex========================================
+        return Repository.list;
+
     }
+
 
 }
