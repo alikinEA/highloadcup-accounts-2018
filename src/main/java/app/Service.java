@@ -84,7 +84,6 @@ public class Service {
     private static final char delim = ',';
 
     private static final AtomicInteger count = new AtomicInteger(0);
-    //private static final AtomicInteger indexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -252,6 +251,16 @@ public class Service {
                     }
                     if (account.getPremium() != null) {
                         accountData.setPremium(account.getPremium());
+                        if (account.getPremium() != null) {
+                            if (currentTimeStamp2 < account.getPremium().getFinish()
+                                    && currentTimeStamp2 > account.getPremium().getStart()) {
+                                premium_1.add(accountData);
+                            }
+                            premium_2.add(accountData);
+                        } else {
+                            premium_3.add(accountData);
+                        }
+
                     }
                     if (account.getPhone() != null) {
                         accountData.setPhone(account.getPhone());
@@ -867,6 +876,7 @@ public class Service {
             String country = null;
             String sname = null;
             String fname = null;
+            Byte premium = null;
             int limit = 0;
 
             Map<String, String> valueCache = new HashMap<>(params.length);
@@ -961,9 +971,23 @@ public class Service {
                         likesArr[i] = Integer.parseInt(likesArrStr[i]);
                     }
                 }
+
+                if (param.startsWith(PREMIUM)) {
+                    String predicate = predicateCache.get(param);
+                    if (predicate.equals(NOW_PR)) {
+                        premium = 1;
+                    } else if (predicate.equals(NULL_PR)) {
+                        String value = valueCache.get(param);
+                        if (value.equals(NULL_PR_VAL_ONE)) {
+                            premium = 3;
+                        } else {
+                            premium = 2;
+                        }
+                    }
+                }
             }
 
-            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname);
+            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname,premium);
             if (listForRearch == null) {
                 return OK_EMPTY_ACCOUNTS;
             }
@@ -1337,7 +1361,7 @@ public class Service {
         }
     }
 
-    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname) {
+    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium) {
         //sname========================================
         if (sname != null) {
             if (sname.isEmpty()) {
@@ -1408,6 +1432,13 @@ public class Service {
             }
         }
         //country========================================
+
+        if (premium != null && premium == 1) {
+            return Repository.premium_1;
+        }
+        if (premium != null && premium == 2) {
+            return Repository.premium_2;
+        }
         //status========================================
 
         if (Service.STATUS1.equals(status) && Service.F.equals(sex)) {
@@ -1434,6 +1465,10 @@ public class Service {
             return  Repository.list_status_3_m;
         }
 
+        if (premium != null && premium == 3) {
+            return Repository.premium_3;
+        }
+
         if (sex == null && Service.STATUS1.equals(status)) {
             return Repository.list_status_1;
         }
@@ -1452,7 +1487,6 @@ public class Service {
             return Repository.list_m;
         }
         //sex========================================
-        //System.out.println(indexCount.incrementAndGet());
         return Repository.list;
 
     }

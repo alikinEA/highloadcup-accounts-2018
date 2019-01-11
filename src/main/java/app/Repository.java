@@ -43,6 +43,9 @@ public class Repository {
     static final Map<String,TreeSet<Account>> country = new HashMap<>();
     static final Map<String,TreeSet<Account>> fname = new HashMap<>();
     static final Map<String,TreeSet<Account>> sname = new HashMap<>();
+    static final TreeSet<Account> premium_1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> premium_2 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> premium_3 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
@@ -83,7 +86,7 @@ public class Repository {
                     try {
                         FileHeader fileHeader = (FileHeader)item;
                         if (fileHeader.getFileName().contains("accounts")) {
-                            System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
+                            ///System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
                             try (InputStream inputStream = zipFile.getInputStream(fileHeader)) {
                                 List<Any> json = JsonIterator.deserialize(Utils.readBytes(inputStream)).get("accounts").asList();
                                 for (Any accountAny : json) {
@@ -111,8 +114,9 @@ public class Repository {
             for (Account account : list) {
                 insertToIndex(account);
             }
-
-            System.out.println("start warm up");
+            System.out.println("list premium_1 size = " + premium_1.size());
+            System.out.println("list premium_2 size = " + premium_2.size());
+            System.out.println("list premium_3 size = " + premium_3.size());
 
             for (int i = 0; i < 1000; i++) {
                 Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
@@ -129,6 +133,15 @@ public class Repository {
     }
 
     public static void insertToIndex(Account account) {
+        if (account.getPremium() != null) {
+            if (currentTimeStamp2 < account.getPremium().getFinish()
+                    && currentTimeStamp2 > account.getPremium().getStart()) {
+                premium_1.add(account);
+            }
+            premium_2.add(account);
+        } else {
+            premium_3.add(account);
+        }
         TreeSet<Account> list = Repository.sname.get(account.getSname());
         if (list != null) {
             list.add(account);
