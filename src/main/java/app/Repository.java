@@ -26,7 +26,7 @@ public class Repository {
 
 
     private static final List<String> availableNames =
-            Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json");
+            Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json","accounts_127.json");
     private static final List<String> availableNamesTest =
             Arrays.asList("accounts_1.json"
                     ,"accounts_2.json"
@@ -106,15 +106,17 @@ public class Repository {
                 }
             });
             System.out.println("list size = " + list.size());
-            System.out.println("list ids = " + ids.size());
+            System.out.println("list ids size = " + ids.size());
+            System.out.println("list emails size = " + emails.size());
             for (Account account : list) {
                 insertToIndex(account);
             }
-            System.out.println("list emails = " + emails.size());
-            /*System.out.println("start warm up");
+
+            System.out.println("start warm up");
+
             for (int i = 0; i < 1000; i++) {
                 Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
-            }*/
+            }
 
             System.gc();//¯\_(ツ)_/¯
             System.out.println("End like Set" + (new Date().getTime() - start));
@@ -127,7 +129,24 @@ public class Repository {
     }
 
     public static void insertToIndex(Account account) {
-        TreeSet<Account> list = Repository.city.get(account.getCity());
+        TreeSet<Account> list = Repository.sname.get(account.getSname());
+        if (list != null) {
+            list.add(account);
+        } else {
+            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+            list.add(account);
+            Repository.sname.put(account.getSname(),list);
+        }
+        list = Repository.fname.get(account.getFname());
+        if (list != null) {
+            list.add(account);
+        } else {
+            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+            list.add(account);
+            Repository.fname.put(account.getFname(),list);
+
+        }
+        list = Repository.city.get(account.getCity());
         if (list != null) {
             list.add(account);
         } else {

@@ -15,9 +15,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
-import static app.Repository.country;
-import static app.Repository.currentTimeStamp2;
-import static app.Repository.list;
+import static app.Repository.*;
 
 /**
  * Created by Alikin E.A. on 15.12.18.
@@ -86,6 +84,7 @@ public class Service {
     private static final char delim = ',';
 
     private static final AtomicInteger count = new AtomicInteger(0);
+    //private static final AtomicInteger indexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -196,6 +195,14 @@ public class Service {
                     }
                     if (account.getFname() != null) {
                         accountData.setFname(account.getFname());
+                        TreeSet<Account> list = Repository.fname.get(accountData.getFname());
+                        if (list != null) {
+                            list.add(accountData);
+                        } else {
+                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                            list.add(accountData);
+                            Repository.fname.put(account.getFname(),list);
+                        }
                     }
                     if (account.getInterests() != null) {
                         accountData.setInterests(account.getInterests());
@@ -276,6 +283,14 @@ public class Service {
                     }
                     if (account.getSname() != null) {
                         accountData.setSname(account.getSname());
+                        TreeSet<Account> list = Repository.sname.get(accountData.getSname());
+                        if (list != null) {
+                            list.add(accountData);
+                        } else {
+                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                            list.add(accountData);
+                            Repository.sname.put(account.getSname(),list);
+                        }
                     }
                     if (account.getSex() != null || account.getCity() != null || account.getCountry() != null) {
                         if (accountData.getSex().equals(Service.M)) {
@@ -850,6 +865,8 @@ public class Service {
             Integer [] likesArr = null;
             String city = null;
             String country = null;
+            String sname = null;
+            String fname = null;
             int limit = 0;
 
             Map<String, String> valueCache = new HashMap<>(params.length);
@@ -905,6 +922,28 @@ public class Service {
                         }
                     }
                 }
+                if (param.startsWith(SNAME)) {
+                    String predicate = predicateCache.get(param);
+                    if (predicate.equals(EQ_PR)) {
+                        sname = valueParam;
+                    }
+                    if (predicate.equals(NULL_PR)) {
+                        if (valueParam.equals(NULL_PR_VAL_ONE)) {
+                            sname = "";
+                        }
+                    }
+                }
+                if (param.startsWith(FNAME)) {
+                    String predicate = predicateCache.get(param);
+                    if (predicate.equals(EQ_PR)) {
+                        fname = valueParam;
+                    }
+                    if (predicate.equals(NULL_PR)) {
+                        if (valueParam.equals(NULL_PR_VAL_ONE)) {
+                            fname = "";
+                        }
+                    }
+                }
                 if (param.startsWith(FNAME)) {
                     String predicate = predicateCache.get(param);
                     if (predicate.equals(ANY_PR)) {
@@ -924,7 +963,7 @@ public class Service {
                 }
             }
 
-            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country);
+            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname);
             if (listForRearch == null) {
                 return OK_EMPTY_ACCOUNTS;
             }
@@ -1298,7 +1337,16 @@ public class Service {
         }
     }
 
-    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country) {
+    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname) {
+        //sname========================================
+        if (sname != null) {
+            if (sname.isEmpty()) {
+                return Repository.sname.get(null);
+            } else {
+                return Repository.sname.get(sname);
+            }
+        }
+        //sname========================================
         //city========================================
         if (city != null) {
             if (Service.F.equals(sex)) {
@@ -1323,6 +1371,17 @@ public class Service {
             }
         }
         //city========================================
+
+        //fname========================================
+        if (fname != null) {
+            if (fname.isEmpty()) {
+                return Repository.fname.get(null);
+            } else {
+                return Repository.fname.get(fname);
+            }
+        }
+        //sname========================================
+
         //country========================================
 
         if (country != null) {
@@ -1393,6 +1452,7 @@ public class Service {
             return Repository.list_m;
         }
         //sex========================================
+        //System.out.println(indexCount.incrementAndGet());
         return Repository.list;
 
     }
