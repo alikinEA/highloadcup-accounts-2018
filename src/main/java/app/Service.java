@@ -84,6 +84,7 @@ public class Service {
     private static final char delim = ',';
 
     private static final AtomicInteger count = new AtomicInteger(0);
+   // private static final AtomicInteger badIndexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -266,6 +267,18 @@ public class Service {
                         accountData.setPhone(account.getPhone());
                     }
                     if (account.getBirth() != null) {
+                        Calendar calendar = new GregorianCalendar();
+                        calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
+                        int yearValue = calendar.get(Calendar.YEAR);
+                        TreeSet<Account> list = year.get(yearValue);
+                        if (list != null) {
+                            list.add(account);
+                        } else {
+                            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                            list.add(account);
+                            Repository.year.put(yearValue,list);
+                        }
+
                         accountData.setBirth(account.getBirth());
                     }
                     if (account.getCity() != null) {
@@ -374,9 +387,9 @@ public class Service {
                 return NOT_FOUND;
             } else {
                 String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(URI_RECOMENDED) + 12), '&');
-                int limit = 0;
-                String country = "";
-                String city = "";
+                int limit;
+                String country;
+                String city;
                 for (String param : params) {
                     if (param.startsWith(LIMIT)) {
                         try {
@@ -402,7 +415,9 @@ public class Service {
                     }
                 }
 
-                if (!accountData.equals(Repository.PRESENT_AC)) {
+                return OK_EMPTY_ACCOUNTS;
+
+                /*if (!accountData.equals(Repository.PRESENT_AC)) {
                     TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
                     TreeSet<Account> list = null;
 
@@ -456,7 +471,7 @@ public class Service {
                     } else {
                         return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
                     }
-                }
+                }*/
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -464,7 +479,6 @@ public class Service {
         } finally {
             lock.readLock().unlock();
         }
-        return BAD_REQUEST;
     }
 
     private static void calcCompat(Account accountData, String country, String city, TreeSet<AccountC> compat, Iterator<Account> iterator) {
@@ -987,10 +1001,14 @@ public class Service {
                 }
             }
 
-            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname,premium);
+            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname,premium,year);
             if (listForRearch == null) {
                 return OK_EMPTY_ACCOUNTS;
             }
+            /*if (listForRearch.equals(Repository.list)) {
+                System.out.println(uri);
+                System.out.println(badIndexCount.incrementAndGet());
+            }*/
             for (String param : params) {
                 if (param.startsWith(LIKES)) {
                     if (count.get() > 200) {
@@ -1361,13 +1379,14 @@ public class Service {
         }
     }
 
-    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium) {
+    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium, Integer year) {
+        TreeSet<Account> resultIndex = Repository.list;
         //sname========================================
         if (sname != null) {
             if (sname.isEmpty()) {
-                return Repository.sname.get(null);
+                resultIndex = compareIndex(Repository.sname.get(null),resultIndex);
             } else {
-                return Repository.sname.get(sname);
+                resultIndex = compareIndex(Repository.sname.get(sname),resultIndex);
             }
         }
         //sname========================================
@@ -1375,23 +1394,23 @@ public class Service {
         if (city != null) {
             if (Service.F.equals(sex)) {
                 if (city.isEmpty()) {
-                    return Repository.city.get("null_f");
+                    resultIndex = compareIndex(Repository.city.get("null_f"),resultIndex);
                 } else {
-                    return Repository.city.get(city + "_f");
+                    resultIndex = compareIndex(Repository.city.get(city + "_f"),resultIndex);
                 }
             }
             if (Service.M.equals(sex)) {
                 if (city.isEmpty()) {
-                    return Repository.city.get("null_m");
+                    resultIndex = compareIndex(Repository.city.get("null_m"),resultIndex);
                 } else {
-                    return Repository.city.get(city + "_m");
+                    resultIndex = compareIndex(Repository.city.get(city + "_m"),resultIndex);
                 }
             }
 
             if (city.isEmpty()) {
-                return Repository.city.get(null);
+                resultIndex = compareIndex(Repository.city.get(null),resultIndex);
             } else {
-                return Repository.city.get(city);
+                resultIndex = compareIndex(Repository.city.get(city),resultIndex);
             }
         }
         //city========================================
@@ -1399,9 +1418,9 @@ public class Service {
         //fname========================================
         if (fname != null) {
             if (fname.isEmpty()) {
-                return Repository.fname.get(null);
+                resultIndex = compareIndex(Repository.fname.get(null),resultIndex);
             } else {
-                return Repository.fname.get(fname);
+                resultIndex = compareIndex(Repository.fname.get(fname),resultIndex);
             }
         }
         //sname========================================
@@ -1411,84 +1430,100 @@ public class Service {
         if (country != null) {
             if (Service.F.equals(sex)) {
                 if (country.isEmpty()) {
-                    return Repository.country.get("null_f");
+                    resultIndex = compareIndex(Repository.country.get("null_f"),resultIndex);
                 } else {
-                    return Repository.country.get(country + "_f");
+                    resultIndex = compareIndex(Repository.country.get(country + "_f"),resultIndex);
                 }
             }
 
             if (Service.M.equals(sex)) {
                 if (country.isEmpty()) {
-                    return Repository.country.get("null_m");
+                    resultIndex = compareIndex(Repository.country.get("null_m"),resultIndex);
                 } else {
-                    return Repository.country.get(country + "_m");
+                    resultIndex = compareIndex(Repository.country.get(country + "_m"),resultIndex);
                 }
             }
 
             if (country.isEmpty()) {
-                return Repository.country.get(null);
+                resultIndex = compareIndex(Repository.country.get(null),resultIndex);
             } else {
-                return Repository.country.get(country);
+                resultIndex = compareIndex(Repository.country.get(country),resultIndex);
             }
         }
         //country========================================
 
         if (premium != null && premium == 1) {
-            return Repository.premium_1;
+            resultIndex = compareIndex(Repository.premium_1,resultIndex);
         }
         if (premium != null && premium == 2) {
-            return Repository.premium_2;
+            resultIndex = compareIndex(Repository.premium_2,resultIndex);
         }
         //status========================================
 
         if (Service.STATUS1.equals(status) && Service.F.equals(sex)) {
-            return Repository.list_status_1_f;
+            resultIndex = compareIndex(Repository.list_status_1_f,resultIndex);
         }
 
         if (Service.STATUS2.equals(status) && Service.F.equals(sex)) {
-            return Repository.list_status_2_f;
+            resultIndex = compareIndex(Repository.list_status_2_f,resultIndex);
         }
 
         if (Service.STATUS3.equals(status) && Service.F.equals(sex)) {
-            return  Repository.list_status_3_f;
+            resultIndex = compareIndex(Repository.list_status_3_f,resultIndex);
         }
 
         if (Service.STATUS1.equals(status) && Service.M.equals(sex)) {
-            return  Repository.list_status_1_m;
+            resultIndex = compareIndex(Repository.list_status_1_m,resultIndex);
         }
 
         if (Service.STATUS2.equals(status) && Service.M.equals(sex)) {
-            return  Repository.list_status_2_m;
+            resultIndex = compareIndex(Repository.list_status_2_m,resultIndex);
         }
 
         if (Service.STATUS3.equals(status) && Service.M.equals(sex)) {
-            return  Repository.list_status_3_m;
+            resultIndex = compareIndex(Repository.list_status_3_m,resultIndex);
         }
 
         if (premium != null && premium == 3) {
-            return Repository.premium_3;
+            resultIndex = compareIndex(Repository.premium_3,resultIndex);
         }
 
         if (sex == null && Service.STATUS1.equals(status)) {
-            return Repository.list_status_1;
+            resultIndex = compareIndex(Repository.list_status_1,resultIndex);
         }
         if (sex == null && Service.STATUS2.equals(status)) {
-            return Repository.list_status_2;
+            resultIndex = compareIndex(Repository.list_status_2,resultIndex);
         }
         if (sex == null && Service.STATUS3.equals(status)) {
-            return Repository.list_status_3;
+            resultIndex = compareIndex(Repository.list_status_3,resultIndex);
         }
         //status========================================
         //sex========================================
         if (status == null && Service.F.equals(sex)) {
-            return Repository.list_f;
+            resultIndex = compareIndex(Repository.list_f,resultIndex);
         }
         if (status == null && Service.M.equals(sex)) {
-            return Repository.list_m;
+            resultIndex = compareIndex(Repository.list_m,resultIndex);
         }
         //sex========================================
-        return Repository.list;
 
+        if (year != null) {
+            resultIndex = compareIndex(Repository.year.get(year),resultIndex);
+        }
+        return resultIndex;
+
+    }
+
+    private static TreeSet<Account> compareIndex(TreeSet<Account> newIndex, TreeSet<Account> resultIndex) {
+        if (newIndex != null && resultIndex != null) {
+            if (newIndex.size() < resultIndex.size()) {
+                return newIndex;
+            } else {
+                return resultIndex;
+            }
+        } else {
+            return null;
+        }
     }
 
 

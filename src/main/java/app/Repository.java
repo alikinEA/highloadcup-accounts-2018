@@ -26,7 +26,7 @@ public class Repository {
 
 
     private static final List<String> availableNames =
-            Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json","accounts_127.json");
+            Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json","accounts_127.json","accounts_126.json");
     private static final List<String> availableNamesTest =
             Arrays.asList("accounts_1.json"
                     ,"accounts_2.json"
@@ -42,6 +42,7 @@ public class Repository {
     static final Map<String,TreeSet<Account>> city = new HashMap<>();
     static final Map<String,TreeSet<Account>> country = new HashMap<>();
     static final Map<String,TreeSet<Account>> fname = new HashMap<>();
+    static final Map<Integer,TreeSet<Account>> year = new HashMap<>();
     static final Map<String,TreeSet<Account>> sname = new HashMap<>();
     static final TreeSet<Account> premium_1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> premium_2 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
@@ -67,6 +68,7 @@ public class Repository {
         System.out.println("Start = " + start);
         try {
             Service.lock.writeLock().lock();
+            int fileCount = 3;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(dataPath + "options.txt")))){
                 String timestamp = reader.readLine();
                 currentTimeStamp = new Long(timestamp + "000");
@@ -74,40 +76,37 @@ public class Repository {
                 String flag = reader.readLine();
                 if (Integer.parseInt(flag) == 1) {
                     isRait = true;
+                    fileCount = 130;
                 }
                 System.out.println("isRait = " + isRait);
                 System.out.println("external timestamp = " + currentTimeStamp);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            ZipFile zipFile = new ZipFile(dataPath + "data.zip");
-            zipFile.getFileHeaders().forEach(item -> {
-                if (item != null) {
-                    try {
-                        FileHeader fileHeader = (FileHeader)item;
-                        if (fileHeader.getFileName().contains("accounts")) {
-                            ///System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
-                            try (InputStream inputStream = zipFile.getInputStream(fileHeader)) {
-                                List<Any> json = JsonIterator.deserialize(Utils.readBytes(inputStream)).get("accounts").asList();
-                                for (Any accountAny : json) {
-                                    Account account = Utils.anyToAccount(accountAny);
-                                    emails.put(account.getEmail(),PRESENT);
-                                    if ((isRait && availableNames.contains(fileHeader.getFileName()))
-                                            || (!isRait && availableNamesTest.contains(fileHeader.getFileName()))) {
-                                        list.add(account);
-                                        ids.put(account.getId(), account);
-                                    } else {
-                                        ids.put(account.getId(), PRESENT_AC);
-                                    }
-                                }
-                                json = null;
+            for (int i = fileCount; i > 0; i--) {
+                ZipFile zipFile = new ZipFile(dataPath + "data.zip");
+                FileHeader fileHeader = zipFile.getFileHeader("accounts_" + i + ".json");
+                if (fileHeader.getFileName().contains("accounts")) {
+                    ///System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
+                    try (InputStream inputStream = zipFile.getInputStream(fileHeader)) {
+                        List<Any> json = JsonIterator.deserialize(Utils.readBytes(inputStream)).get("accounts").asList();
+                        for (Any accountAny : json) {
+                            Account account = Utils.anyToAccount(accountAny);
+                            emails.put(account.getEmail(),PRESENT);
+                            if ((isRait && availableNames.contains(fileHeader.getFileName()))
+                                    || (!isRait && availableNamesTest.contains(fileHeader.getFileName()))) {
+                                list.add(account);
+                                ids.put(account.getId(), account);
+                            } else {
+                                ids.put(account.getId(), PRESENT_AC);
                             }
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        json = null;
                     }
                 }
-            });
+                System.gc();
+            }
+
             System.out.println("list size = " + list.size());
             System.out.println("list ids size = " + ids.size());
             System.out.println("list emails size = " + emails.size());
@@ -118,9 +117,9 @@ public class Repository {
             System.out.println("list premium_2 size = " + premium_2.size());
             System.out.println("list premium_3 size = " + premium_3.size());
 
-            for (int i = 0; i < 1000; i++) {
+            /*for (int i = 0; i < 1000; i++) {
                 Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
-            }
+            }*/
 
             System.gc();//¯\_(ツ)_/¯
             System.out.println("End like Set" + (new Date().getTime() - start));
@@ -254,6 +253,19 @@ public class Repository {
                 && account.getStatus().equals(Service.STATUS3)) {
             Repository.list_status_3_f.add(account);
         }
+
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
+        int yearValue = calendar.get(Calendar.YEAR);
+        list = Repository.year.get(yearValue);
+        if (list != null) {
+            list.add(account);
+        } else {
+            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+            list.add(account);
+            Repository.year.put(yearValue,list);
+        }
+
     }
 
 
