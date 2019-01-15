@@ -1,6 +1,7 @@
 package app;
 
-import app.models.*;
+import app.models.Account;
+import app.models.Result;
 import app.server.Server;
 import com.jsoniter.JsonIterator;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -13,7 +14,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
 
 import static app.Repository.*;
 
@@ -43,7 +43,6 @@ public class Service {
     public static final String BIRTH = "birth";
     public static final String INTERESTS = "interests";
     public static final String LIKES = "likes";
-    public static final String LIKE = "like";
     public static final String PREMIUM = "premium";
     public static final String QUERY_ID = "query_id";
     public static final String LIMIT = "limit";
@@ -72,7 +71,6 @@ public class Service {
     private static final String URI_GROUP = "/accounts/group/?";
     private static final String URI_SUGGEST = "/suggest";
     private static final String URI_RECOMENDED = "/recommend";
-    private static final String ACCOUNTS = "/accounts/";
 
     public static final String F = "f";
     public static final String M = "m";
@@ -85,9 +83,40 @@ public class Service {
     private static final char delim = ',';
 
     private static final AtomicInteger count = new AtomicInteger(0);
-   // private static final AtomicInteger badIndexCount = new AtomicInteger(0);
+    //private static final AtomicInteger badIndexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
+    public static ThreadLocal<Map<String, String>> threadLocalPredicateMap =
+            new ThreadLocal<Map<String, String>>() {
+                @Override
+                protected Map<String, String> initialValue() {
+                    return  new HashMap<>(12);
+                }
+
+                @Override
+                public Map<String, String> get() {
+                    Map<String, String> b = super.get();
+                    b.clear();
+                    return b;
+                }
+
+            };
+
+    public static ThreadLocal<Map<String, String>> threadLocalValueMap =
+            new ThreadLocal<Map<String, String>>() {
+                @Override
+                protected Map<String, String> initialValue() {
+                    return  new HashMap<>(12);
+                }
+
+                @Override
+                public Map<String, String> get() {
+                    Map<String, String> b = super.get();
+                    b.clear();
+                    return b;
+                }
+
+            };
 
     public static Result handle(FullHttpRequest req) throws UnsupportedEncodingException {
         if (req.uri().startsWith(URI_FILTER)) {
@@ -123,7 +152,7 @@ public class Service {
                 return NOT_FOUND;
             }
             if (Repository.ids.containsKey(Integer.parseInt(curId))) {
-                Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
+                Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)),true);
                 if (account == null) {
                     return BAD_REQUEST;
                 }
@@ -267,9 +296,9 @@ public class Service {
                     if (account.getPhone() != null) {
                         accountData.setPhone(account.getPhone());
                     }
-                    if (account.getBirth() != null) {
+                    if (account.getBirth() != 0) {
                         Calendar calendar = Repository.threadLocalCalendar.get();
-                        calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
+                        calendar.setTimeInMillis((long)account.getBirth() * 1000);
                         Integer yearValue = calendar.get(Calendar.YEAR);
                         TreeSet<Account> list = year.get(yearValue);
                         if (list != null) {
@@ -482,7 +511,7 @@ public class Service {
         }
     }
 
-    private static void calcCompat(Account accountData, String country, String city, TreeSet<AccountC> compat, Iterator<Account> iterator) {
+    /*private static void calcCompat(Account accountData, String country, String city, TreeSet<AccountC> compat, Iterator<Account> iterator) {
         while (iterator.hasNext()) {
             Account account1 = iterator.next();
             if (!account1.getId().equals(accountData.getId())) {
@@ -504,7 +533,7 @@ public class Service {
                 }
             }
         }
-    }
+    }*/
 
     private static Integer getCompatibility(Account accountData, Account account1) {
         int compt = 0;
@@ -701,11 +730,8 @@ public class Service {
     private static Result handleNew(FullHttpRequest req) {
         lock.writeLock().lock();
         try {
-            Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
+            Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)),false);
             if (account == null) {
-                return BAD_REQUEST;
-            }
-            if (account.getId() == null) {
                 return BAD_REQUEST;
             }
             if (Repository.ids.containsKey(account.getId())) {
@@ -874,8 +900,8 @@ public class Service {
         try {
             String[] params = Utils.tokenize(uri.substring(18), '&');
 
-            Map<String, String> predicateCache = new HashMap<>(params.length);
-
+            Map<String,String> predicateCache = threadLocalPredicateMap.get();
+            Map<String,String> valueCache = threadLocalValueMap.get();
             for (String param : params) {
                 if (!fillCacheAndvalidate(param, predicateCache)) {
                     return BAD_REQUEST;
@@ -897,7 +923,6 @@ public class Service {
             Byte premium = null;
             int limit = 0;
 
-            Map<String, String> valueCache = new HashMap<>(params.length);
             for (String param : params) {
                 String valueParam = getValue(param);
                 valueCache.put(param,valueParam);
@@ -1217,20 +1242,20 @@ public class Service {
                         String predicate = predicateCache.get(param);
                         if (predicate.equals(YEAR_PR)) {
                             Calendar calendar = Repository.threadLocalCalendar.get();
-                            calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
+                            calendar.setTimeInMillis((long) account.getBirth() * 1000);
                             if (year == calendar.get(Calendar.YEAR)) {
                                 enableProp.add(BIRTH);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(LT_PR)) {
-                            if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) < 0) {
+                            if (account.getBirth() < Integer.parseInt(valueCache.get(param))) {
                                 enableProp.add(BIRTH);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(GT_PR)) {
-                            if (account.getBirth().compareTo(Integer.parseInt(valueCache.get(param))) > 0) {
+                            if (account.getBirth() > Integer.parseInt(valueCache.get(param))) {
                                 enableProp.add(BIRTH);
                             } else {
                                 break;

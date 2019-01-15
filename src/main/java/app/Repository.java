@@ -40,7 +40,10 @@ public class Repository {
             };
 
     private static final List<String> availableNames =
-            Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json","accounts_127.json","accounts_126.json","accounts_125.json");
+            Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json"
+                    ,"accounts_127.json","accounts_126.json","accounts_125.json"
+                    ,"accounts_124.json","accounts_123.json","accounts_122.json"
+            );
     private static final List<String> availableNamesTest =
             Arrays.asList("accounts_1.json"
                     ,"accounts_2.json"
@@ -105,7 +108,7 @@ public class Repository {
                     try (InputStream inputStream = zipFile.getInputStream(fileHeader)) {
                         List<Any> json = JsonIterator.deserialize(Utils.readBytes(inputStream)).get("accounts").asList();
                         for (Any accountAny : json) {
-                            Account account = Utils.anyToAccount(accountAny);
+                            Account account = Utils.anyToAccount(accountAny,false);
                             emails.put(account.getEmail(),PRESENT);
                             if ((isRait && availableNames.contains(fileHeader.getFileName()))
                                     || (!isRait && availableNamesTest.contains(fileHeader.getFileName()))) {
@@ -269,7 +272,7 @@ public class Repository {
         }
 
         Calendar calendar = threadLocalCalendar.get();
-        calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
+        calendar.setTimeInMillis((long)account.getBirth() * 1000);
         Integer yearValue = calendar.get(Calendar.YEAR);
         list = Repository.year.get(yearValue);
         if (list != null) {

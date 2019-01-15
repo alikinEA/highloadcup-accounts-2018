@@ -1,15 +1,14 @@
 package app;
 
 import app.models.Account;
-import app.models.AccountC;
 import app.models.Premium;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.ValueType;
 import com.jsoniter.any.Any;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -58,7 +57,7 @@ public class Utils {
         return output.toByteArray();
     }
 
-    public static Account anyToAccount(Any accountAny) {
+    public static Account anyToAccount(Any accountAny, boolean forUpdate) {
         try {
             for (String key : accountAny.keys()) {
                 if (!key.equals(Service.ID)
@@ -79,6 +78,13 @@ public class Utils {
                     return null;
                 }
             }
+
+            if (!forUpdate) {
+                if (!accountAny.keys().contains(Service.ID)) {
+                    return null;
+                }
+            }
+
 
             Account account = new Account();
             for (String key : accountAny.keys()) {
@@ -244,7 +250,7 @@ public class Utils {
                 sb.append("\",");
             }
 
-            if (enableProp.containsKey(Service.BIRTH) && account.getBirth() != null) {
+            if (enableProp.containsKey(Service.BIRTH) && account.getBirth() != 0) {
                 sb.append("\"birth\":");
                 sb.append(account.getBirth());
                 sb.append(",");

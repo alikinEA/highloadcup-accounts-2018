@@ -13,7 +13,7 @@ import java.util.Set;
 @Setter
 public class Account implements Comparable<Account>{
 
-    private Integer id;
+    private int id = -1;
     private String email;
     private String sex;
     private String fname;
@@ -22,12 +22,11 @@ public class Account implements Comparable<Account>{
     private Premium premium;
     private String phone;
     private Set<Integer> likesArr;
-    private Integer birth;
+    private int birth;
     private String city;
     private String country;
     private String sname;
 
-    // Two Employees are equal if their IDs are equal
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
