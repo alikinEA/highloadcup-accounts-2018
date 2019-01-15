@@ -83,7 +83,7 @@ public class Service {
     private static final char delim = ',';
 
     private static final AtomicInteger count = new AtomicInteger(0);
-    //private static final AtomicInteger badIndexCount = new AtomicInteger(0);
+    private static final AtomicInteger badIndexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
     public static ThreadLocal<Map<String, String>> threadLocalPredicateMap =
@@ -233,6 +233,7 @@ public class Service {
                             list.add(accountData);
                             Repository.fname.put(account.getFname(),list);
                         }
+                        Repository.fname_not_null.add(account);
                     }
                     if (account.getInterests() != null) {
                         accountData.setInterests(account.getInterests());
@@ -321,6 +322,7 @@ public class Service {
                             list.add(accountData);
                             Repository.city.put(accountData.getCity(),list);
                         }
+                        Repository.city_not_null.add(account);
                     }
                     if (account.getCountry() != null) {
                         accountData.setCountry(account.getCountry());
@@ -332,6 +334,7 @@ public class Service {
                             list.add(accountData);
                             Repository.country.put(accountData.getCountry(),list);
                         }
+                        Repository.country_not_null.add(account);
                     }
                     if (account.getSname() != null) {
                         accountData.setSname(account.getSname());
@@ -343,6 +346,7 @@ public class Service {
                             list.add(accountData);
                             Repository.sname.put(account.getSname(),list);
                         }
+                        Repository.sname_not_null.add(account);
                     }
                     if (account.getSex() != null || account.getCity() != null || account.getCountry() != null) {
                         if (accountData.getSex().equals(Service.M)) {
@@ -959,7 +963,9 @@ public class Service {
                     }
                     if (predicate.equals(NULL_PR)) {
                         if (valueParam.equals(NULL_PR_VAL_ONE)) {
-                            city = "";
+                            city = NULL_PR_VAL_ONE;
+                        } else {
+                            city = NULL_PR;
                         }
                     }
                 }
@@ -970,7 +976,9 @@ public class Service {
                     }
                     if (predicate.equals(NULL_PR)) {
                         if (valueParam.equals(NULL_PR_VAL_ONE)) {
-                            country = "";
+                            country = NULL_PR_VAL_ONE;
+                        } else {
+                            country = NULL_PR;
                         }
                     }
                 }
@@ -981,7 +989,9 @@ public class Service {
                     }
                     if (predicate.equals(NULL_PR)) {
                         if (valueParam.equals(NULL_PR_VAL_ONE)) {
-                            sname = "";
+                            sname = NULL_PR_VAL_ONE;
+                        } else {
+                            sname = NULL_PR;
                         }
                     }
                 }
@@ -992,7 +1002,9 @@ public class Service {
                     }
                     if (predicate.equals(NULL_PR)) {
                         if (valueParam.equals(NULL_PR_VAL_ONE)) {
-                            fname = "";
+                            fname = NULL_PR_VAL_ONE;
+                        } else {
+                            fname = NULL_PR;
                         }
                     }
                 }
@@ -1033,10 +1045,10 @@ public class Service {
             if (listForRearch == null) {
                 return OK_EMPTY_ACCOUNTS;
             }
-            /*if (listForRearch.equals(Repository.list)) {
+            if (listForRearch.equals(Repository.list)) {
                 System.out.println(uri);
                 System.out.println(badIndexCount.incrementAndGet());
-            }*/
+            }
             for (String param : params) {
                 if (param.startsWith(LIKES)) {
                     if (count.get() > 200) {
@@ -1415,44 +1427,60 @@ public class Service {
         TreeSet<Account> resultIndex = Repository.list;
         //sname========================================
         if (sname != null) {
-            if (sname.isEmpty()) {
+            if (sname.equals(NULL_PR_VAL_ONE)) {
                 resultIndex = compareIndex(Repository.sname.get(null),resultIndex);
             } else {
-                resultIndex = compareIndex(Repository.sname.get(sname),resultIndex);
+                if (sname.equals(NULL_PR)) {
+                    resultIndex = compareIndex(Repository.sname_not_null,resultIndex);
+                } else {
+                    resultIndex = compareIndex(Repository.sname.get(sname),resultIndex);
+                }
             }
         }
         //sname========================================
         //city========================================
         if (city != null) {
             if (Service.F.equals(sex)) {
-                if (city.isEmpty()) {
-                    resultIndex = compareIndex(Repository.city.get("null_f"),resultIndex);
-                } else {
-                    resultIndex = compareIndex(Repository.city.get(city + "_f"),resultIndex);
+                if (!city.equals(NULL_PR)) {
+                    if (city.equals(NULL_PR_VAL_ONE)) {
+                        resultIndex = compareIndex(Repository.city.get("null_f"), resultIndex);
+                    } else {
+                        resultIndex = compareIndex(Repository.city.get(city + "_f"), resultIndex);
+                    }
                 }
             }
             if (Service.M.equals(sex)) {
-                if (city.isEmpty()) {
-                    resultIndex = compareIndex(Repository.city.get("null_m"),resultIndex);
-                } else {
-                    resultIndex = compareIndex(Repository.city.get(city + "_m"),resultIndex);
+                if (!city.equals(NULL_PR)) {
+                    if (city.equals(NULL_PR_VAL_ONE)) {
+                        resultIndex = compareIndex(Repository.city.get("null_m"), resultIndex);
+                    } else {
+                        resultIndex = compareIndex(Repository.city.get(city + "_m"), resultIndex);
+                    }
                 }
             }
 
-            if (city.isEmpty()) {
+            if (city.equals(NULL_PR_VAL_ONE)) {
                 resultIndex = compareIndex(Repository.city.get(null),resultIndex);
             } else {
-                resultIndex = compareIndex(Repository.city.get(city),resultIndex);
+                if (city.equals(NULL_PR)) {
+                    resultIndex = compareIndex(Repository.city_not_null,resultIndex);
+                } else {
+                    resultIndex = compareIndex(Repository.city.get(city),resultIndex);
+                }
             }
         }
         //city========================================
 
         //fname========================================
         if (fname != null) {
-            if (fname.isEmpty()) {
+            if (fname.equals(NULL_PR_VAL_ONE)) {
                 resultIndex = compareIndex(Repository.fname.get(null),resultIndex);
             } else {
-                resultIndex = compareIndex(Repository.fname.get(fname),resultIndex);
+                if (fname.equals(NULL_PR)) {
+                    resultIndex = compareIndex(Repository.fname_not_null,resultIndex);
+                } else {
+                    resultIndex = compareIndex(Repository.fname.get(fname),resultIndex);
+                }
             }
         }
         //sname========================================
@@ -1461,25 +1489,32 @@ public class Service {
 
         if (country != null) {
             if (Service.F.equals(sex)) {
-                if (country.isEmpty()) {
-                    resultIndex = compareIndex(Repository.country.get("null_f"),resultIndex);
-                } else {
-                    resultIndex = compareIndex(Repository.country.get(country + "_f"),resultIndex);
+                if (!country.equals(NULL_PR)) {
+                    if (country.equals(NULL_PR_VAL_ONE)) {
+                        resultIndex = compareIndex(Repository.country.get("null_f"), resultIndex);
+                    } else {
+                        resultIndex = compareIndex(Repository.country.get(country + "_f"), resultIndex);
+                    }
                 }
             }
-
             if (Service.M.equals(sex)) {
-                if (country.isEmpty()) {
-                    resultIndex = compareIndex(Repository.country.get("null_m"),resultIndex);
-                } else {
-                    resultIndex = compareIndex(Repository.country.get(country + "_m"),resultIndex);
+                if (!country.equals(NULL_PR)) {
+                    if (country.equals(NULL_PR_VAL_ONE)) {
+                        resultIndex = compareIndex(Repository.country.get("null_m"), resultIndex);
+                    } else {
+                        resultIndex = compareIndex(Repository.country.get(country + "_m"), resultIndex);
+                    }
                 }
             }
 
-            if (country.isEmpty()) {
+            if (country.equals(NULL_PR_VAL_ONE)) {
                 resultIndex = compareIndex(Repository.country.get(null),resultIndex);
             } else {
-                resultIndex = compareIndex(Repository.country.get(country),resultIndex);
+                if (country.equals(NULL_PR)) {
+                    resultIndex = compareIndex(Repository.country_not_null,resultIndex);
+                } else {
+                    resultIndex = compareIndex(Repository.country.get(country),resultIndex);
+                }
             }
         }
         //country========================================

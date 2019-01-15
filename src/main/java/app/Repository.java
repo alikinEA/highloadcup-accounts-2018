@@ -56,11 +56,19 @@ public class Repository {
     static final Account PRESENT_AC = new Account();
     static final Map<Integer,Account> ids = new HashMap<>(elementCount);
     static final Map<String,Object> emails = new HashMap<>(elementCount);
+
+    static final TreeSet<Account> city_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> country_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> sname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> fname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+
     static final Map<String,TreeSet<Account>> city = new HashMap<>();
     static final Map<String,TreeSet<Account>> country = new HashMap<>();
     static final Map<String,TreeSet<Account>> fname = new HashMap<>();
-    static final Map<Integer,TreeSet<Account>> year = new HashMap<>();
     static final Map<String,TreeSet<Account>> sname = new HashMap<>();
+
+    static final Map<Integer,TreeSet<Account>> year = new HashMap<>();
+
     static final TreeSet<Account> premium_1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> premium_2 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> premium_3 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
@@ -182,6 +190,19 @@ public class Repository {
             list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
             list.add(account);
             Repository.city.put(account.getCity(),list);
+
+        }
+        if (account.getCity() != null) {
+            Repository.city_not_null.add(account);
+        }
+        if (account.getCountry() != null) {
+            Repository.country_not_null.add(account);
+        }
+        if (account.getSname() != null) {
+            Repository.sname_not_null.add(account);
+        }
+        if (account.getFname() != null) {
+            Repository.fname_not_null.add(account);
         }
         list = Repository.country.get(account.getCountry());
         if (list != null) {
@@ -190,8 +211,8 @@ public class Repository {
             list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
             list.add(account);
             Repository.country.put(account.getCountry(),list);
-
         }
+
         if (account.getSex().equals(Service.M)) {
             list = Repository.city.get(account.getCity() + "_m");
             if (list != null) {
