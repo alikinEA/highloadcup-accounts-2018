@@ -57,6 +57,8 @@ public class Repository {
     static final Map<Integer,Account> ids = new HashMap<>(elementCount);
     static final Map<String,Object> emails = new HashMap<>(elementCount);
 
+    static final Map<Integer,TreeSet<Account>> interests_count = new HashMap<>();
+
     static final TreeSet<Account> phone_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> phone_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> city_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
@@ -137,6 +139,10 @@ public class Repository {
             System.out.println("list size = " + list.size());
             System.out.println("list ids size = " + ids.size());
             System.out.println("list emails size = " + emails.size());
+
+            for (int i = 0; i < 11; i++) {
+                interests_count.put(i,new TreeSet<>(Comparator.comparing(Account::getId).reversed()));
+            }
             for (Account account : list) {
                 insertToIndex(account);
             }
@@ -159,6 +165,12 @@ public class Repository {
     }
 
     public static void insertToIndex(Account account) {
+        if (account.getInterests() != null && account.getInterests().size() > 0) {
+            for (int size = account.getInterests().size(); size > 0; size--) {
+                TreeSet<Account> interestCountIndex = interests_count.get(size);
+                interestCountIndex.add(account);
+            }
+        }
         if (account.getPhone() != null) {
             phone_not_null.add(account);
         } else {

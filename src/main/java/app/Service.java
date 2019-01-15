@@ -83,7 +83,7 @@ public class Service {
     private static final char delim = ',';
 
     private static final AtomicInteger count = new AtomicInteger(0);
-    private static final AtomicInteger badIndexCount = new AtomicInteger(0);
+    //private static final AtomicInteger badIndexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
     public static ThreadLocal<Map<String, String>> threadLocalPredicateMap =
@@ -237,6 +237,12 @@ public class Service {
                     }
                     if (account.getInterests() != null) {
                         accountData.setInterests(account.getInterests());
+                        if (accountData.getInterests() != null && accountData.getInterests().size() > 0) {
+                            for (int size = accountData.getInterests().size(); size > 0; size--) {
+                                TreeSet<Account> interestCountIndex = interests_count.get(size);
+                                interestCountIndex.add(accountData);
+                            }
+                        }
                     }
                     if (account.getStatus() != null) {
                         if (accountData.getStatus().equals(STATUS1)) {
@@ -922,6 +928,7 @@ public class Service {
             String[] cityArr = null;
             String[] fnameArr = null;
             String[] interArr = null;
+            boolean interContains = false;
             Integer [] likesArr = null;
             String city = null;
             String country = null;
@@ -1017,7 +1024,11 @@ public class Service {
                 }
 
                 if (param.startsWith(INTERESTS)) {
+                    String predicate = predicateCache.get(param);
                     interArr = Utils.tokenize(valueParam, delim);
+                    if (predicate.equals(CONTAINS_PR)) {
+                        interContains = true;
+                    }
                 }
 
                 if (param.startsWith(LIKES)) {
@@ -1053,14 +1064,14 @@ public class Service {
                 }
             }
 
-            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname,premium,year,phone);
+            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname,premium,year,phone,interArr,interContains);
             if (listForRearch == null) {
                 return OK_EMPTY_ACCOUNTS;
             }
-            if (listForRearch.equals(Repository.list)) {
+            /*if (listForRearch.equals(Repository.list)) {
                 System.out.println(uri);
                 System.out.println(badIndexCount.incrementAndGet());
-            }
+            }*/
             for (String param : params) {
                 if (param.startsWith(LIKES)) {
                     if (count.get() > 200) {
@@ -1435,8 +1446,13 @@ public class Service {
         }
     }
 
-    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium, Integer year, String phone) {
+    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium, Integer year, String phone, String[] interArr, boolean interContains) {
         TreeSet<Account> resultIndex = Repository.list;
+        //interest========================================
+        if (interArr != null && interContains) {
+            resultIndex = compareIndex(Repository.interests_count.get(interArr.length),resultIndex);
+        }
+        //interest========================================
         //phone========================================
         if (phone != null) {
             if (phone.equals(NULL_PR_VAL_ONE)) {

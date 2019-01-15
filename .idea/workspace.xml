@@ -53,16 +53,16 @@
           <entry key="Dockerfile" value="99" />
           <entry key="dm" value="285" />
           <entry key="dummy" value="9" />
-          <entry key="java" value="29331" />
-          <entry key="txt" value="231" />
+          <entry key="java" value="29737" />
+          <entry key="txt" value="273" />
           <entry key="xml" value="42" />
           <entry key="yaml" value="81" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="JAVA" value="29331" />
-          <entry key="PLAIN_TEXT" value="705" />
+          <entry key="JAVA" value="29737" />
+          <entry key="PLAIN_TEXT" value="747" />
           <entry key="XML" value="42" />
         </counts>
       </usages-collector>
@@ -75,11 +75,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Repository.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="194">
-              <caret line="197" column="36" selection-start-line="197" selection-start-column="23" selection-end-line="197" selection-end-column="36" />
+            <state relative-caret-position="197">
+              <caret line="165" lean-forward="true" selection-start-line="165" selection-end-line="165" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#846#847#0" expanded="true" />
@@ -89,11 +89,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Service.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="183">
-              <caret line="85" column="4" selection-start-line="85" selection-start-column="4" selection-end-line="85" selection-end-column="4" />
+              <caret line="85" column="6" selection-start-line="85" selection-start-column="6" selection-end-line="85" selection-end-column="6" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#4042#4043#0" expanded="true" />
@@ -186,8 +186,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="84">
-              <caret line="59" column="26" selection-start-line="59" selection-start-column="26" selection-end-line="59" selection-end-column="26" />
+            <state relative-caret-position="200">
+              <caret line="29" column="17" selection-start-line="29" selection-start-column="17" selection-end-line="29" selection-end-column="17" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -206,15 +206,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>filter</find>
-      <find>handleLike</find>
-      <find>put</find>
-      <find>putIf</find>
-      <find>Any</find>
-      <find>Calendar calendar = threadLocalCalendar.get();</find>
-      <find>badIn</find>
-      <find>Map&lt;String, String&gt;</find>
-      <find>threadLocalValueMap</find>
       <find>getInd</find>
       <find>handl</find>
       <find>handleNew</find>
@@ -226,16 +217,25 @@
       <find>getINde</find>
       <find>getindex</find>
       <find>badInd</find>
-      <find>getIndex</find>
       <find>city</find>
       <find>handleUpd</find>
-      <find>any</find>
       <find>phone</find>
       <find>not_null</find>
       <find>badInde</find>
-      <find>city_not_null</find>
       <find>_not_null</find>
       <find>badIndexCount</find>
+      <find>param.startsWith(PHONE)</find>
+      <find>getIndex</find>
+      <find>any</find>
+      <find>interes</find>
+      <find>CONTAINS_PR</find>
+      <find>phone_not_null.add(accountData)</find>
+      <find>interests_count</find>
+      <find>interests_count.pu</find>
+      <find>interests_count.put</find>
+      <find>city_not_null</find>
+      <find>badIn</find>
+      <find>interests_count.get</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -282,8 +282,8 @@
         <option value="$PROJECT_DIR$/Dockerfile" />
         <option value="$PROJECT_DIR$/src/main/java/app/models/Account.java" />
         <option value="$PROJECT_DIR$/src/main/java/app/Utils.java" />
-        <option value="$PROJECT_DIR$/src/main/java/app/Repository.java" />
         <option value="$PROJECT_DIR$/src/main/java/app/Service.java" />
+        <option value="$PROJECT_DIR$/src/main/java/app/Repository.java" />
       </list>
     </option>
   </component>
@@ -498,6 +498,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18240343" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -583,9 +584,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="in memory impl Completed: 52456.411231 (G1 dedupl 2 json)" />
-    <MESSAGE value="in memory impl Completed: 48616.722938 (Paralell 2 json)" />
-    <MESSAGE value="in memory impl Completed: 49217.72629 (Paralell 1 json) lock" />
     <MESSAGE value="raiting Завершено: 142635.995248" />
     <MESSAGE value="custom json" />
     <MESSAGE value="custom json v2" />
@@ -608,14 +606,17 @@
     <MESSAGE value="intern string" />
     <MESSAGE value="int" />
     <MESSAGE value="not null index" />
-    <option name="LAST_COMMIT_MESSAGE" value="not null index" />
+    <MESSAGE value="fix not null" />
+    <MESSAGE value="phone null/not null" />
+    <MESSAGE value="phone null/not null (1263)" />
+    <option name="LAST_COMMIT_MESSAGE" value="phone null/not null (1263)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/app/Service.java</url>
-          <line>1426</line>
+          <line>1449</line>
           <properties />
           <option name="timeStamp" value="66" />
         </line-breakpoint>
@@ -1016,16 +1017,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="84">
-          <caret line="59" column="26" selection-start-line="59" selection-start-column="26" selection-end-line="59" selection-end-column="26" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/app/server/Server.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-248">
@@ -1038,14 +1029,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/app/Repository.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="194">
-          <caret line="197" column="36" selection-start-line="197" selection-start-column="23" selection-end-line="197" selection-end-column="36" />
+        <state relative-caret-position="200">
+          <caret line="29" column="17" selection-start-line="29" selection-start-column="17" selection-end-line="29" selection-end-column="17" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#846#847#0" expanded="true" />
-            <element signature="e#916#917#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1053,13 +1042,25 @@
     <entry file="file://$PROJECT_DIR$/src/main/java/app/Service.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="183">
-          <caret line="85" column="4" selection-start-line="85" selection-start-column="4" selection-end-line="85" selection-end-column="4" />
+          <caret line="85" column="6" selection-start-line="85" selection-start-column="6" selection-end-line="85" selection-end-column="6" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#4042#4043#0" expanded="true" />
             <element signature="e#4112#4113#0" expanded="true" />
             <element signature="e#4560#4561#0" expanded="true" />
             <element signature="e#4625#4626#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/app/Repository.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="197">
+          <caret line="165" lean-forward="true" selection-start-line="165" selection-end-line="165" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#846#847#0" expanded="true" />
+            <element signature="e#916#917#0" expanded="true" />
           </folding>
         </state>
       </provider>
