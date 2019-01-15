@@ -296,6 +296,9 @@ public class Service {
                     }
                     if (account.getPhone() != null) {
                         accountData.setPhone(account.getPhone());
+                        phone_not_null.add(accountData);
+                    } else {
+                        phone_null.add(accountData);
                     }
                     if (account.getBirth() != 0) {
                         Calendar calendar = Repository.threadLocalCalendar.get();
@@ -924,6 +927,7 @@ public class Service {
             String country = null;
             String sname = null;
             String fname = null;
+            String phone = null;
             Byte premium = null;
             int limit = 0;
 
@@ -1007,13 +1011,11 @@ public class Service {
                             fname = NULL_PR;
                         }
                     }
-                }
-                if (param.startsWith(FNAME)) {
-                    String predicate = predicateCache.get(param);
                     if (predicate.equals(ANY_PR)) {
                         fnameArr = Utils.tokenize(valueParam, delim);
                     }
                 }
+
                 if (param.startsWith(INTERESTS)) {
                     interArr = Utils.tokenize(valueParam, delim);
                 }
@@ -1039,9 +1041,19 @@ public class Service {
                         }
                     }
                 }
+                if (param.startsWith(PHONE)) {
+                    String predicate = predicateCache.get(param);
+                    if (predicate.equals(NULL_PR)) {
+                        if (valueParam.equals(NULL_PR_VAL_ONE)) {
+                            phone = NULL_PR_VAL_ONE;
+                        } else {
+                            phone = NULL_PR;
+                        }
+                    }
+                }
             }
 
-            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname,premium,year);
+            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname,premium,year,phone);
             if (listForRearch == null) {
                 return OK_EMPTY_ACCOUNTS;
             }
@@ -1423,8 +1435,17 @@ public class Service {
         }
     }
 
-    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium, Integer year) {
+    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium, Integer year, String phone) {
         TreeSet<Account> resultIndex = Repository.list;
+        //phone========================================
+        if (phone != null) {
+            if (phone.equals(NULL_PR_VAL_ONE)) {
+                resultIndex = compareIndex(Repository.phone_null,resultIndex);
+            } else {
+                resultIndex = compareIndex(Repository.phone_not_null,resultIndex);
+            }
+        }
+        //phone========================================
         //sname========================================
         if (sname != null) {
             if (sname.equals(NULL_PR_VAL_ONE)) {

@@ -159,6 +159,11 @@ public class Repository {
     }
 
     public static void insertToIndex(Account account) {
+        if (account.getPhone() != null) {
+            phone_not_null.add(account);
+        } else {
+            phone_null.add(account);
+        }
         if (account.getPremium() != null) {
             if (currentTimeStamp2 < account.getPremium().getFinish()
                     && currentTimeStamp2 > account.getPremium().getStart()) {
