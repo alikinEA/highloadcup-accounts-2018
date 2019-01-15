@@ -17,7 +17,7 @@ public class Account implements Comparable<Account>{
     private String email;
     private String sex;
     private String fname;
-    private Set<String> interests;
+    private List<String> interests;
     private String status;
     private Premium premium;
     private String phone;

@@ -124,9 +124,9 @@ public class Utils {
                 }
                 if (key.equals(Service.INTERESTS)) {
                     List<Any> listInter = accountAny.get(Service.INTERESTS).asList();
-                    Set<String> list = new HashSet<>(listInter.size());
+                    List<String> list = new LinkedList<>();
                     for (Any anyInter : listInter) {
-                        list.add(anyInter.toString());
+                        list.add(anyInter.toString().intern());
                     }
                     account.setInterests(list);
                 }
@@ -169,19 +169,19 @@ public class Utils {
                 }
 
                 if (key.equals(Service.CITY)) {
-                    account.setCity(accountAny.get(Service.CITY).toString());
+                    account.setCity(accountAny.get(Service.CITY).toString().intern());
                 }
                 if (key.equals(Service.COUNTRY)) {
-                    account.setCountry(accountAny.get(Service.COUNTRY).toString());
+                    account.setCountry(accountAny.get(Service.COUNTRY).toString().intern());
                 }
                 if (key.equals(Service.SNAME)) {
-                    account.setSname(accountAny.get(Service.SNAME).toString());
+                    account.setSname(accountAny.get(Service.SNAME).toString().intern());
                 }
                 if (key.equals(Service.PHONE)) {
                     account.setPhone(accountAny.get(Service.PHONE).toString());
                 }
                 if (key.equals(Service.FNAME)) {
-                    account.setFname(accountAny.get(Service.FNAME).toString());
+                    account.setFname(accountAny.get(Service.FNAME).toString().intern());
                 }
                 if (key.equals(Service.BIRTH)) {
                     Any any = accountAny.get(Service.BIRTH);
