@@ -53,16 +53,16 @@
           <entry key="Dockerfile" value="99" />
           <entry key="dm" value="285" />
           <entry key="dummy" value="9" />
-          <entry key="java" value="29304" />
-          <entry key="txt" value="215" />
+          <entry key="java" value="29331" />
+          <entry key="txt" value="231" />
           <entry key="xml" value="42" />
           <entry key="yaml" value="81" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="JAVA" value="29304" />
-          <entry key="PLAIN_TEXT" value="689" />
+          <entry key="JAVA" value="29331" />
+          <entry key="PLAIN_TEXT" value="705" />
           <entry key="XML" value="42" />
         </counts>
       </usages-collector>
@@ -78,8 +78,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Repository.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="509">
-              <caret line="204" column="28" selection-start-line="204" selection-start-column="28" selection-end-line="204" selection-end-column="28" />
+            <state relative-caret-position="194">
+              <caret line="197" column="36" selection-start-line="197" selection-start-column="23" selection-end-line="197" selection-end-column="36" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#846#847#0" expanded="true" />
@@ -92,8 +92,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Service.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="229" column="31" lean-forward="true" selection-start-line="229" selection-start-column="31" selection-end-line="229" selection-end-column="31" />
+            <state relative-caret-position="183">
+              <caret line="85" column="4" selection-start-line="85" selection-start-column="4" selection-end-line="85" selection-end-column="4" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#4042#4043#0" expanded="true" />
@@ -186,8 +186,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="379">
-              <caret line="167" column="19" selection-start-line="167" selection-start-column="19" selection-end-line="167" selection-end-column="19" />
+            <state relative-caret-position="84">
+              <caret line="59" column="26" selection-start-line="59" selection-start-column="26" selection-end-line="59" selection-end-column="26" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -206,12 +206,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>stringBu</find>
-      <find>Calendar</find>
-      <find>update</find>
-      <find>calendar</find>
-      <find>Calendar calendar</find>
-      <find>calendar.get(Calendar.YEAR);</find>
       <find>filter</find>
       <find>handleLike</find>
       <find>put</find>
@@ -224,9 +218,7 @@
       <find>getInd</find>
       <find>handl</find>
       <find>handleNew</find>
-      <find>any</find>
       <find>bad</find>
-      <find>badIndexCount</find>
       <find>list = Repository.city.get(account.getCity());</find>
       <find>Repository.city.get(account.getCity());</find>
       <find>badin</find>
@@ -236,6 +228,14 @@
       <find>badInd</find>
       <find>getIndex</find>
       <find>city</find>
+      <find>handleUpd</find>
+      <find>any</find>
+      <find>phone</find>
+      <find>not_null</find>
+      <find>badInde</find>
+      <find>city_not_null</find>
+      <find>_not_null</find>
+      <find>badIndexCount</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -498,9 +498,8 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.18240343" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18240343" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Favorites" order="3" side_tool="true" />
@@ -512,7 +511,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32961586" />
       <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.49928468" weight="0.37918216" />
-      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49713877" visible="true" weight="0.2267658" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.49713877" visible="true" weight="0.2267658" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5028612" side_tool="true" weight="0.3283767" />
       <window_info anchor="bottom" id="Messages" order="10" weight="0.32961586" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
@@ -584,7 +583,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="in memory impl Completed: 53262.933219" />
     <MESSAGE value="in memory impl Completed: 52456.411231 (G1 dedupl 2 json)" />
     <MESSAGE value="in memory impl Completed: 48616.722938 (Paralell 2 json)" />
     <MESSAGE value="in memory impl Completed: 49217.72629 (Paralell 1 json) lock" />
@@ -609,7 +607,8 @@
     <MESSAGE value="thread local" />
     <MESSAGE value="intern string" />
     <MESSAGE value="int" />
-    <option name="LAST_COMMIT_MESSAGE" value="int" />
+    <MESSAGE value="not null index" />
+    <option name="LAST_COMMIT_MESSAGE" value="not null index" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -993,16 +992,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="379">
-          <caret line="167" column="19" selection-start-line="167" selection-start-column="19" selection-end-line="167" selection-end-column="19" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Dockerfile">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="45">
@@ -1014,6 +1003,23 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="141">
           <caret line="15" column="24" selection-start-line="15" selection-start-column="24" selection-end-line="15" selection-end-column="24" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/app/server/ServerHandler.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="42" column="36" selection-start-line="42" selection-start-column="36" selection-end-line="42" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="84">
+          <caret line="59" column="26" selection-start-line="59" selection-start-column="26" selection-end-line="59" selection-end-column="26" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -1032,17 +1038,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/app/server/ServerHandler.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="42" column="36" selection-start-line="42" selection-start-column="36" selection-end-line="42" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/app/Repository.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="509">
-          <caret line="204" column="28" selection-start-line="204" selection-start-column="28" selection-end-line="204" selection-end-column="28" />
+        <state relative-caret-position="194">
+          <caret line="197" column="36" selection-start-line="197" selection-start-column="23" selection-end-line="197" selection-end-column="36" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#846#847#0" expanded="true" />
@@ -1053,8 +1052,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/app/Service.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="229" column="31" lean-forward="true" selection-start-line="229" selection-start-column="31" selection-end-line="229" selection-end-column="31" />
+        <state relative-caret-position="183">
+          <caret line="85" column="4" selection-start-line="85" selection-start-column="4" selection-end-line="85" selection-end-column="4" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#4042#4043#0" expanded="true" />

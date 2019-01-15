@@ -57,6 +57,8 @@ public class Repository {
     static final Map<Integer,Account> ids = new HashMap<>(elementCount);
     static final Map<String,Object> emails = new HashMap<>(elementCount);
 
+    static final TreeSet<Account> phone_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> phone_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> city_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> country_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> sname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());

@@ -233,7 +233,7 @@ public class Service {
                             list.add(accountData);
                             Repository.fname.put(account.getFname(),list);
                         }
-                        Repository.fname_not_null.add(account);
+                        Repository.fname_not_null.add(accountData);
                     }
                     if (account.getInterests() != null) {
                         accountData.setInterests(account.getInterests());
@@ -322,7 +322,7 @@ public class Service {
                             list.add(accountData);
                             Repository.city.put(accountData.getCity(),list);
                         }
-                        Repository.city_not_null.add(account);
+                        Repository.city_not_null.add(accountData);
                     }
                     if (account.getCountry() != null) {
                         accountData.setCountry(account.getCountry());
@@ -334,7 +334,7 @@ public class Service {
                             list.add(accountData);
                             Repository.country.put(accountData.getCountry(),list);
                         }
-                        Repository.country_not_null.add(account);
+                        Repository.country_not_null.add(accountData);
                     }
                     if (account.getSname() != null) {
                         accountData.setSname(account.getSname());
@@ -346,7 +346,7 @@ public class Service {
                             list.add(accountData);
                             Repository.sname.put(account.getSname(),list);
                         }
-                        Repository.sname_not_null.add(account);
+                        Repository.sname_not_null.add(accountData);
                     }
                     if (account.getSex() != null || account.getCity() != null || account.getCountry() != null) {
                         if (accountData.getSex().equals(Service.M)) {
