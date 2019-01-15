@@ -3,16 +3,34 @@ package app;
 import app.models.Account;
 import app.models.AccountC;
 import app.models.Premium;
+import com.jsoniter.JsonIterator;
+import com.jsoniter.ValueType;
 import com.jsoniter.any.Any;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
  * Created by Alikin E.A. on 27.12.18.
  */
 public class Utils {
+    private static ThreadLocal<StringBuilder> threadLocalBuilder =
+            new ThreadLocal<StringBuilder>() {
+                @Override
+                protected StringBuilder initialValue() {
+                    return new StringBuilder();
+                }
+
+                @Override
+                public StringBuilder get() {
+                    StringBuilder b = super.get();
+                    b.setLength(0); // clear/reset the buffer
+                    return b;
+                }
+
+            };
 
     private static final String START = "start";
     private static final String FINISH = "finish";
@@ -89,11 +107,20 @@ public class Utils {
                 }
 
                 if (key.equals(Service.JOINED)) {
-                    accountAny.get(Service.JOINED).toInt();
+                    Any any = accountAny.get(Service.JOINED);
+                    if (!ValueType.NUMBER.equals(any.valueType())) {
+                        return null;
+                    }
+
                 }
 
                 if (key.equals(Service.ID)) {
-                    account.setId(accountAny.get(Service.ID).toInt());
+                    Any any = accountAny.get(Service.ID);
+                    if (ValueType.NUMBER.equals(any.valueType())) {
+                        account.setId(any.toInt());
+                    } else {
+                        return null;
+                    }
                 }
                 if (key.equals(Service.INTERESTS)) {
                     List<Any> listInter = accountAny.get(Service.INTERESTS).asList();
@@ -107,8 +134,15 @@ public class Utils {
                     List<Any> listLike = accountAny.get(Service.LIKES).asList();
                     Set<Integer> list = new HashSet<>(listLike.size());
                     for (Any anyLike : listLike) {
-                        anyLike.get(Service.TS).toInt();
-                        list.add(anyLike.get(Service.ID).toInt());
+                        if (!ValueType.NUMBER.equals(anyLike.get(Service.TS).valueType())) {
+                            return null;
+                        }
+                        Any any = anyLike.get(Service.ID);
+                        if (!ValueType.NUMBER.equals(any.valueType())) {
+                            return null;
+                        } else {
+                            list.add(any.toInt());
+                        }
                     }
                     account.setLikesArr(list);
                 }
@@ -116,6 +150,12 @@ public class Utils {
                 if (key.equals(Service.PREMIUM)) {
                     Any any = accountAny.get(Service.PREMIUM);
                     if (!any.keys().contains(FINISH) || !any.keys().contains(START)) {
+                        return null;
+                    }
+                    if (!ValueType.NUMBER.equals(any.get(FINISH).valueType())) {
+                        return null;
+                    }
+                    if (!ValueType.NUMBER.equals(any.get(START).valueType())) {
                         return null;
                     }
                     Premium pr = new Premium();
@@ -140,21 +180,28 @@ public class Utils {
                 if (key.equals(Service.PHONE)) {
                     account.setPhone(accountAny.get(Service.PHONE).toString());
                 }
-                if (key.equals(Service.BIRTH)) {
-                    account.setBirth(accountAny.get(Service.BIRTH).toInt());
-                }
                 if (key.equals(Service.FNAME)) {
                     account.setFname(accountAny.get(Service.FNAME).toString());
                 }
+                if (key.equals(Service.BIRTH)) {
+                    Any any = accountAny.get(Service.BIRTH);
+                    if (!ValueType.NUMBER.equals(any.valueType())) {
+                        return null;
+                    } else {
+                        account.setBirth(any.toInt());
+                    }
+                }
+
             }
             return account;
         } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
 
     public static String accountToString(List<Account> accounts, Map<String,Object> enableProp) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = threadLocalBuilder.get();
         sb.append("{\"accounts\":[");
         for (Account account : accounts) {
 
@@ -247,114 +294,6 @@ public class Utils {
         return sb.toString();
     }
 
-    public static String replaceString(String source, String os) {
-        if (source == null) {
-            return null;
-        }
-        int i = 0;
-        if ((i = source.indexOf(os, i)) >= 0) {
-            char[] sourceArray = source.toCharArray();
-            char[] nsArray = "".toCharArray();
-            int oLength = os.length();
-            StringBuilder buf = new StringBuilder (sourceArray.length);
-            buf.append (sourceArray, 0, i).append(nsArray);
-            i += oLength;
-            int j = i;
-            while ((i = source.indexOf(os, i)) > 0) {
-                buf.append (sourceArray, j, i - j).append(nsArray);
-                i += oLength;
-                j = i;
-            }
-            buf.append (sourceArray, j, sourceArray.length - j);
-            source = buf.toString();
-            buf.setLength (0);
-        }
-        return source;
-    }
-
-    public static String accountToString2(TreeSet<AccountC> accountCs, int limit) {
-        StringBuilder sb = new StringBuilder();
-        int i = 1;
-        sb.append("{\"accounts\":[");
-        for (AccountC accountC : accountCs) {
-            Account account = accountC.getAccount();
-            sb.append("{");
-
-            sb.append("\"id\":");
-            sb.append(account.getId());
-            sb.append(",");
-
-            sb.append("\"email\":");
-            sb.append("\"");
-            sb.append(account.getEmail());
-            sb.append("\",");
-
-            if (account.getFname() != null) {
-                sb.append("\"fname\":");
-                sb.append("\"");
-                sb.append(account.getFname());
-                sb.append("\",");
-            }
-
-            sb.append("\"status\":");
-            sb.append("\"");
-            sb.append(account.getStatus());
-            sb.append("\",");
-
-            sb.append("\"birth\":");
-            sb.append(account.getBirth());
-            sb.append(",");
-
-
-            if (account.getSname() != null) {
-                sb.append("\"sname\":");
-                sb.append("\"");
-                sb.append(account.getSname());
-                sb.append("\",");
-            }
-            /*sb.append("\"compac\":");
-            sb.append(accountC.getC());
-            sb.append(",");
-            sb.append("\"interests\":[" + account.getInterests().stream().collect(Collectors.joining(","))+ "],");
-            if (account.getCity() != null) {
-                sb.append("\"city\":");
-                sb.append("\"");
-                sb.append(account.getCity());
-                sb.append("\",");
-            }
-
-            if (account.getCountry() != null) {
-                sb.append("\"country\":");
-                sb.append("\"");
-                sb.append(account.getCountry());
-                sb.append("\",");
-            }*/
-            if (account.getPremium() != null) {
-                sb.append("\"premium\":");
-                sb.append("{");
-
-                sb.append("\"start\":");
-                sb.append(account.getPremium().getStart());
-                sb.append(",");
-
-                sb.append("\"finish\":");
-                sb.append(account.getPremium().getFinish());
-
-                sb.append("},");
-            }
-            sb.setLength(sb.length() - 1);
-            sb.append("},");
-            i++;
-            if (limit < i) {
-                break;
-            }
-        }
-        if (accountCs.size() > 0) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("]}");
-        return sb.toString();
-    }
 
     public static String[] tokenize(String string, char delimiter) {
         String[] temp = new String[(string.length() / 2) + 1];
@@ -374,4 +313,32 @@ public class Utils {
         return result;
     }
 
+    public static boolean validateLikes(String string) {
+        Any likesRequestAny = JsonIterator.deserialize(string);
+        List<Any>likesListAny = likesRequestAny.get(Service.LIKES).asList();
+
+        for (Any any : likesListAny) {
+            Any value = any.get(Service.TS);
+            if (!ValueType.NUMBER.equals(value.valueType())) {
+                return false;
+            }
+            value = any.get(Service.LIKEE);
+            if (!ValueType.NUMBER.equals(value.valueType())) {
+                return false;
+            } else {
+                if (!Repository.ids.containsKey(value.toInt())) {
+                    return false;
+                }
+            }
+            value = any.get(Service.LIKER);
+            if (!ValueType.NUMBER.equals(value.valueType())) {
+                return false;
+            } else {
+                if (!Repository.ids.containsKey(value.toInt())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

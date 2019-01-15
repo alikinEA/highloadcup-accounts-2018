@@ -49,7 +49,8 @@ public class Service {
     public static final String LIMIT = "limit";
     public static final String ID = "id";
     public static final String TS = "ts";
-    public static final String KEYS = "keys";
+    public static final String LIKEE = "likee";
+    public static final String LIKER = "liker";
 
     private static final String EQ_PR = "eq";
     private static final String NEQ_PR = "neq";
@@ -267,9 +268,9 @@ public class Service {
                         accountData.setPhone(account.getPhone());
                     }
                     if (account.getBirth() != null) {
-                        Calendar calendar = new GregorianCalendar();
+                        Calendar calendar = Repository.threadLocalCalendar.get();
                         calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
-                        int yearValue = calendar.get(Calendar.YEAR);
+                        Integer yearValue = calendar.get(Calendar.YEAR);
                         TreeSet<Account> list = year.get(yearValue);
                         if (list != null) {
                             list.add(account);
@@ -657,7 +658,11 @@ public class Service {
                 System.out.println("GC run (perhaps)");
             }
             try {
-                LikesRequest likesReq = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
+                boolean isValid = Utils.validateLikes(req.content().toString(StandardCharsets.UTF_8));
+                if (!isValid) {
+                    return BAD_REQUEST;
+                }
+                /*LikesRequest likesReq = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8), LikesRequest.class);
                 for (LikeRequest like : likesReq.getLikes()) {
                     if (like.getTs() == null) {
                         return BAD_REQUEST;
@@ -671,7 +676,7 @@ public class Service {
                         return BAD_REQUEST;
                     }
                 }
-                /*for (LikeRequest like : likesReq.getLikes()) {
+                for (LikeRequest like : likesReq.getLikes()) {
                     Account accountData = Repository.ids.get(like.getLiker());
                     if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
                         if (accountData.getLikesArr() == null) {
@@ -880,7 +885,6 @@ public class Service {
 
             String sex = null;
             String status = null;
-            Calendar calendar = null;
             Integer year = null;
             String[] cityArr = null;
             String[] fnameArr = null;
@@ -917,7 +921,6 @@ public class Service {
                 if (param.startsWith(BIRTH)) {
                     String predicate = predicateCache.get(param);
                     if (predicate.equals(YEAR_PR)) {
-                        calendar = new GregorianCalendar();
                         year = Integer.parseInt(valueParam);
                     }
                 }
@@ -1213,6 +1216,7 @@ public class Service {
                     if (param.startsWith(BIRTH)) {
                         String predicate = predicateCache.get(param);
                         if (predicate.equals(YEAR_PR)) {
+                            Calendar calendar = Repository.threadLocalCalendar.get();
                             calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
                             if (year == calendar.get(Calendar.YEAR)) {
                                 enableProp.add(BIRTH);
@@ -1372,6 +1376,9 @@ public class Service {
                     break;
                 }
                 enableProp.clear();
+            }
+            if (accounts.size() == 0) {
+                return OK_EMPTY_ACCOUNTS;
             }
             return new Result(Utils.accountToString(accounts, finalFieldSet).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
         } finally {

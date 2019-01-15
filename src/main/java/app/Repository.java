@@ -24,6 +24,20 @@ public class Repository {
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
 
+    public static ThreadLocal<Calendar> threadLocalCalendar =
+            new ThreadLocal<Calendar>() {
+                @Override
+                protected Calendar initialValue() {
+                    return new GregorianCalendar();
+                }
+
+                @Override
+                public Calendar get() {
+                    Calendar b = super.get();
+                    return b;
+                }
+
+            };
 
     private static final List<String> availableNames =
             Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json","accounts_127.json","accounts_126.json");
@@ -254,9 +268,9 @@ public class Repository {
             Repository.list_status_3_f.add(account);
         }
 
-        Calendar calendar = new GregorianCalendar();
+        Calendar calendar = threadLocalCalendar.get();
         calendar.setTimeInMillis(account.getBirth().longValue() * 1000);
-        int yearValue = calendar.get(Calendar.YEAR);
+        Integer yearValue = calendar.get(Calendar.YEAR);
         list = Repository.year.get(yearValue);
         if (list != null) {
             list.add(account);
