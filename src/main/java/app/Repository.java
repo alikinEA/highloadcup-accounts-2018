@@ -66,6 +66,8 @@ public class Repository {
     static final TreeSet<Account> sname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> fname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
 
+
+    static final Map<String,TreeSet<Account>> phone_code = new HashMap<>();
     static final Map<String,TreeSet<Account>> city = new HashMap<>();
     static final Map<String,TreeSet<Account>> country = new HashMap<>();
     static final Map<String,TreeSet<Account>> fname = new HashMap<>();
@@ -173,6 +175,17 @@ public class Repository {
         }
         if (account.getPhone() != null) {
             phone_not_null.add(account);
+            String code = account.getPhone()
+                    .substring(account.getPhone().indexOf("(") + 1
+                            , account.getPhone().indexOf(")"));
+            TreeSet<Account> codeIndex = phone_code.get(code);
+            if (codeIndex == null) {
+                codeIndex = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                codeIndex.add(account);
+                phone_code.put(code,codeIndex);
+            } else {
+                codeIndex.add(account);
+            }
         } else {
             phone_null.add(account);
         }

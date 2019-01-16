@@ -83,7 +83,7 @@ public class Service {
     private static final char delim = ',';
 
     private static final AtomicInteger count = new AtomicInteger(0);
-    //private static final AtomicInteger badIndexCount = new AtomicInteger(0);
+    private static final AtomicInteger badIndexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
     public static ThreadLocal<Map<String, String>> threadLocalPredicateMap =
@@ -351,6 +351,17 @@ public class Service {
                     if (account.getPhone() != null) {
                         accountData.setPhone(account.getPhone());
                         phone_not_null.add(accountData);
+                        String code = accountData.getPhone()
+                                .substring(accountData.getPhone().indexOf("(") + 1
+                                        , accountData.getPhone().indexOf(")"));
+                        TreeSet<Account> codeIndex = phone_code.get(code);
+                        if (codeIndex == null) {
+                            codeIndex = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                            codeIndex.add(accountData);
+                            phone_code.put(code,codeIndex);
+                        } else {
+                            codeIndex.add(accountData);
+                        }
                     } else {
                         phone_null.add(accountData);
                     }
@@ -983,6 +994,7 @@ public class Service {
             String sname = null;
             String fname = null;
             String phone = null;
+            String phoneCode = null;
             Byte premium = null;
             int limit = 0;
 
@@ -1110,17 +1122,21 @@ public class Service {
                             phone = NULL_PR;
                         }
                     }
+                    if (predicate.equals(CODE_PR)) {
+                        phone = CODE_PR;
+                        phoneCode = valueCache.get(param);
+                    }
                 }
             }
 
-            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname,premium,year,phone,interArr,interContains);
+            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname,premium,year,phone,interArr,interContains,phoneCode);
             if (listForRearch == null) {
                 return OK_EMPTY_ACCOUNTS;
             }
-            /*if (listForRearch.equals(Repository.list)) {
+            if (listForRearch.equals(Repository.list)) {
                 System.out.println(uri);
                 System.out.println(badIndexCount.incrementAndGet());
-            }*/
+            }
             for (String param : params) {
                 if (param.startsWith(LIKES)) {
                     if (count.get() > 200) {
@@ -1494,7 +1510,7 @@ public class Service {
         }
     }
 
-    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium, Integer year, String phone, String[] interArr, boolean interContains) {
+    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium, Integer year, String phone, String[] interArr, boolean interContains, String phoneCode) {
         TreeSet<Account> resultIndex = Repository.list;
         //interest========================================
         if (interArr != null && interContains) {
@@ -1503,10 +1519,14 @@ public class Service {
         //interest========================================
         //phone========================================
         if (phone != null) {
-            if (phone.equals(NULL_PR_VAL_ONE)) {
-                resultIndex = compareIndex(Repository.phone_null,resultIndex);
+            if (phone.equals(CODE_PR)) {
+                resultIndex = compareIndex(Repository.phone_code.get(phoneCode), resultIndex);
             } else {
-                resultIndex = compareIndex(Repository.phone_not_null,resultIndex);
+                if (phone.equals(NULL_PR_VAL_ONE)) {
+                    resultIndex = compareIndex(Repository.phone_null, resultIndex);
+                } else {
+                    resultIndex = compareIndex(Repository.phone_not_null, resultIndex);
+                }
             }
         }
         //phone========================================
