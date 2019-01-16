@@ -118,6 +118,54 @@ public class Service {
 
             };
 
+    public static ThreadLocal<List<String>> threadLocalEnableProp =
+            new ThreadLocal<List<String>>() {
+                @Override
+                protected List<String> initialValue() {
+                    return  new LinkedList<>();
+                }
+
+                @Override
+                public List<String> get() {
+                    List<String> b = super.get();
+                    b.clear();
+                    return b;
+                }
+            };
+
+    public static ThreadLocal<Map<String, Object>> threadLocalFieldSet =
+            new ThreadLocal<Map<String, Object>>() {
+                @Override
+                protected Map<String, Object> initialValue() {
+                    return  new HashMap<>();
+                }
+
+                @Override
+                public Map<String, Object> get() {
+                    Map<String, Object> b = super.get();
+                    b.clear();
+                    return b;
+                }
+            };
+
+
+    public static ThreadLocal<List<Account>> threadLocalAccounts =
+            new ThreadLocal<List<Account>>() {
+                @Override
+                protected List<Account> initialValue() {
+                    return  new LinkedList<>();
+                }
+
+                @Override
+                public List<Account> get() {
+                    List<Account> b = super.get();
+                    b.clear();
+                    return b;
+                }
+            };
+
+
+
     public static Result handle(FullHttpRequest req) throws UnsupportedEncodingException {
         if (req.uri().startsWith(URI_FILTER)) {
             return handleFilterv2(req.uri());
@@ -968,6 +1016,7 @@ public class Service {
                     String predicate = predicateCache.get(param);
                     if (predicate.equals(ANY_PR)) {
                         cityArr = Utils.tokenize(valueParam, delim);
+                        city = ANY_PR;
                     }
                     if (predicate.equals(EQ_PR)) {
                         city = valueParam;
@@ -1080,9 +1129,9 @@ public class Service {
                 }
             }
 
-            List<String> enableProp = new LinkedList<>();
-            List<Account> accounts = new LinkedList<>();
-            Map<String, Object> finalFieldSet = null;
+            List<String> enableProp = threadLocalEnableProp.get();
+            List<Account> accounts = threadLocalAccounts.get();
+            Map<String, Object> finalFieldSet = threadLocalFieldSet.get();
 
             for(Account account : listForRearch) {
                 for (String param : params) {
@@ -1424,8 +1473,7 @@ public class Service {
                 enableProp.add(QUERY_ID);
                 enableProp.add(LIMIT);
                 if (compareArrays(params, enableProp)) {
-                    if (finalFieldSet == null) {
-                        finalFieldSet = new TreeMap<>();
+                    if (finalFieldSet.isEmpty()) {
                         for (String key : enableProp) {
                             finalFieldSet.put(key, Repository.PRESENT);
                         }
@@ -1477,32 +1525,36 @@ public class Service {
         //sname========================================
         //city========================================
         if (city != null) {
-            if (Service.F.equals(sex)) {
-                if (!city.equals(NULL_PR)) {
-                    if (city.equals(NULL_PR_VAL_ONE)) {
-                        resultIndex = compareIndex(Repository.city.get("null_f"), resultIndex);
-                    } else {
-                        resultIndex = compareIndex(Repository.city.get(city + "_f"), resultIndex);
-                    }
-                }
-            }
-            if (Service.M.equals(sex)) {
-                if (!city.equals(NULL_PR)) {
-                    if (city.equals(NULL_PR_VAL_ONE)) {
-                        resultIndex = compareIndex(Repository.city.get("null_m"), resultIndex);
-                    } else {
-                        resultIndex = compareIndex(Repository.city.get(city + "_m"), resultIndex);
-                    }
-                }
-            }
-
-            if (city.equals(NULL_PR_VAL_ONE)) {
-                resultIndex = compareIndex(Repository.city.get(null),resultIndex);
+            if (city.equals(ANY_PR)) {
+                resultIndex = compareIndex(Repository.city_not_null, resultIndex);
             } else {
-                if (city.equals(NULL_PR)) {
-                    resultIndex = compareIndex(Repository.city_not_null,resultIndex);
+                if (Service.F.equals(sex)) {
+                    if (!city.equals(NULL_PR)) {
+                        if (city.equals(NULL_PR_VAL_ONE)) {
+                            resultIndex = compareIndex(Repository.city.get("null_f"), resultIndex);
+                        } else {
+                            resultIndex = compareIndex(Repository.city.get(city + "_f"), resultIndex);
+                        }
+                    }
+                }
+                if (Service.M.equals(sex)) {
+                    if (!city.equals(NULL_PR)) {
+                        if (city.equals(NULL_PR_VAL_ONE)) {
+                            resultIndex = compareIndex(Repository.city.get("null_m"), resultIndex);
+                        } else {
+                            resultIndex = compareIndex(Repository.city.get(city + "_m"), resultIndex);
+                        }
+                    }
+                }
+
+                if (city.equals(NULL_PR_VAL_ONE)) {
+                    resultIndex = compareIndex(Repository.city.get(null), resultIndex);
                 } else {
-                    resultIndex = compareIndex(Repository.city.get(city),resultIndex);
+                    if (city.equals(NULL_PR)) {
+                        resultIndex = compareIndex(Repository.city_not_null, resultIndex);
+                    } else {
+                        resultIndex = compareIndex(Repository.city.get(city), resultIndex);
+                    }
                 }
             }
         }

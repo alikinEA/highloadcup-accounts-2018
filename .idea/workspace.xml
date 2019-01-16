@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8d804977-c50d-4f36-a630-605bce2c23cb" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/Repository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Repository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/Service.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Service.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -18,12 +18,12 @@
     <session id="1641756431">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="25" />
+          <entry key="project.closed" value="26" />
           <entry key="project.open.time.0" value="6" />
-          <entry key="project.open.time.1" value="17" />
+          <entry key="project.open.time.1" value="18" />
           <entry key="project.open.time.2" value="1" />
           <entry key="project.open.time.6" value="2" />
-          <entry key="project.opened" value="26" />
+          <entry key="project.opened" value="27" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -31,9 +31,9 @@
           <entry key="Dockerfile" value="22" />
           <entry key="class" value="41" />
           <entry key="current" value="1" />
-          <entry key="dm" value="18" />
+          <entry key="dm" value="19" />
           <entry key="iml" value="1" />
-          <entry key="java" value="261" />
+          <entry key="java" value="262" />
           <entry key="txt" value="1" />
           <entry key="xml" value="14" />
           <entry key="yaml" value="1" />
@@ -43,8 +43,8 @@
         <counts>
           <entry key="CLASS" value="41" />
           <entry key="IDEA_MODULE" value="1" />
-          <entry key="JAVA" value="261" />
-          <entry key="PLAIN_TEXT" value="43" />
+          <entry key="JAVA" value="262" />
+          <entry key="PLAIN_TEXT" value="44" />
           <entry key="XML" value="14" />
         </counts>
       </usages-collector>
@@ -53,16 +53,16 @@
           <entry key="Dockerfile" value="99" />
           <entry key="dm" value="285" />
           <entry key="dummy" value="9" />
-          <entry key="java" value="29737" />
-          <entry key="txt" value="273" />
+          <entry key="java" value="29897" />
+          <entry key="txt" value="293" />
           <entry key="xml" value="42" />
           <entry key="yaml" value="81" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="JAVA" value="29737" />
-          <entry key="PLAIN_TEXT" value="747" />
+          <entry key="JAVA" value="29897" />
+          <entry key="PLAIN_TEXT" value="767" />
           <entry key="XML" value="42" />
         </counts>
       </usages-collector>
@@ -78,8 +78,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Repository.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="197">
-              <caret line="165" lean-forward="true" selection-start-line="165" selection-end-line="165" />
+            <state relative-caret-position="164">
+              <caret line="117" column="68" lean-forward="true" selection-start-line="117" selection-start-column="68" selection-end-line="117" selection-end-column="68" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#846#847#0" expanded="true" />
@@ -92,14 +92,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Service.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="183">
-              <caret line="85" column="6" selection-start-line="85" selection-start-column="6" selection-end-line="85" selection-end-column="6" />
+            <state relative-caret-position="155">
+              <caret line="1121" column="40" selection-start-line="1121" selection-start-column="35" selection-end-line="1121" selection-end-column="40" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#4042#4043#0" expanded="true" />
-                <element signature="e#4112#4113#0" expanded="true" />
-                <element signature="e#4560#4561#0" expanded="true" />
-                <element signature="e#4625#4626#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -108,7 +104,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/models/Account.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="141">
+            <state relative-caret-position="225">
               <caret line="15" column="24" selection-start-line="15" selection-start-column="24" selection-end-line="15" selection-end-column="24" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -138,7 +134,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/server/Server.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-248">
+            <state relative-caret-position="210">
               <caret line="14" column="21" selection-start-line="14" selection-start-column="21" selection-end-line="14" selection-end-column="21" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -164,12 +160,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="jar://$MAVEN_REPOSITORY$/com/jsoniter/jsoniter/0.9.19/jsoniter-0.9.19.jar!/com/jsoniter/JsonIterator.class">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="183">
+            <state relative-caret-position="6465">
               <caret line="458" column="28" selection-start-line="458" selection-start-column="28" selection-end-line="458" selection-end-column="28" />
-              <folding>
-                <element signature="e#14194#14195#0" expanded="true" />
-                <element signature="e#14246#14247#0" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -177,8 +169,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Dockerfile">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="3" column="57" selection-start-line="3" selection-start-column="57" selection-end-line="3" selection-end-column="57" />
+            <state relative-caret-position="30">
+              <caret line="2" column="15" selection-start-line="2" selection-start-column="15" selection-end-line="2" selection-end-column="15" />
             </state>
           </provider>
         </entry>
@@ -186,7 +178,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="200">
+            <state relative-caret-position="405">
               <caret line="29" column="17" selection-start-line="29" selection-start-column="17" selection-end-line="29" selection-end-column="17" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -206,13 +198,7 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>getInd</find>
-      <find>handl</find>
-      <find>handleNew</find>
-      <find>bad</find>
-      <find>list = Repository.city.get(account.getCity());</find>
       <find>Repository.city.get(account.getCity());</find>
-      <find>badin</find>
       <find>NULL_PR_VAL_ONE</find>
       <find>getINde</find>
       <find>getindex</find>
@@ -236,6 +222,12 @@
       <find>city_not_null</find>
       <find>badIn</find>
       <find>interests_count.get</find>
+      <find>bad</find>
+      <find>enableProp</find>
+      <find>threadLocalEnableProp</find>
+      <find>param.startsWith(CITY)</find>
+      <find>param.startsWith(COUNTRY)</find>
+      <find>badin</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -279,11 +271,11 @@
         <option value="$PROJECT_DIR$/src/main/java/app/server/ServerHandler.java" />
         <option value="$PROJECT_DIR$/src/main/java/app/models/AccountSim.java" />
         <option value="$PROJECT_DIR$/src/main/java/app/server/Server.java" />
-        <option value="$PROJECT_DIR$/Dockerfile" />
         <option value="$PROJECT_DIR$/src/main/java/app/models/Account.java" />
         <option value="$PROJECT_DIR$/src/main/java/app/Utils.java" />
-        <option value="$PROJECT_DIR$/src/main/java/app/Service.java" />
         <option value="$PROJECT_DIR$/src/main/java/app/Repository.java" />
+        <option value="$PROJECT_DIR$/src/main/java/app/Service.java" />
+        <option value="$PROJECT_DIR$/Dockerfile" />
       </list>
     </option>
   </component>
@@ -314,6 +306,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -374,7 +367,6 @@
         </subPane>
       </pane>
       <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -498,9 +490,8 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18240343" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.18454936" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Favorites" order="3" side_tool="true" />
@@ -512,7 +503,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32961586" />
       <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.49928468" weight="0.37918216" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.49713877" visible="true" weight="0.2267658" />
+      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49713877" visible="true" weight="0.2267658" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5028612" side_tool="true" weight="0.3283767" />
       <window_info anchor="bottom" id="Messages" order="10" weight="0.32961586" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
@@ -584,8 +575,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="raiting Завершено: 142635.995248" />
-    <MESSAGE value="custom json" />
     <MESSAGE value="custom json v2" />
     <MESSAGE value="custom json v3" />
     <MESSAGE value="custom json v4" />
@@ -609,14 +598,16 @@
     <MESSAGE value="fix not null" />
     <MESSAGE value="phone null/not null" />
     <MESSAGE value="phone null/not null (1263)" />
-    <option name="LAST_COMMIT_MESSAGE" value="phone null/not null (1263)" />
+    <MESSAGE value="phone null/not null (1055) interest" />
+    <MESSAGE value="interest count (1055)" />
+    <option name="LAST_COMMIT_MESSAGE" value="interest count (1055)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/app/Service.java</url>
-          <line>1449</line>
+          <line>1497</line>
           <properties />
           <option name="timeStamp" value="66" />
         </line-breakpoint>
@@ -958,17 +949,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/readme.dm">
+    <entry file="file://$PROJECT_DIR$/src/main/java/app/models/Account.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" selection-start-line="8" selection-end-line="8" selection-end-column="56" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/app/models/AccountC.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="10" column="13" selection-start-line="10" selection-start-column="13" selection-end-line="10" selection-end-column="13" />
+        <state relative-caret-position="225">
+          <caret line="15" column="24" selection-start-line="15" selection-start-column="24" selection-end-line="15" selection-end-column="24" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -982,34 +966,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/com/jsoniter/jsoniter/0.9.19/jsoniter-0.9.19.jar!/com/jsoniter/JsonIterator.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="183">
-          <caret line="458" column="28" selection-start-line="458" selection-start-column="28" selection-end-line="458" selection-end-column="28" />
-          <folding>
-            <element signature="e#14194#14195#0" expanded="true" />
-            <element signature="e#14246#14247#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Dockerfile">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="57" selection-start-line="3" selection-start-column="57" selection-end-line="3" selection-end-column="57" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/app/models/Account.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="141">
-          <caret line="15" column="24" selection-start-line="15" selection-start-column="24" selection-end-line="15" selection-end-column="24" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/app/server/ServerHandler.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="360">
@@ -1019,7 +975,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/app/server/Server.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-248">
+        <state relative-caret-position="210">
           <caret line="14" column="21" selection-start-line="14" selection-start-column="21" selection-end-line="14" selection-end-column="21" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -1029,9 +985,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/app/models/AccountC.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="10" column="13" selection-start-line="10" selection-start-column="13" selection-end-line="10" selection-end-column="13" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/com/jsoniter/jsoniter/0.9.19/jsoniter-0.9.19.jar!/com/jsoniter/JsonIterator.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6465">
+          <caret line="458" column="28" selection-start-line="458" selection-start-column="28" selection-end-line="458" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
+        <state relative-caret-position="405">
           <caret line="29" column="17" selection-start-line="29" selection-start-column="17" selection-end-line="29" selection-end-column="17" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -1039,24 +1012,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/readme.dm">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" selection-start-line="8" selection-end-line="8" selection-end-column="56" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/app/Service.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="183">
-          <caret line="85" column="6" selection-start-line="85" selection-start-column="6" selection-end-line="85" selection-end-column="6" />
+        <state relative-caret-position="155">
+          <caret line="1121" column="40" selection-start-line="1121" selection-start-column="35" selection-end-line="1121" selection-end-column="40" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#4042#4043#0" expanded="true" />
-            <element signature="e#4112#4113#0" expanded="true" />
-            <element signature="e#4560#4561#0" expanded="true" />
-            <element signature="e#4625#4626#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Dockerfile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="15" selection-start-line="2" selection-start-column="15" selection-end-line="2" selection-end-column="15" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/app/Repository.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="197">
-          <caret line="165" lean-forward="true" selection-start-line="165" selection-end-line="165" />
+        <state relative-caret-position="164">
+          <caret line="117" column="68" lean-forward="true" selection-start-line="117" selection-start-column="68" selection-end-line="117" selection-end-column="68" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#846#847#0" expanded="true" />
