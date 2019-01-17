@@ -83,9 +83,40 @@ public class Service {
     private static final char delim = ',';
 
     private static final AtomicInteger count = new AtomicInteger(0);
-    private static final AtomicInteger badIndexCount = new AtomicInteger(0);
+    //private static final AtomicInteger badIndexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
+   /* public static ThreadLocal<Account> threadLocalAccount =
+            new ThreadLocal<Account>() {
+                @Override
+                protected Account initialValue() {
+                    return new Account();
+                }
+
+                @Override
+                public Account get() {
+                    Account b = super.get();
+                    b.setBirth(0);
+                    return b;
+                }
+            };
+
+    public static ThreadLocal<TreeSet<Account>> threadLocalBirthIndexList =
+            new ThreadLocal<TreeSet<Account>>() {
+                @Override
+                protected TreeSet<Account> initialValue() {
+                    return new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                }
+
+                @Override
+                public TreeSet<Account> get() {
+                    TreeSet<Account> b = super.get();
+                    b.clear();
+                    return b;
+                }
+            };
+*/
+
     public static ThreadLocal<Map<String, String>> threadLocalPredicateMap =
             new ThreadLocal<Map<String, String>>() {
                 @Override
@@ -314,6 +345,19 @@ public class Service {
                         }
 
                         accountData.setStatus(account.getStatus());
+                        if (accountData.getStatus().equals(Service.STATUS1)) {
+                            Repository.list_status_1.add(accountData);
+                            Repository.list_status_2_not.add(accountData);
+                            Repository.list_status_3_not.add(accountData);
+                        } else if (accountData.getStatus().equals(Service.STATUS2)) {
+                            Repository.list_status_2.add(accountData);
+                            Repository.list_status_1_not.add(accountData);
+                            Repository.list_status_3_not.add(accountData);
+                        } else {
+                            Repository.list_status_3.add(accountData);
+                            Repository.list_status_2_not.add(accountData);
+                            Repository.list_status_1_not.add(accountData);
+                        }
                         if (accountData.getStatus().equals(STATUS1)) {
                             if (accountData.getSex().equals(F)) {
                                 Repository.list_status_1_f.add(accountData);
@@ -972,11 +1016,36 @@ public class Service {
         try {
             String[] params = Utils.tokenize(uri.substring(18), '&');
 
+            if (params.length < 2) {
+                return BAD_REQUEST;
+            }
+            int limit = 0;
             Map<String,String> predicateCache = threadLocalPredicateMap.get();
             Map<String,String> valueCache = threadLocalValueMap.get();
             for (String param : params) {
                 if (!fillCacheAndvalidate(param, predicateCache)) {
                     return BAD_REQUEST;
+                }
+                String valueParam = getValue(param);
+                valueCache.put(param,valueParam);
+                if (param.startsWith(LIMIT)) {
+                    if (!Character.isDigit(valueParam.charAt(0))) {
+                        return BAD_REQUEST;
+                    } else {
+                        limit = Integer.parseInt(valueParam);
+                    }
+                }
+            }
+
+            Map<String, Object> finalFieldSet = threadLocalFieldSet.get();
+            List<Account> accounts = threadLocalAccounts.get();
+            if (params.length == 2) {
+                for (Account account : Repository.list) {
+                    if (accounts.size() == limit) {
+                        return new Result(Utils.accountToString(accounts, finalFieldSet).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
+                    } else {
+                        accounts.add(account);
+                    }
                 }
             }
 
@@ -996,23 +1065,19 @@ public class Service {
             String phone = null;
             String phoneCode = null;
             Byte premium = null;
-            int limit = 0;
+            String yearPr = null;
+            String statusPr = null;
 
             for (String param : params) {
-                String valueParam = getValue(param);
-                valueCache.put(param,valueParam);
-                if (param.startsWith(LIMIT)) {
-                    if (!Character.isDigit(valueParam.charAt(0))) {
-                        return BAD_REQUEST;
-                    } else {
-                        limit = Integer.parseInt(valueParam);
-                    }
-                }
+                String valueParam = valueCache.get(param);
 
                 if (param.startsWith(STATUS)) {
                     String predicate = predicateCache.get(param);
                     if (predicate.equals(EQ_PR)) {
                         status = valueParam;
+                    }
+                    if (predicate.equals(NEQ_PR)) {
+                        statusPr = valueParam;
                     }
                 }
                 if (param.startsWith(SEX)) {
@@ -1022,6 +1087,14 @@ public class Service {
                     String predicate = predicateCache.get(param);
                     if (predicate.equals(YEAR_PR)) {
                         year = Integer.parseInt(valueParam);
+                    }
+                    if (predicate.equals(LT_PR)) {
+                        year = Integer.parseInt(valueParam);
+                        yearPr = LT_PR;
+                    }
+                    if (predicate.equals(GT_PR)) {
+                        year = Integer.parseInt(valueParam);
+                        yearPr = GT_PR;
                     }
                 }
                 if (param.startsWith(CITY)) {
@@ -1129,13 +1202,9 @@ public class Service {
                 }
             }
 
-            TreeSet<Account> listForRearch = getIndexForFilter(sex,status,city,country,sname,fname,premium,year,phone,interArr,interContains,phoneCode);
-            if (listForRearch == null) {
+            Set<Account> listForSearch = getIndexForFilter(sex,status,city,country,sname,fname,premium,year,phone,interArr,interContains,phoneCode,yearPr,statusPr);
+            if (listForSearch == null) {
                 return OK_EMPTY_ACCOUNTS;
-            }
-            if (listForRearch.equals(Repository.list)) {
-                System.out.println(uri);
-                System.out.println(badIndexCount.incrementAndGet());
             }
             for (String param : params) {
                 if (param.startsWith(LIKES)) {
@@ -1144,12 +1213,13 @@ public class Service {
                     }
                 }
             }
-
+            /*if (listForSearch.equals(Repository.list)) {
+                System.out.println(uri);
+                System.out.println(badIndexCount.incrementAndGet());
+            }*/
             List<String> enableProp = threadLocalEnableProp.get();
-            List<Account> accounts = threadLocalAccounts.get();
-            Map<String, Object> finalFieldSet = threadLocalFieldSet.get();
 
-            for(Account account : listForRearch) {
+            for (Account account : listForSearch) {
                 for (String param : params) {
                     //SEX ============================================
                     if (param.startsWith(SEX)) {
@@ -1349,13 +1419,13 @@ public class Service {
                                 break;
                             }
                         } else if (predicate.equals(LT_PR)) {
-                            if (account.getBirth() < Integer.parseInt(valueCache.get(param))) {
+                            if (account.getBirth() < year) {
                                 enableProp.add(BIRTH);
                             } else {
                                 break;
                             }
                         } else if (predicate.equals(GT_PR)) {
-                            if (account.getBirth() > Integer.parseInt(valueCache.get(param))) {
+                            if (account.getBirth() > year) {
                                 enableProp.add(BIRTH);
                             } else {
                                 break;
@@ -1510,8 +1580,8 @@ public class Service {
         }
     }
 
-    private static TreeSet<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium, Integer year, String phone, String[] interArr, boolean interContains, String phoneCode) {
-        TreeSet<Account> resultIndex = Repository.list;
+    private static Set<Account> getIndexForFilter(String sex, String status, String city, String country, String sname, String fname, Byte premium, Integer year, String phone, String[] interArr, boolean interContains, String phoneCode, String yearPr,String statusPr) {
+        Set<Account> resultIndex = Repository.list;
         //interest========================================
         if (interArr != null && interContains) {
             resultIndex = compareIndex(Repository.interests_count.get(interArr.length),resultIndex);
@@ -1673,6 +1743,15 @@ public class Service {
         if (sex == null && Service.STATUS3.equals(status)) {
             resultIndex = compareIndex(Repository.list_status_3,resultIndex);
         }
+        if (statusPr != null) {
+            if (statusPr.equals(Service.STATUS1)) {
+                resultIndex = compareIndex(Repository.list_status_1_not,resultIndex);
+            } else if (statusPr.equals(Service.STATUS2)) {
+                resultIndex = compareIndex(Repository.list_status_2_not,resultIndex);
+            } else {
+                resultIndex = compareIndex(Repository.list_status_3_not,resultIndex);
+            }
+        }
         //status========================================
         //sex========================================
         if (status == null && Service.F.equals(sex)) {
@@ -1684,13 +1763,17 @@ public class Service {
         //sex========================================
 
         if (year != null) {
-            resultIndex = compareIndex(Repository.year.get(year),resultIndex);
+            if (yearPr == null) {
+                resultIndex = compareIndex(Repository.year.get(year), resultIndex);
+            } else {
+                //todo;
+            }
         }
         return resultIndex;
 
     }
 
-    private static TreeSet<Account> compareIndex(TreeSet<Account> newIndex, TreeSet<Account> resultIndex) {
+    private static Set<Account> compareIndex(Set<Account> newIndex, Set<Account> resultIndex) {
         if (newIndex != null && resultIndex != null) {
             if (newIndex.size() < resultIndex.size()) {
                 return newIndex;

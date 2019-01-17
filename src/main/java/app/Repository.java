@@ -66,7 +66,6 @@ public class Repository {
     static final TreeSet<Account> sname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> fname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
 
-
     static final Map<String,TreeSet<Account>> phone_code = new HashMap<>();
     static final Map<String,TreeSet<Account>> city = new HashMap<>();
     static final Map<String,TreeSet<Account>> country = new HashMap<>();
@@ -84,6 +83,9 @@ public class Repository {
     static final TreeSet<Account> list_status_1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_status_2 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_status_3 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> list_status_1_not = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> list_status_2_not = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final TreeSet<Account> list_status_3_not = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
 
     static final TreeSet<Account> list_status_1_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_status_2_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
@@ -152,9 +154,12 @@ public class Repository {
             System.out.println("list premium_2 size = " + premium_2.size());
             System.out.println("list premium_3 size = " + premium_3.size());
 
-            /*for (int i = 0; i < 1000; i++) {
-                Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
-            }*/
+            System.out.println("warm up start = " + (new Date().getTime() - start));
+            if (isRait) {
+                for (int i = 0; i < 10_000; i++) {
+                    Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
+                }
+            }
 
             System.gc();//¯\_(ツ)_/¯
             System.out.println("End like Set" + (new Date().getTime() - start));
@@ -288,10 +293,16 @@ public class Repository {
         }
         if (account.getStatus().equals(Service.STATUS1)) {
             Repository.list_status_1.add(account);
+            Repository.list_status_2_not.add(account);
+            Repository.list_status_3_not.add(account);
         } else if (account.getStatus().equals(Service.STATUS2)) {
             Repository.list_status_2.add(account);
+            Repository.list_status_1_not.add(account);
+            Repository.list_status_3_not.add(account);
         } else {
             Repository.list_status_3.add(account);
+            Repository.list_status_2_not.add(account);
+            Repository.list_status_1_not.add(account);
         }
 
         if (account.getSex().equals(Service.M)
