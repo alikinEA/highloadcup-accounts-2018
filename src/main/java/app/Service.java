@@ -230,7 +230,7 @@ public class Service {
             if (!Character.isDigit(curId.charAt(0))) {
                 return NOT_FOUND;
             }
-            if (Repository.ids.containsKey(Integer.parseInt(curId))) {
+            if (Repository.ids[Integer.parseInt(curId)] != null) {
                 Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)),true);
                 if (account == null) {
                     return BAD_REQUEST;
@@ -256,7 +256,7 @@ public class Service {
                         return BAD_REQUEST;
                     }
                 }
-                Account accountData = Repository.ids.get(Integer.parseInt(curId));
+                Account accountData = Repository.ids[Integer.parseInt(curId)];
                 if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
                     /*if (account.getLikes() != null) {
                         accountData.setLikes(account.getLikes());
@@ -528,7 +528,7 @@ public class Service {
                 return NOT_FOUND;
             }
 
-            Account accountData = Repository.ids.get(Integer.parseInt(id));
+            Account accountData = Repository.ids[Integer.parseInt(id)];
             if (accountData == null) {
                 return NOT_FOUND;
             } else {
@@ -699,7 +699,7 @@ public class Service {
                 return NOT_FOUND;
             }
 
-            Account accountData = Repository.ids.get(Integer.parseInt(id));
+            Account accountData = Repository.ids[Integer.parseInt(id)];
             if (accountData == null) {
                 return NOT_FOUND;
             } else {
@@ -850,7 +850,7 @@ public class Service {
             if (account == null) {
                 return BAD_REQUEST;
             }
-            if (Repository.ids.containsKey(account.getId())) {
+            if (Repository.ids[account.getId()] != null) {
                 return BAD_REQUEST;
             }
             if (account.getSex() != null) {
@@ -878,7 +878,7 @@ public class Service {
                     return BAD_REQUEST;
                 } else {
                     Repository.list.add(account);
-                    Repository.ids.put(account.getId(), account);
+                    Repository.ids[account.getId()] = account;
                     Repository.emails.put(account.getEmail(), Repository.PRESENT);
                     Repository.insertToIndex(account);
                     return CREATED;

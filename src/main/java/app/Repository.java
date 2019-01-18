@@ -54,7 +54,7 @@ public class Repository {
 
     static final Object PRESENT = new Object();
     static final Account PRESENT_AC = new Account();
-    static final Map<Integer,Account> ids = new HashMap<>(elementCount);
+    static final Account[] ids = new Account[2_000_000];
     static final Map<String,Object> emails = new HashMap<>(elementCount);
 
     static final Map<Integer,TreeSet<Account>> interests_count = new HashMap<>();
@@ -129,9 +129,9 @@ public class Repository {
                             if ((isRait && availableNames.contains(fileHeader.getFileName()))
                                     || (!isRait && availableNamesTest.contains(fileHeader.getFileName()))) {
                                 list.add(account);
-                                ids.put(account.getId(), account);
+                                ids[account.getId()] = account;
                             } else {
-                                ids.put(account.getId(), PRESENT_AC);
+                                ids[account.getId()] = PRESENT_AC;
                             }
                         }
                         json = null;
@@ -141,7 +141,7 @@ public class Repository {
             }
 
             System.out.println("list size = " + list.size());
-            System.out.println("list ids size = " + ids.size());
+            System.out.println("list ids size = " + ids.length);
             System.out.println("list emails size = " + emails.size());
 
             for (int i = 0; i < 11; i++) {
@@ -157,6 +157,10 @@ public class Repository {
             System.out.println("warm up start = " + (new Date().getTime() - start));
             if (isRait) {
                 for (int i = 0; i < 10_000; i++) {
+                    Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
+                }
+            } else {
+                for (int i = 0; i < 1_000; i++) {
                     Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
                 }
             }

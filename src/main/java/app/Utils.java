@@ -332,7 +332,7 @@ public class Utils {
             if (!ValueType.NUMBER.equals(value.valueType())) {
                 return false;
             } else {
-                if (!Repository.ids.containsKey(value.toInt())) {
+                if (Repository.ids[value.toInt()] == null) {
                     return false;
                 }
             }
@@ -340,7 +340,7 @@ public class Utils {
             if (!ValueType.NUMBER.equals(value.valueType())) {
                 return false;
             } else {
-                if (!Repository.ids.containsKey(value.toInt())) {
+                if (Repository.ids[value.toInt()] == null) {
                     return false;
                 }
             }
