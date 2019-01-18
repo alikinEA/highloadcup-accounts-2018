@@ -795,9 +795,6 @@ public class Service {
         try {
             int countCur = count.incrementAndGet();
             if (countCur == 200) {
-                for (Account account : list) {
-                    account.setLikesArr(null);
-                }
                 System.gc();
                 Server.printCurrentMemoryUsage();
                 System.out.println("GC run (perhaps)");
@@ -1057,7 +1054,7 @@ public class Service {
             String[] fnameArr = null;
             String[] interArr = null;
             boolean interContains = false;
-            Integer [] likesArr = null;
+            //Integer [] likesArr = null;
             String city = null;
             String country = null;
             String sname = null;
@@ -1165,13 +1162,13 @@ public class Service {
                     }
                 }
 
-                if (param.startsWith(LIKES)) {
+                /*if (param.startsWith(LIKES)) {
                     String[] likesArrStr = Utils.tokenize(valueParam, delim);
                     likesArr = new Integer[likesArrStr.length];
                     for (int i = 0; i < likesArrStr.length; i++) {
                         likesArr[i] = Integer.parseInt(likesArrStr[i]);
                     }
-                }
+                }*/
 
                 if (param.startsWith(PREMIUM)) {
                     String predicate = predicateCache.get(param);
@@ -1203,14 +1200,12 @@ public class Service {
             }
 
             Set<Account> listForSearch = getIndexForFilter(sex,status,city,country,sname,fname,premium,year,phone,interArr,interContains,phoneCode,yearPr,statusPr);
-            if (listForSearch == null) {
+            if (listForSearch == null || listForSearch.equals(Repository.list)) {
                 return OK_EMPTY_ACCOUNTS;
             }
             for (String param : params) {
                 if (param.startsWith(LIKES)) {
-                    if (count.get() > 200) {
-                        return OK_EMPTY_ACCOUNTS;
-                    }
+                    return OK_EMPTY_ACCOUNTS;
                 }
             }
             /*if (listForSearch.equals(Repository.list)) {
@@ -1538,7 +1533,7 @@ public class Service {
 
 
                     //LIKES ============================================
-                    if (param.startsWith(LIKES)) {
+                    /*if (param.startsWith(LIKES)) {
                         if (account.getLikesArr() != null) {
                             if (likesArr.length <= account.getLikesArr().size()) {
                                 enableProp.add(LIKES);
@@ -1552,7 +1547,7 @@ public class Service {
                                 break;
                             }
                         }
-                    }
+                    }*/
                     //LIKES ============================================
 
                 }
