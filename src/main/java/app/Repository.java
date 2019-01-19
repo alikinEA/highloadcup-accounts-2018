@@ -43,9 +43,7 @@ public class Repository {
             Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json"
                     ,"accounts_127.json","accounts_126.json","accounts_125.json"
                     ,"accounts_124.json","accounts_123.json","accounts_122.json"
-                    ,"accounts_121.json","accounts_120.json","accounts_119.json"
-                    ,"accounts_118.json","accounts_117.json","accounts_116.json"
-                    ,"accounts_115.json","accounts_114.json","accounts_113.json"
+                    ,"accounts_121.json"
             );
     private static final List<String> availableNamesTest =
             Arrays.asList("accounts_1.json"
@@ -107,8 +105,8 @@ public class Repository {
             int fileCount = 3;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(dataPath + "options.txt")))){
                 String timestamp = reader.readLine();
-                currentTimeStamp = new Long(timestamp + "000");
-                currentTimeStamp2 = new Long(timestamp);
+                currentTimeStamp = Long.valueOf(timestamp + "000");
+                currentTimeStamp2 = Long.valueOf(timestamp);
                 String flag = reader.readLine();
                 if (Integer.parseInt(flag) == 1) {
                     isRait = true;

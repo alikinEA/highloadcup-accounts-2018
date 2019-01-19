@@ -138,7 +138,7 @@ public class Utils {
                 }
                 if (key.equals(Service.LIKES)) {
                     List<Any> listLike = accountAny.get(Service.LIKES).asList();
-                    //Set<Integer> list = new HashSet<>(listLike.size());
+                    Set<Integer> list = new HashSet<>(listLike.size());
                     for (Any anyLike : listLike) {
                         if (!ValueType.NUMBER.equals(anyLike.get(Service.TS).valueType())) {
                             return null;
@@ -147,10 +147,10 @@ public class Utils {
                         if (!ValueType.NUMBER.equals(any.valueType())) {
                             return null;
                         } else {
-                           // list.add(any.toInt());
+                            list.add(any.toInt());
                         }
                     }
-                   // account.setLikesArr(list);
+                    account.setLikesArr(list);
                 }
 
                 if (key.equals(Service.PREMIUM)) {
@@ -206,100 +206,6 @@ public class Utils {
         }
     }
 
-    public static String accountToString(List<Account> accounts, Map<String,Object> enableProp) {
-        StringBuilder sb = threadLocalBuilder.get();
-        sb.append("{\"accounts\":[");
-        for (Account account : accounts) {
-
-            sb.append("{");
-
-            sb.append("\"id\":");
-            sb.append(account.getId());
-            sb.append(",");
-
-            sb.append("\"email\":");
-            sb.append("\"");
-            sb.append(account.getEmail());
-            sb.append("\",");
-
-            if (enableProp.containsKey(Service.SEX) && account.getSex() != null) {
-                sb.append("\"sex\":");
-                sb.append("\"");
-                sb.append(account.getSex());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(Service.FNAME) && account.getFname() != null) {
-                sb.append("\"fname\":");
-                sb.append("\"");
-                sb.append(account.getFname());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(Service.STATUS) && account.getStatus() != null) {
-                sb.append("\"status\":");
-                sb.append("\"");
-                sb.append(account.getStatus());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(Service.PHONE) && account.getPhone() != null) {
-                sb.append("\"phone\":");
-                sb.append("\"");
-                sb.append(account.getPhone());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(Service.BIRTH) && account.getBirth() != 0) {
-                sb.append("\"birth\":");
-                sb.append(account.getBirth());
-                sb.append(",");
-            }
-
-            if (enableProp.containsKey(Service.CITY) && account.getCity() != null) {
-                sb.append("\"city\":");
-                sb.append("\"");
-                sb.append(account.getCity());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(Service.COUNTRY) && account.getCountry() != null) {
-                sb.append("\"country\":");
-                sb.append("\"");
-                sb.append(account.getCountry());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(Service.SNAME) && account.getSname() != null) {
-                sb.append("\"sname\":");
-                sb.append("\"");
-                sb.append(account.getSname());
-                sb.append("\",");
-            }
-
-            if (enableProp.containsKey(Service.PREMIUM) && account.getPremium() != null) {
-                sb.append("\"premium\":");
-                sb.append("{");
-
-                sb.append("\"start\":");
-                sb.append(account.getPremium().getStart());
-                sb.append(",");
-
-                sb.append("\"finish\":");
-                sb.append(account.getPremium().getFinish());
-
-                sb.append("},");
-            }
-            sb.setLength(sb.length() -1);
-            sb.append("},");
-        }
-        if (accounts.size() > 0) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("]}");
-        return sb.toString();
-    }
-
 
     public static String[] tokenize(String string, char delimiter) {
         String[] temp = new String[(string.length() / 2) + 1];
@@ -346,5 +252,99 @@ public class Utils {
             }
         }
         return true;
+    }
+
+    public static String accountToString(List<Account> accounts,boolean sexPr, boolean fnamePr, boolean statusPr, boolean premiumPr, boolean phonePr, boolean birthPr, boolean cityPr, boolean countryPr, boolean snamePr) {
+        StringBuilder sb = threadLocalBuilder.get();
+        sb.append("{\"accounts\":[");
+        for (Account account : accounts) {
+
+            sb.append("{");
+
+            sb.append("\"id\":");
+            sb.append(account.getId());
+            sb.append(",");
+
+            sb.append("\"email\":");
+            sb.append("\"");
+            sb.append(account.getEmail());
+            sb.append("\",");
+
+            if (sexPr && account.getSex() != null) {
+                sb.append("\"sex\":");
+                sb.append("\"");
+                sb.append(account.getSex());
+                sb.append("\",");
+            }
+
+            if (fnamePr && account.getFname() != null) {
+                sb.append("\"fname\":");
+                sb.append("\"");
+                sb.append(account.getFname());
+                sb.append("\",");
+            }
+
+            if (statusPr && account.getStatus() != null) {
+                sb.append("\"status\":");
+                sb.append("\"");
+                sb.append(account.getStatus());
+                sb.append("\",");
+            }
+
+            if (phonePr && account.getPhone() != null) {
+                sb.append("\"phone\":");
+                sb.append("\"");
+                sb.append(account.getPhone());
+                sb.append("\",");
+            }
+
+            if (birthPr && account.getBirth() != 0) {
+                sb.append("\"birth\":");
+                sb.append(account.getBirth());
+                sb.append(",");
+            }
+
+            if (cityPr && account.getCity() != null) {
+                sb.append("\"city\":");
+                sb.append("\"");
+                sb.append(account.getCity());
+                sb.append("\",");
+            }
+
+            if (countryPr && account.getCountry() != null) {
+                sb.append("\"country\":");
+                sb.append("\"");
+                sb.append(account.getCountry());
+                sb.append("\",");
+            }
+
+            if (snamePr && account.getSname() != null) {
+                sb.append("\"sname\":");
+                sb.append("\"");
+                sb.append(account.getSname());
+                sb.append("\",");
+            }
+
+            if (premiumPr && account.getPremium() != null) {
+                sb.append("\"premium\":");
+                sb.append("{");
+
+                sb.append("\"start\":");
+                sb.append(account.getPremium().getStart());
+                sb.append(",");
+
+                sb.append("\"finish\":");
+                sb.append(account.getPremium().getFinish());
+
+                sb.append("},");
+            }
+            sb.setLength(sb.length() -1);
+            sb.append("},");
+        }
+        if (accounts.size() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+        sb.append("]}");
+        return sb.toString();
     }
 }
