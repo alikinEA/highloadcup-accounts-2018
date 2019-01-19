@@ -43,7 +43,7 @@ public class Repository {
             Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json"
                     ,"accounts_127.json","accounts_126.json","accounts_125.json"
                     ,"accounts_124.json","accounts_123.json","accounts_122.json"
-                    ,"accounts_121.json"
+                    ,"accounts_121.json" ,"accounts_121.json" ,"accounts_121.json"
             );
     private static final List<String> availableNamesTest =
             Arrays.asList("accounts_1.json"
@@ -67,6 +67,7 @@ public class Repository {
     static final TreeSet<Account> sname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> fname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
 
+    static final Map<String,TreeSet<Account>> email_domain = new HashMap<>();
     static final Map<String,TreeSet<Account>> phone_code = new HashMap<>();
     static final Map<String,TreeSet<Account>> city = new HashMap<>();
     static final Map<String,TreeSet<Account>> country = new HashMap<>();
@@ -157,7 +158,7 @@ public class Repository {
 
             System.out.println("warm up start = " + (new Date().getTime() - start));
             if (isRait) {
-                for (int i = 0; i < 10_000; i++) {
+                for (int i = 0; i < 50_000; i++) {
                     Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
                 }
             } else {
@@ -177,6 +178,17 @@ public class Repository {
     }
 
     public static void insertToIndex(Account account) {
+        String email = account.getEmail();
+        String domain = email.substring(email.indexOf("@") + 1).intern();
+        TreeSet<Account> domainIndex = email_domain.get(domain);
+        if (domainIndex == null) {
+            domainIndex = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+            domainIndex.add(account);
+            email_domain.put(domain,domainIndex);
+        } else {
+            domainIndex.add(account);
+        }
+
         if (account.getInterests() != null && account.getInterests().size() > 0) {
             for (int size = account.getInterests().size(); size > 0; size--) {
                 TreeSet<Account> interestCountIndex = interests_count.get(size);

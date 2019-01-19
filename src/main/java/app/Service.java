@@ -84,7 +84,7 @@ public class Service {
     private static final char delim = ',';
 
     private static final AtomicInteger count = new AtomicInteger(0);
-    private static final AtomicInteger badIndexCount = new AtomicInteger(0);
+    //private static final AtomicInteger badIndexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -191,6 +191,17 @@ public class Service {
                         Repository.emails.remove(accountData.getEmail());
                         Repository.emails.put(account.getEmail(), Repository.PRESENT);
                         accountData.setEmail(account.getEmail());
+
+                        String email = accountData.getEmail();
+                        String domain = email.substring(email.indexOf("@") + 1).intern();
+                        TreeSet<Account> domainIndex = email_domain.get(domain);
+                        if (domainIndex == null) {
+                            domainIndex = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+                            domainIndex.add(accountData);
+                            email_domain.put(domain,domainIndex);
+                        } else {
+                            domainIndex.add(accountData);
+                        }
                     }
                     if (account.getSex() != null) {
                         if (accountData.getSex().equals(F) && account.getSex().equals(M)) {
@@ -1088,6 +1099,8 @@ public class Service {
                     ,statusPr,statusPrV,statusV
                     ,sexPr
                     ,birthPr,birthPrV,year
+                    ,emailPr,emailPrV,emailV
+                    ,cityArr,fnameArr
             );
             if (listForSearch == null) {
                 return OK_EMPTY_ACCOUNTS;
@@ -1097,10 +1110,10 @@ public class Service {
                     return OK_EMPTY_ACCOUNTS;
                 }
             }
-            if (listForSearch.equals(Repository.list)) {
+            /*if (listForSearch.equals(Repository.list)) {
                 System.out.println(uri);
                 System.out.println(badIndexCount.incrementAndGet());
-            }
+            }*/
             List<String> enableProp = threadLocalEnableProp.get();
 
             for (Account account : listForSearch) {
@@ -1398,8 +1411,16 @@ public class Service {
             , boolean statusPr, String statusPrV, String statusV
                                                   ,boolean sexPr
             , boolean birthPr, String birthPrV, Integer year
+            ,boolean emailPr,String emailPrV,String emailV
+                                                  ,String[] cityArr,String[] fnameArr
     ) {
         Set<Account> resultIndex = Repository.list;
+
+        if (emailPr) {
+            if (emailPrV == DOMAIN_PR) {
+                resultIndex = compareIndex(Repository.email_domain.get(emailV),resultIndex);
+            }
+        }
 
         if (interArr != null && interestsPrV == CONTAINS_PR) {
             resultIndex = compareIndex(Repository.interests_count.get(interArr.length),resultIndex);
@@ -1431,7 +1452,11 @@ public class Service {
 
         if (cityPr) {
             if (cityPrV == ANY_PR) {
-                resultIndex = compareIndex(Repository.city_not_null, resultIndex);
+                if (cityArr.length == 1) {
+                    resultIndex = compareIndex(Repository.city.get(cityArr[0]), resultIndex);
+                } else {
+                    resultIndex = compareIndex(Repository.city_not_null, resultIndex);
+                }
             } else {
                 if (Service.F.equals(sexV)) {
                     if (cityPrV == EQ_PR) {
@@ -1469,7 +1494,11 @@ public class Service {
                     resultIndex = compareIndex(Repository.fname_not_null,resultIndex);
                 }
             } else if (fnamePrV == ANY_PR) {
-                resultIndex = compareIndex(Repository.fname_not_null,resultIndex);
+                if (fnameArr.length == 1) {
+                    resultIndex = compareIndex(Repository.fname.get(fnameArr[0]), resultIndex);
+                } else {
+                    resultIndex = compareIndex(Repository.fname_not_null, resultIndex);
+                }
             } else if (fnamePrV == EQ_PR) {
                 resultIndex = compareIndex(Repository.fname.get(fnameV),resultIndex);
             }
