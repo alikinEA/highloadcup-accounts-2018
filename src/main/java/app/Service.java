@@ -318,11 +318,12 @@ public class Service {
                         }
 
                     }
-                    if (account.getPremium() != null) {
-                        accountData.setPremium(account.getPremium());
-                        if (account.getPremium() != null) {
-                            if (currentTimeStamp2 < account.getPremium().getFinish()
-                                    && currentTimeStamp2 > account.getPremium().getStart()) {
+                    if (account.getStart() != 0) {
+                        accountData.setStart(account.getStart());
+                        accountData.setFinish(account.getFinish());
+                        if (account.getStart() != 0) {
+                            if (currentTimeStamp2 < account.getFinish()
+                                    && currentTimeStamp2 > account.getStart()) {
                                 premium_1.add(accountData);
                             }
                             premium_2.add(accountData);
@@ -590,7 +591,7 @@ public class Service {
         }
     }*/
 
-    private static Integer getCompatibility(Account accountData, Account account1) {
+    /*private static Integer getCompatibility(Account accountData, Account account1) {
         int compt = 0;
         if (account1.getStatus().equals(STATUS1)) {
             compt = compt + 50_000_0;
@@ -627,7 +628,7 @@ public class Service {
         Integer days = 36500 - Math.abs(daysAccData - daysAcc1);
         compt = compt + days;
         return compt * 100;
-    }
+    }*/
 
     private static DefaultFullHttpResponse handleSuggest(FullHttpRequest req) {
         lock.readLock().lock();
@@ -1101,7 +1102,7 @@ public class Service {
                     ,emailPr,emailPrV,emailV
                     ,cityArr,fnameArr
             );
-            if (listForSearch == null || listForSearch.equals(Repository.list)) {
+            if (listForSearch == null) {
                 return ServerHandler.OK_EMPTY_R;
             }
             if (likesPr) {
@@ -1232,19 +1233,19 @@ public class Service {
                 //PREMIUM ============================================
                 if (premiumPr) {
                     if (premiumPrV == NOW_PR) {
-                        if (account.getPremium() != null) {
-                            if (currentTimeStamp2 < account.getPremium().getFinish()
-                                    && currentTimeStamp2 > account.getPremium().getStart()) {
+                        if (account.getStart() != 0) {
+                            if (currentTimeStamp2 < account.getFinish()
+                                    && currentTimeStamp2 > account.getStart()) {
                                 enableProp.add(PREMIUM);
                             }
                         }
                     } else if (premiumPrV == NULL_PR) {
                         if (premiumV.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getPremium() == null) {
+                            if (account.getStart() == 0) {
                                 enableProp.add(PREMIUM);
                             }
                         } else {
-                            if (account.getPremium() != null) {
+                            if (account.getStart() != 0) {
                                 enableProp.add(PREMIUM);
                             }
                         }

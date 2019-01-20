@@ -162,10 +162,8 @@ public class Utils {
                     if (!ValueType.NUMBER.equals(any.get(START).valueType())) {
                         return null;
                     }
-                    Premium pr = new Premium();
-                    pr.setFinish(any.get(FINISH).toInt());
-                    pr.setStart(any.get(START).toInt());
-                    account.setPremium(pr);
+                    account.setFinish(any.get(FINISH).toInt());
+                    account.setStart(any.get(START).toInt());
                 }
 
                 if (key.equals(Service.EMAIL)) {
@@ -323,16 +321,16 @@ public class Utils {
                 sb.append("\",");
             }
 
-            if (premiumPr && account.getPremium() != null) {
+            if (premiumPr && account.getStart() != 0) {
                 sb.append("\"premium\":");
                 sb.append("{");
 
                 sb.append("\"start\":");
-                sb.append(account.getPremium().getStart());
+                sb.append(account.getStart());
                 sb.append(",");
 
                 sb.append("\"finish\":");
-                sb.append(account.getPremium().getFinish());
+                sb.append(account.getFinish());
 
                 sb.append("},");
             }

@@ -19,7 +19,8 @@ public class Account implements Comparable<Account>{
     private String fname;
     private List<String> interests;
     private String status;
-    private Premium premium;
+    private int start;
+    private int finish;
     private String phone;
     //private Set<Integer> likesArr;
     private int birth;

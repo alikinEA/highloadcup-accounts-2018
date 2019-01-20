@@ -199,9 +199,9 @@ public class Repository {
         } else {
             phone_null.add(account);
         }
-        if (account.getPremium() != null) {
-            if (currentTimeStamp2 < account.getPremium().getFinish()
-                    && currentTimeStamp2 > account.getPremium().getStart()) {
+        if (account.getStart() != 0) {
+            if (currentTimeStamp2 < account.getFinish()
+                    && currentTimeStamp2 > account.getStart()) {
                 premium_1.add(account);
             }
             premium_2.add(account);
