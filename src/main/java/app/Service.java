@@ -4,7 +4,9 @@ import app.models.Account;
 import app.models.Premium;
 import app.models.Result;
 import app.server.Server;
+import app.server.ServerHandler;
 import com.jsoniter.JsonIterator;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
@@ -122,19 +124,19 @@ public class Service {
 
 
 
-    public static Result handle(FullHttpRequest req) throws UnsupportedEncodingException {
+    public static DefaultFullHttpResponse handle(FullHttpRequest req) throws UnsupportedEncodingException {
         String uri = req.uri();
         if (uri.startsWith(URI_FILTER)) {
             return handleFilterv2(uri);
         } else if (uri.startsWith(URI_NEW)) {
             if (uri.substring(14).charAt(0) != '?') {
-                return NOT_FOUND;
+                return ServerHandler.NOT_FOUND_R;
             } else {
                 return handleNew(req);
             }
         } else if (uri.startsWith(URI_LIKES)) {
             if (uri.substring(16).charAt(0) != '?') {
-                return NOT_FOUND;
+                return ServerHandler.NOT_FOUND_R;
             } else {
                 return handleLikes(req);
             }
@@ -149,37 +151,37 @@ public class Service {
         }
     }
 
-    private static Result handleUpdate(FullHttpRequest req) {
+    private static DefaultFullHttpResponse handleUpdate(FullHttpRequest req) {
         lock.writeLock().lock();
         try {
             String curId = req.uri().substring(10, req.uri().lastIndexOf("/?"));
             if (!Character.isDigit(curId.charAt(0))) {
-                return NOT_FOUND;
+                return ServerHandler.NOT_FOUND_R;
             }
             if (Repository.ids[Integer.parseInt(curId)] != null) {
                 Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)),true);
                 if (account == null) {
-                    return BAD_REQUEST;
+                    return ServerHandler.BAD_REQUEST_R;
                 }
                 if (account.getSex() != null) {
                     if (!account.getSex().equals(F)
                             && !account.getSex().equals(M)) {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (account.getStatus() != null) {
                     if (!account.getStatus().equals(STATUS1)
                             && !account.getStatus().equals(STATUS2)
                             && !account.getStatus().equals(STATUS3)) {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (account.getEmail() != null) {
                     if (!account.getEmail().contains("@")) {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                     if (Repository.emails.containsKey(account.getEmail())) {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 Account accountData = Repository.ids[Integer.parseInt(curId)];
@@ -444,30 +446,30 @@ public class Service {
                         }
                     }
                 } else {
-                    return ACCEPTED;
+                    return ServerHandler.ACCEPTED_R;
                 }
-                return ACCEPTED;
+                return ServerHandler.ACCEPTED_R;
             } else {
-                return NOT_FOUND;
+                return ServerHandler.NOT_FOUND_R;
             }
         } finally {
             lock.writeLock().unlock();
         }
     }
 
-    private static Result handleRecomended(FullHttpRequest req) {
+    private static DefaultFullHttpResponse handleRecomended(FullHttpRequest req) {
         lock.readLock().lock();
         try {
 
             String replAcc = req.uri().substring(10);
             String id = replAcc.substring(0, replAcc.indexOf("/"));
             if (!Character.isDigit(id.charAt(0))) {
-                return NOT_FOUND;
+                return ServerHandler.NOT_FOUND_R;
             }
 
             Account accountData = Repository.ids[Integer.parseInt(id)];
             if (accountData == null) {
-                return NOT_FOUND;
+                return ServerHandler.NOT_FOUND_R;
             } else {
                 String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(URI_RECOMENDED) + 12), '&');
                 int limit;
@@ -478,27 +480,27 @@ public class Service {
                         try {
                             limit = Integer.parseInt(getValue(param));
                             if (limit <= 0) {
-                                return BAD_REQUEST;
+                                return ServerHandler.BAD_REQUEST_R;
                             }
                         } catch (Exception e) {
-                            return BAD_REQUEST;
+                            return ServerHandler.BAD_REQUEST_R;
                         }
                     }
                     if (param.startsWith(COUNTRY)) {
                         country = getValue(param);
                         if (country.isEmpty()) {
-                            return BAD_REQUEST;
+                            return ServerHandler.BAD_REQUEST_R;
                         }
                     }
                     if (param.startsWith(CITY)) {
                         city = getValue(param);
                         if (city.isEmpty()) {
-                            return BAD_REQUEST;
+                            return ServerHandler.BAD_REQUEST_R;
                         }
                     }
                 }
 
-                return OK_EMPTY_ACCOUNTS;
+                return ServerHandler.OK_EMPTY_R;
 
                 /*if (!accountData.equals(Repository.PRESENT_AC)) {
                     TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
@@ -558,7 +560,7 @@ public class Service {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return BAD_REQUEST;
+            return ServerHandler.BAD_REQUEST_R;
         } finally {
             lock.readLock().unlock();
         }
@@ -627,18 +629,18 @@ public class Service {
         return compt * 100;
     }
 
-    private static Result handleSuggest(FullHttpRequest req) {
+    private static DefaultFullHttpResponse handleSuggest(FullHttpRequest req) {
         lock.readLock().lock();
         try {
             String replAcc = req.uri().substring(10);
             String id = replAcc.substring(0, replAcc.indexOf("/"));
             if (!Character.isDigit(id.charAt(0))) {
-                return NOT_FOUND;
+                return ServerHandler.NOT_FOUND_R;
             }
 
             Account accountData = Repository.ids[Integer.parseInt(id)];
             if (accountData == null) {
-                return NOT_FOUND;
+                return ServerHandler.NOT_FOUND_R;
             } else {
                 String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(URI_SUGGEST) + 10), '&');
                 for (String param : params) {
@@ -646,28 +648,28 @@ public class Service {
                         try {
                             Integer limit = Integer.parseInt(getValue(param));
                             if (limit <= 0) {
-                                return BAD_REQUEST;
+                                return ServerHandler.BAD_REQUEST_R;
                             }
                         } catch (Exception e) {
-                            return BAD_REQUEST;
+                            return ServerHandler.BAD_REQUEST_R;
                         }
                     }
                     if (param.startsWith(COUNTRY)) {
                         if (getValue(param).isEmpty()) {
-                            return BAD_REQUEST;
+                            return ServerHandler.BAD_REQUEST_R;
                         }
                     }
                     if (param.startsWith(CITY)) {
                         if (getValue(param).isEmpty()) {
-                            return BAD_REQUEST;
+                            return ServerHandler.BAD_REQUEST_R;
                         }
                     }
                 }
 
-                return OK_EMPTY_ACCOUNTS;
+                return ServerHandler.OK_EMPTY_R;
             }
         } catch (Exception e) {
-            return BAD_REQUEST;
+            return ServerHandler.BAD_REQUEST_R;
         } finally {
             lock.readLock().unlock();
         }
@@ -705,7 +707,7 @@ public class Service {
         }
     }*/
 
-    private static Result handleGroup(FullHttpRequest req)  {
+    private static DefaultFullHttpResponse handleGroup(FullHttpRequest req)  {
         /*String[] t = Utils.tokenize(req.uri().substring(17),'&');
         for (String param : t) {
             if (param.startsWith(KEYS)) {
@@ -724,17 +726,14 @@ public class Service {
             }
         }
         return NOT_FOUND;*/
-        return BAD_REQUEST;
+        return ServerHandler.BAD_REQUEST_R;
     }
 
-    private static Result handleLikes(FullHttpRequest req) {
+    private static DefaultFullHttpResponse handleLikes(FullHttpRequest req) {
         lock.writeLock().lock();
         try {
             int countCur = count.incrementAndGet();
             if (countCur == 200) {
-                for (Account account : list) {
-                    account.setLikesArr(null);
-                }
                 System.gc();
                 Server.printCurrentMemoryUsage();
                 System.out.println("GC run (perhaps)");
@@ -742,59 +741,59 @@ public class Service {
             try {
                 boolean isValid = Utils.validateLikes(req.content().toString(StandardCharsets.UTF_8));
                 if (!isValid) {
-                    return BAD_REQUEST;
+                    return ServerHandler.BAD_REQUEST_R;
                 }
-                return ACCEPTED;
+                return ServerHandler.ACCEPTED_R;
             } catch (Exception e) {
-                return BAD_REQUEST;
+                return ServerHandler.BAD_REQUEST_R;
             }
         }finally {
             lock.writeLock().unlock();
         }
     }
 
-    private static Result handleNew(FullHttpRequest req) {
+    private static DefaultFullHttpResponse handleNew(FullHttpRequest req) {
         lock.writeLock().lock();
         try {
             Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)),false);
             if (account == null) {
-                return BAD_REQUEST;
+                return ServerHandler.BAD_REQUEST_R;
             }
             if (Repository.ids[account.getId()] != null) {
-                return BAD_REQUEST;
+                return ServerHandler.BAD_REQUEST_R;
             }
             if (account.getSex() != null) {
                 if (!account.getSex().equals(F)
                         && !account.getSex().equals(M)) {
-                    return BAD_REQUEST;
+                    return ServerHandler.BAD_REQUEST_R;
                 }
             } else {
-                return BAD_REQUEST;
+                return ServerHandler.BAD_REQUEST_R;
             }
             if (account.getStatus() != null) {
                 if (!account.getStatus().equals(STATUS1)
                         && !account.getStatus().equals(STATUS2)
                         && !account.getStatus().equals(STATUS3)) {
-                    return BAD_REQUEST;
+                    return ServerHandler.BAD_REQUEST_R;
                 }
             } else {
-                return BAD_REQUEST;
+                return ServerHandler.BAD_REQUEST_R;
             }
             if (account.getEmail() != null) {
                 if (!account.getEmail().contains("@")) {
-                    return BAD_REQUEST;
+                    return ServerHandler.BAD_REQUEST_R;
                 }
                 if (Repository.emails.containsKey(account.getEmail())) {
-                    return BAD_REQUEST;
+                    return ServerHandler.BAD_REQUEST_R;
                 } else {
                     Repository.list.add(account);
                     Repository.ids[account.getId()] = account;
                     Repository.emails.put(account.getEmail(), Repository.PRESENT);
                     Repository.insertToIndex(account);
-                    return CREATED;
+                    return ServerHandler.CREATED_R;
                 }
             }
-            return CREATED;
+            return ServerHandler.CREATED_R;
         } finally {
             lock.writeLock().unlock();
         }
@@ -840,13 +839,13 @@ public class Service {
         return param.substring(param.indexOf("_") + 1,param.indexOf("="));
     }
 
-    public static Result handleFilterv2(String uri) throws UnsupportedEncodingException {
+    public static DefaultFullHttpResponse handleFilterv2(String uri) throws UnsupportedEncodingException {
         lock.readLock().lock();
         try {
             String[] params = Utils.tokenize(uri.substring(18), '&');
 
             if (params.length < 2) {
-                return BAD_REQUEST;
+                return ServerHandler.BAD_REQUEST_R;
             }
 
             boolean emailPr = false;
@@ -899,7 +898,7 @@ public class Service {
                     if (predicate.equals(EQ_PR)) {
                         sexPrV = EQ_PR;
                     } else {
-                       return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(EMAIL)) {
@@ -912,7 +911,7 @@ public class Service {
                     } else if (predicate.equals(GT_PR)) {
                         emailPrV = GT_PR;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(STATUS)) {
@@ -923,7 +922,7 @@ public class Service {
                     } else if(predicate.equals(NEQ_PR)) {
                         statusPrV = NEQ_PR;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(FNAME)) {
@@ -936,7 +935,7 @@ public class Service {
                     } else if (predicate.equals(NULL_PR)) {
                         fnamePrV = NULL_PR;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(SNAME)) {
@@ -949,7 +948,7 @@ public class Service {
                     } else if (predicate.equals(NULL_PR)){
                         snamePrV = NULL_PR;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(PHONE)) {
@@ -960,7 +959,7 @@ public class Service {
                     } else if (predicate.equals(CODE_PR)) {
                         phonePrV = CODE_PR;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(COUNTRY)) {
@@ -971,7 +970,7 @@ public class Service {
                     } else if (predicate.equals(EQ_PR)) {
                         countryPrV = EQ_PR;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(CITY)) {
@@ -984,7 +983,7 @@ public class Service {
                     } else if (predicate.equals(NULL_PR)) {
                         cityPrV = NULL_PR;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(BIRTH)) {
@@ -997,7 +996,7 @@ public class Service {
                     }  else if (predicate.equals(GT_PR)) {
                         birthPrV = GT_PR;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(INTERESTS)) {
@@ -1008,7 +1007,7 @@ public class Service {
                     } else if (predicate.equals(ANY_PR)) {
                         interestsPrV = ANY_PR;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(LIKES)) {
@@ -1016,7 +1015,7 @@ public class Service {
                     if (predicate.equals(CONTAINS_PR)) {
                         likesV = valueParam;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
                 if (param.startsWith(PREMIUM)) {
@@ -1027,13 +1026,13 @@ public class Service {
                     } else if (predicate.equals(NOW_PR)) {
                         premiumPrV = NOW_PR;
                     } else {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
 
                 if (param.startsWith(LIMIT)) {
                     if (!Character.isDigit(valueParam.charAt(0))) {
-                        return BAD_REQUEST;
+                        return ServerHandler.BAD_REQUEST_R;
                     } else {
                         limit = Integer.parseInt(valueParam);
                     }
@@ -1044,7 +1043,7 @@ public class Service {
             if (params.length == 2) {
                 for (Account account : Repository.list) {
                     if (accounts.size() == limit) {
-                        return new Result(Utils.accountToString(accounts
+                        return ServerHandler.createOK(Utils.accountToString(accounts
                                 ,sexPr
                                 ,fnamePr
                                 ,statusPr
@@ -1053,7 +1052,7 @@ public class Service {
                                 ,birthPr
                                 ,cityPr
                                 ,countryPr
-                                ,snamePr).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
+                                ,snamePr).getBytes(StandardCharsets.UTF_8));
                     } else {
                         accounts.add(account);
                     }
@@ -1063,7 +1062,7 @@ public class Service {
             String[] cityArr = null;
             String[] fnameArr = null;
             String[] interArr = null;
-            Integer[] likesArr = null;
+            //Integer[] likesArr = null;
             if (birthPr) {
                 year = Integer.parseInt(birthV);
             }
@@ -1080,13 +1079,13 @@ public class Service {
             if (interestsPr) {
                 interArr = Utils.tokenize(interestsV, delim);
             }
-            if (likesPr) {
+            /*if (likesPr) {
                 String[] likesArrStr = Utils.tokenize(likesV, delim);
                 likesArr = new Integer[likesArrStr.length];
                 for (int i = 0; i < likesArrStr.length; i++) {
                     likesArr[i] = Integer.parseInt(likesArrStr[i]);
                 }
-            }
+            }*/
 
 
             Set<Account> listForSearch = getIndexForFilter(interArr,interestsPrV
@@ -1102,13 +1101,11 @@ public class Service {
                     ,emailPr,emailPrV,emailV
                     ,cityArr,fnameArr
             );
-            if (listForSearch == null) {
-                return OK_EMPTY_ACCOUNTS;
+            if (listForSearch == null || listForSearch.equals(Repository.list)) {
+                return ServerHandler.OK_EMPTY_R;
             }
-            if (count.get() > 200) {
-                if (likesPr) {
-                    return OK_EMPTY_ACCOUNTS;
-                }
+            if (likesPr) {
+                return ServerHandler.OK_EMPTY_R;
             }
             /*if (listForSearch.equals(Repository.list)) {
                 System.out.println(uri);
@@ -1357,8 +1354,8 @@ public class Service {
                 }
                 //INTERESTS ============================================
 
-                //LIKES ============================================
-                    if (likesPr) {
+                /*
+                   if (likesPr) {
                         if (account.getLikesArr() != null) {
                             if (likesArr.length <= account.getLikesArr().size()) {
                                 enableProp.add(LIKES);
@@ -1370,8 +1367,7 @@ public class Service {
                                 }
                             }
                         }
-                    }
-                //LIKES ============================================
+                    }*/
 
                 enableProp.add(QUERY_ID);
                 enableProp.add(LIMIT);
@@ -1384,9 +1380,9 @@ public class Service {
                 enableProp.clear();
             }
             if (accounts.size() == 0) {
-                return OK_EMPTY_ACCOUNTS;
+                return ServerHandler.OK_EMPTY_R;
             }
-            return new Result(Utils.accountToString(accounts
+            return ServerHandler.createOK(Utils.accountToString(accounts
                     ,sexPr
                     ,fnamePr
                     ,statusPr
@@ -1395,7 +1391,7 @@ public class Service {
                     ,birthPr
                     ,cityPr
                     ,countryPr
-                    ,snamePr).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
+                    ,snamePr).getBytes(StandardCharsets.UTF_8));
         } finally {
             lock.readLock().unlock();
         }

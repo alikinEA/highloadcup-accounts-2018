@@ -39,18 +39,6 @@ public class Repository {
 
             };
 
-    private static final List<String> availableNames =
-            Arrays.asList("accounts_130.json","accounts_129.json","accounts_128.json"
-                    ,"accounts_127.json","accounts_126.json","accounts_125.json"
-                    ,"accounts_124.json","accounts_123.json","accounts_122.json"
-                    ,"accounts_121.json" ,"accounts_121.json" ,"accounts_121.json"
-            );
-    private static final List<String> availableNamesTest =
-            Arrays.asList("accounts_1.json"
-                    ,"accounts_2.json"
-                    ,"accounts_3.json"
-
-            );
     private static final int elementCount = 1300_000  + 21_600;
 
     static final Object PRESENT = new Object();
@@ -122,14 +110,14 @@ public class Repository {
                 ZipFile zipFile = new ZipFile(dataPath + "data.zip");
                 FileHeader fileHeader = zipFile.getFileHeader("accounts_" + i + ".json");
                 if (fileHeader.getFileName().contains("accounts")) {
-                    ///System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
+                    System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
                     try (InputStream inputStream = zipFile.getInputStream(fileHeader)) {
                         List<Any> json = JsonIterator.deserialize(Utils.readBytes(inputStream)).get("accounts").asList();
                         for (Any accountAny : json) {
                             Account account = Utils.anyToAccount(accountAny,false);
                             emails.put(account.getEmail(),PRESENT);
-                            if ((isRait && availableNames.contains(fileHeader.getFileName()))
-                                    || (!isRait && availableNamesTest.contains(fileHeader.getFileName()))) {
+                            if ((isRait && i > 60)
+                                    || (!isRait && i > 0)) {
                                 list.add(account);
                                 ids[account.getId()] = account;
                             } else {
@@ -158,7 +146,7 @@ public class Repository {
 
             System.out.println("warm up start = " + (new Date().getTime() - start));
             if (isRait) {
-                for (int i = 0; i < 50_000; i++) {
+                for (int i = 0; i < 100; i++) {
                     Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
                 }
             } else {

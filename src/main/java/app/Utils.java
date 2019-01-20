@@ -138,7 +138,7 @@ public class Utils {
                 }
                 if (key.equals(Service.LIKES)) {
                     List<Any> listLike = accountAny.get(Service.LIKES).asList();
-                    Set<Integer> list = new HashSet<>(listLike.size());
+                    //Set<Integer> list = new HashSet<>(listLike.size());
                     for (Any anyLike : listLike) {
                         if (!ValueType.NUMBER.equals(anyLike.get(Service.TS).valueType())) {
                             return null;
@@ -146,11 +146,9 @@ public class Utils {
                         Any any = anyLike.get(Service.ID);
                         if (!ValueType.NUMBER.equals(any.valueType())) {
                             return null;
-                        } else {
-                            list.add(any.toInt());
                         }
                     }
-                    account.setLikesArr(list);
+                    //account.setLikesArr(list);
                 }
 
                 if (key.equals(Service.PREMIUM)) {
@@ -171,7 +169,7 @@ public class Utils {
                 }
 
                 if (key.equals(Service.EMAIL)) {
-                    account.setEmail(accountAny.get(Service.EMAIL).toString());
+                    account.setEmail(accountAny.get(Service.EMAIL).toString().intern());
                 }
 
                 if (key.equals(Service.CITY)) {
@@ -184,7 +182,7 @@ public class Utils {
                     account.setSname(accountAny.get(Service.SNAME).toString().intern());
                 }
                 if (key.equals(Service.PHONE)) {
-                    account.setPhone(accountAny.get(Service.PHONE).toString());
+                    account.setPhone(accountAny.get(Service.PHONE).toString().intern());
                 }
                 if (key.equals(Service.FNAME)) {
                     account.setFname(accountAny.get(Service.FNAME).toString().intern());
