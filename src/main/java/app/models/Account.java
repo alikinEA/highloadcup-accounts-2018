@@ -17,12 +17,12 @@ public class Account implements Comparable<Account>{
     private String email;
     private String sex;
     private String fname;
-    private List<String> interests;
+    private Set<String> interests;
     private String status;
     private int start;
     private int finish;
     private String phone;
-    //private Set<Integer> likesArr;
+    private Set<Integer> likesArr;
     private int birth;
     private String city;
     private String country;

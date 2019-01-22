@@ -735,6 +735,9 @@ public class Service {
         try {
             int countCur = count.incrementAndGet();
             if (countCur == 200) {
+                for (Account account : list) {
+                    account.setLikesArr(null);
+                }
                 System.gc();
                 Server.printCurrentMemoryUsage();
                 System.out.println("GC run (perhaps)");
@@ -1063,7 +1066,7 @@ public class Service {
             String[] cityArr = null;
             String[] fnameArr = null;
             String[] interArr = null;
-            //Integer[] likesArr = null;
+            Integer[] likesArr = null;
             if (birthPr) {
                 year = Integer.parseInt(birthV);
             }
@@ -1080,13 +1083,13 @@ public class Service {
             if (interestsPr) {
                 interArr = Utils.tokenize(interestsV, delim);
             }
-            /*if (likesPr) {
+            if (likesPr) {
                 String[] likesArrStr = Utils.tokenize(likesV, delim);
                 likesArr = new Integer[likesArrStr.length];
                 for (int i = 0; i < likesArrStr.length; i++) {
                     likesArr[i] = Integer.parseInt(likesArrStr[i]);
                 }
-            }*/
+            }
 
 
             Set<Account> listForSearch = getIndexForFilter(interArr,interestsPrV
@@ -1106,7 +1109,9 @@ public class Service {
                 return ServerHandler.OK_EMPTY_R;
             }
             if (likesPr) {
-                return ServerHandler.OK_EMPTY_R;
+                if (count.get() > 200) {
+                    return ServerHandler.OK_EMPTY_R;
+                }
             }
             /*if (listForSearch.equals(Repository.list)) {
                 System.out.println(uri);
@@ -1355,7 +1360,6 @@ public class Service {
                 }
                 //INTERESTS ============================================
 
-                /*
                    if (likesPr) {
                         if (account.getLikesArr() != null) {
                             if (likesArr.length <= account.getLikesArr().size()) {
@@ -1368,7 +1372,7 @@ public class Service {
                                 }
                             }
                         }
-                    }*/
+                    }
 
                 enableProp.add(QUERY_ID);
                 enableProp.add(LIMIT);

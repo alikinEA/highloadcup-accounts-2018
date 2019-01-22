@@ -130,7 +130,7 @@ public class Utils {
                 }
                 if (key.equals(Service.INTERESTS)) {
                     List<Any> listInter = accountAny.get(Service.INTERESTS).asList();
-                    List<String> list = new LinkedList<>();
+                    Set<String> list = new HashSet<>();
                     for (Any anyInter : listInter) {
                         list.add(anyInter.toString().intern());
                     }
@@ -138,7 +138,7 @@ public class Utils {
                 }
                 if (key.equals(Service.LIKES)) {
                     List<Any> listLike = accountAny.get(Service.LIKES).asList();
-                    //Set<Integer> list = new HashSet<>(listLike.size());
+                    Set<Integer> list = new HashSet<>(listLike.size());
                     for (Any anyLike : listLike) {
                         if (!ValueType.NUMBER.equals(anyLike.get(Service.TS).valueType())) {
                             return null;
@@ -147,8 +147,9 @@ public class Utils {
                         if (!ValueType.NUMBER.equals(any.valueType())) {
                             return null;
                         }
+                        list.add(any.toInt());
                     }
-                    //account.setLikesArr(list);
+                    account.setLikesArr(list);
                 }
 
                 if (key.equals(Service.PREMIUM)) {

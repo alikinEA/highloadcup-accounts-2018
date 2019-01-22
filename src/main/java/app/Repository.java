@@ -116,8 +116,7 @@ public class Repository {
                         for (Any accountAny : json) {
                             Account account = Utils.anyToAccount(accountAny,false);
                             emails.put(account.getEmail(),PRESENT);
-                            if ((isRait && i > 60)
-                                    || (!isRait && i > 0)) {
+                            if (!isRait || i > 130 - 21) {
                                 list.add(account);
                                 ids[account.getId()] = account;
                             } else {
