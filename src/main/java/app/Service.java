@@ -1117,14 +1117,12 @@ public class Service {
                 System.out.println(uri);
                 System.out.println(badIndexCount.incrementAndGet());
             }*/
-            List<String> enableProp = threadLocalEnableProp.get();
 
             for (Account account : listForSearch) {
-
                 //SEX ============================================
                 if (sexPr) {
-                    if (account.getSex().equals(sexV)) {
-                        enableProp.add(SEX);
+                    if (!account.getSex().equals(sexV)) {
+                        continue;
                     }
                 }
                 //SEX ============================================
@@ -1132,16 +1130,16 @@ public class Service {
                 //EMAIL ============================================
                 if (emailPr) {
                     if (emailPrV == DOMAIN_PR) {
-                        if (account.getEmail().contains(emailV)) {
-                            enableProp.add(EMAIL);
+                        if (!account.getEmail().contains(emailV)) {
+                            continue;
                         }
                     } else if (emailPrV == LT_PR) {
-                        if (account.getEmail().compareTo(emailV) < 0) {
-                            enableProp.add(EMAIL);
+                        if (account.getEmail().compareTo(emailV) > 0) {
+                            continue;
                         }
                     } else if (emailPrV == GT_PR) {
-                        if (account.getEmail().compareTo(emailV) > 0) {
-                            enableProp.add(EMAIL);
+                        if (account.getEmail().compareTo(emailV) < 0) {
+                            continue;
                         }
                     }
                 }
@@ -1150,12 +1148,12 @@ public class Service {
                 //STATUS ============================================
                 if (statusPr) {
                     if (statusPrV == EQ_PR) {
-                        if (account.getStatus().equals(statusV)) {
-                            enableProp.add(STATUS);
+                        if (!account.getStatus().equals(statusV)) {
+                            continue;
                         }
                     } else if (statusPrV == NEQ_PR) {
-                        if (!account.getStatus().equals(statusV)) {
-                            enableProp.add(STATUS);
+                        if (account.getStatus().equals(statusV)) {
+                            continue;
                         }
                     }
                 }
@@ -1165,24 +1163,27 @@ public class Service {
                 //SNAME ============================================
                 if (snamePr) {
                     if (snamePrV == EQ_PR) {
-                        if (snameV.equals(account.getSname())) {
-                            enableProp.add(SNAME);
+                        if (!snameV.equals(account.getSname())) {
+                            continue;
                         }
                     } else if (snamePrV == NULL_PR) {
                         if (snameV.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getSname() == null) {
-                                enableProp.add(SNAME);
+                            if (account.getSname() != null) {
+                                continue;
                             }
                         } else {
-                            if (account.getSname() != null) {
-                                enableProp.add(SNAME);
+                            if (account.getSname() == null) {
+                                continue;
                             }
                         }
                     } else if (snamePrV == STARTS_PR) {
-                        if (account.getSname() != null)
-                            if (account.getSname().startsWith(snameV)) {
-                                enableProp.add(SNAME);
+                        if (account.getSname() != null) {
+                            if (!account.getSname().startsWith(snameV)) {
+                                continue;
                             }
+                        } else {
+                            continue;
+                        }
                     }
                 }
                 //SNAME ============================================
@@ -1192,21 +1193,23 @@ public class Service {
 
                     if (phonePrV == CODE_PR) {
                         if (account.getPhone() != null) {
-                            if (account.getPhone()
+                            if (!account.getPhone()
                                     .substring(account.getPhone().indexOf("(") + 1
                                             , account.getPhone().indexOf(")"))
                                     .equals(phoneV)) {
-                                enableProp.add(PHONE);
+                                continue;
                             }
+                        } else {
+                            continue;
                         }
                     } else if (phonePrV == NULL_PR) {
                         if (phoneV.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getPhone() == null) {
-                                enableProp.add(PHONE);
+                            if (account.getPhone() != null) {
+                                continue;
                             }
                         } else {
-                            if (account.getPhone() != null) {
-                                enableProp.add(PHONE);
+                            if (account.getPhone() == null) {
+                                continue;
                             }
                         }
                     }
@@ -1217,17 +1220,17 @@ public class Service {
                 //COUNTRY ============================================
                 if (countryPr) {
                     if (countryPrV == EQ_PR) {
-                        if (countryV.equals(account.getCountry())) {
-                            enableProp.add(COUNTRY);
+                        if (!countryV.equals(account.getCountry())) {
+                            continue;
                         }
                     } else if (countryPrV == NULL_PR) {
                         if (countryV.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getCountry() == null) {
-                                enableProp.add(COUNTRY);
+                            if (account.getCountry() != null) {
+                                continue;
                             }
                         } else {
-                            if (account.getCountry() != null) {
-                                enableProp.add(COUNTRY);
+                            if (account.getCountry() == null) {
+                                continue;
                             }
                         }
                     }
@@ -1241,17 +1244,20 @@ public class Service {
                         if (account.getStart() != 0) {
                             if (currentTimeStamp2 < account.getFinish()
                                     && currentTimeStamp2 > account.getStart()) {
-                                enableProp.add(PREMIUM);
+                            } else {
+                                continue;
                             }
+                        } else {
+                            continue;
                         }
                     } else if (premiumPrV == NULL_PR) {
                         if (premiumV.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getStart() == 0) {
-                                enableProp.add(PREMIUM);
+                            if (account.getStart() != 0) {
+                                continue;
                             }
                         } else {
-                            if (account.getStart() != 0) {
-                                enableProp.add(PREMIUM);
+                            if (account.getStart() == 0) {
+                                continue;
                             }
                         }
                     }
@@ -1262,16 +1268,16 @@ public class Service {
                     if (birthPrV == YEAR_PR) {
                         Calendar calendar = Repository.threadLocalCalendar.get();
                         calendar.setTimeInMillis((long) account.getBirth() * 1000);
-                        if (year == calendar.get(Calendar.YEAR)) {
-                            enableProp.add(BIRTH);
+                        if (year != calendar.get(Calendar.YEAR)) {
+                            continue;
                         }
                     } else if (birthPrV == LT_PR) {
-                        if (account.getBirth() < year) {
-                            enableProp.add(BIRTH);
+                        if (account.getBirth() > year) {
+                            continue;
                         }
                     } else if (birthPrV == GT_PR) {
-                        if (account.getBirth() > year) {
-                            enableProp.add(BIRTH);
+                        if (account.getBirth() < year) {
+                            continue;
                         }
                     }
                 }
@@ -1281,24 +1287,28 @@ public class Service {
                 if (cityPr) {
 
                     if (cityPrV == EQ_PR) {
-                        if (cityV.equals(account.getCity())) {
-                            enableProp.add(CITY);
+                        if (!cityV.equals(account.getCity())) {
+                            continue;
                         }
                     } else if (cityPrV == ANY_PR) {
+                        boolean isValid = false;
                         for (String value : cityArr) {
                             if (value.equals(account.getCity())) {
-                                enableProp.add(CITY);
+                                isValid = true;
                                 break;
                             }
                         }
+                        if (!isValid) {
+                            continue;
+                        }
                     } else if (cityPrV == NULL_PR) {
                         if (cityV.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getCity() == null) {
-                                enableProp.add(CITY);
+                            if (account.getCity() != null) {
+                                continue;
                             }
                         } else {
-                            if (account.getCity() != null) {
-                                enableProp.add(CITY);
+                            if (account.getCity() == null) {
+                                continue;
                             }
                         }
                     }
@@ -1310,24 +1320,28 @@ public class Service {
                 if (fnamePr) {
 
                     if (fnamePrV == EQ_PR) {
-                        if (fnameV.equals(account.getFname())) {
-                            enableProp.add(FNAME);
+                        if (!fnameV.equals(account.getFname())) {
+                            continue;
                         }
                     } else if (fnamePrV == ANY_PR) {
+                        boolean isValid = false;
                         for (String value : fnameArr) {
                             if (value.equals(account.getFname())) {
-                                enableProp.add(FNAME);
+                                isValid = true;
                                 break;
                             }
                         }
+                        if (!isValid) {
+                            continue;
+                        }
                     } else if (fnamePrV == NULL_PR) {
                         if (fnameV.equals(NULL_PR_VAL_ONE)) {
-                            if (account.getFname() == null) {
-                                enableProp.add(FNAME);
+                            if (account.getFname() != null) {
+                                continue;
                             }
                         } else {
-                            if (account.getFname() != null) {
-                                enableProp.add(FNAME);
+                            if (account.getFname() == null) {
+                                continue;
                             }
                         }
                     }
@@ -1338,24 +1352,35 @@ public class Service {
                 if (interestsPr) {
                     if (account.getInterests() != null) {
                         if (interestsPrV == ANY_PR) {
+                            boolean isValid = false;
                             for (String value : interArr) {
                                 if (account.getInterests().contains(value)) {
-                                    enableProp.add(INTERESTS);
+                                    isValid = true;
                                     break;
                                 }
                             }
+                            if (!isValid) {
+                                continue;
+                            }
                         } else if (interestsPrV == CONTAINS_PR) {
                             if (interArr.length <= account.getInterests().size()) {
-                                enableProp.add(INTERESTS);
+                                boolean isValid = true;
                                 for (String value : interArr) {
                                     if (!account.getInterests().contains(value)) {
-                                        enableProp.remove(INTERESTS);
+                                        isValid = false;
                                         break;
                                     }
                                 }
+                                if (!isValid) {
+                                    continue;
+                                }
+                            } else {
+                                continue;
                             }
                         }
 
+                    } else {
+                        continue;
                     }
                 }
                 //INTERESTS ============================================
@@ -1363,26 +1388,28 @@ public class Service {
                    if (likesPr) {
                         if (account.getLikesArr() != null) {
                             if (likesArr.length <= account.getLikesArr().size()) {
-                                enableProp.add(LIKES);
+                                boolean isValid = true;
                                 for (Integer value : likesArr) {
                                     if (!account.getLikesArr().contains(value)) {
-                                        enableProp.remove(LIKES);
+                                        isValid = false;
                                         break;
                                     }
                                 }
+                                if (!isValid) {
+                                    continue;
+                                }
+                            } else {
+                                continue;
                             }
+                        } else {
+                            continue;
                         }
                     }
 
-                enableProp.add(QUERY_ID);
-                enableProp.add(LIMIT);
-                if (compareArrays(params, enableProp)) {
-                    accounts.add(account);
-                }
+                accounts.add(account);
                 if (accounts.size() == limit) {
                     break;
                 }
-                enableProp.clear();
             }
             if (accounts.size() == 0) {
                 return ServerHandler.OK_EMPTY_R;
