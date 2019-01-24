@@ -22,7 +22,7 @@ public class Account implements Comparable<Account>{
     private int start;
     private int finish;
     private String phone;
-    private Set<Integer> likesArr;
+    //private Set<Integer> likesArr;
     private int birth;
     private String city;
     private String country;

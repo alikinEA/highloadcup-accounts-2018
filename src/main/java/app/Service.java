@@ -85,8 +85,8 @@ public class Service {
     private static final String utf8 = "UTF-8";
     private static final char delim = ',';
 
-    private static final AtomicInteger count = new AtomicInteger(0);
-    //private static final AtomicInteger badIndexCount = new AtomicInteger(0);
+   // private static final AtomicInteger count = new AtomicInteger(0);
+    private static final AtomicInteger badIndexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -152,43 +152,55 @@ public class Service {
     }
 
     private static DefaultFullHttpResponse handleUpdate(FullHttpRequest req) {
-        lock.writeLock().lock();
+        String curId = req.uri().substring(10, req.uri().lastIndexOf("/?"));
+        if (!Character.isDigit(curId.charAt(0))) {
+            return ServerHandler.NOT_FOUND_R;
+        }
+        boolean isNull ;
+        lock.readLock().lock();
         try {
-            String curId = req.uri().substring(10, req.uri().lastIndexOf("/?"));
-            if (!Character.isDigit(curId.charAt(0))) {
-                return ServerHandler.NOT_FOUND_R;
+            isNull = Repository.ids[Integer.parseInt(curId)] != null;
+        } finally {
+            lock.readLock().unlock();
+        }
+
+        if (isNull) {
+            Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)),true);
+            if (account == null) {
+                return ServerHandler.BAD_REQUEST_R;
             }
-            if (Repository.ids[Integer.parseInt(curId)] != null) {
-                Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)),true);
-                if (account == null) {
+            if (account.getSex() != null) {
+                if (!account.getSex().equals(F)
+                        && !account.getSex().equals(M)) {
                     return ServerHandler.BAD_REQUEST_R;
                 }
-                if (account.getSex() != null) {
-                    if (!account.getSex().equals(F)
-                            && !account.getSex().equals(M)) {
-                        return ServerHandler.BAD_REQUEST_R;
-                    }
+            }
+            if (account.getStatus() != null) {
+                if (!account.getStatus().equals(STATUS1)
+                        && !account.getStatus().equals(STATUS2)
+                        && !account.getStatus().equals(STATUS3)) {
+                    return ServerHandler.BAD_REQUEST_R;
                 }
-                if (account.getStatus() != null) {
-                    if (!account.getStatus().equals(STATUS1)
-                            && !account.getStatus().equals(STATUS2)
-                            && !account.getStatus().equals(STATUS3)) {
-                        return ServerHandler.BAD_REQUEST_R;
-                    }
-                }
-                if (account.getEmail() != null) {
+            }
+            lock.readLock().lock();
+            Account accountData = null;
+            try {
+            if (account.getEmail() != null) {
                     if (!account.getEmail().contains("@")) {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                     if (Repository.emails.containsKey(account.getEmail())) {
-                        return ServerHandler.BAD_REQUEST_R;
+                      return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                Account accountData = Repository.ids[Integer.parseInt(curId)];
-                if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
-                    /*if (account.getLikes() != null) {
-                        accountData.setLikes(account.getLikes());
-                    }*/
+                accountData = Repository.ids[Integer.parseInt(curId)];
+            } finally {
+                lock.readLock().unlock();
+            }
+
+            if (accountData != null && !accountData.equals(Repository.PRESENT_AC)) {
+                lock.writeLock().lock();
+                try {
                     if (account.getEmail() != null) {
                         Repository.emails.remove(accountData.getEmail());
                         Repository.emails.put(account.getEmail(), Repository.PRESENT);
@@ -207,35 +219,27 @@ public class Service {
                     }
                     if (account.getSex() != null) {
                         if (accountData.getSex().equals(F) && account.getSex().equals(M)) {
-                            Repository.list_f.remove(accountData);
                             Repository.list_m.add(accountData);
                             if (accountData.getStatus().equals(STATUS1)) {
-                                Repository.list_status_1_f.remove(accountData);
                                 Repository.list_status_1_m.add(accountData);
                             }
                             if (accountData.getStatus().equals(STATUS2)) {
-                                Repository.list_status_2_f.remove(accountData);
                                 Repository.list_status_2_m.add(accountData);
                             }
                             if (accountData.getStatus().equals(STATUS3)) {
-                                Repository.list_status_3_f.remove(accountData);
                                 Repository.list_status_3_m.add(accountData);
                             }
                         }
                         if (accountData.getSex().equals(M) && account.getSex().equals(F)) {
-                            Repository.list_m.remove(accountData);
                             Repository.list_f.add(accountData);
 
                             if (accountData.getStatus().equals(STATUS1)) {
-                                Repository.list_status_1_m.remove(accountData);
                                 Repository.list_status_1_f.add(accountData);
                             }
                             if (accountData.getStatus().equals(STATUS2)) {
-                                Repository.list_status_2_m.remove(accountData);
                                 Repository.list_status_2_f.add(accountData);
                             }
                             if (accountData.getStatus().equals(STATUS3)) {
-                                Repository.list_status_3_m.remove(accountData);
                                 Repository.list_status_3_f.add(accountData);
                             }
                         }
@@ -263,26 +267,6 @@ public class Service {
                         }
                     }
                     if (account.getStatus() != null) {
-                        if (accountData.getStatus().equals(STATUS1)) {
-                            if (accountData.getSex().equals(F)) {
-                                Repository.list_status_1_f.remove(accountData);
-                            } else {
-                                Repository.list_status_1_m.remove(accountData);
-                            }
-                        } else if (accountData.getStatus().equals(STATUS2)) {
-                            if (accountData.getSex().equals(F)) {
-                                Repository.list_status_2_f.remove(accountData);
-                            } else {
-                                Repository.list_status_2_m.remove(accountData);
-                            }
-                        } else {
-                            if (accountData.getSex().equals(F)) {
-                                Repository.list_status_3_f.remove(accountData);
-                            } else {
-                                Repository.list_status_3_m.remove(accountData);
-                            }
-                        }
-
                         accountData.setStatus(account.getStatus());
                         if (accountData.getStatus().equals(Service.STATUS1)) {
                             Repository.list_status_1.add(accountData);
@@ -446,16 +430,18 @@ public class Service {
                             }
                         }
                     }
-                } else {
-                    return ServerHandler.ACCEPTED_R;
+
+                } finally {
+                    lock.writeLock().unlock();
                 }
-                return ServerHandler.ACCEPTED_R;
             } else {
-                return ServerHandler.NOT_FOUND_R;
+                return ServerHandler.ACCEPTED_R;
             }
-        } finally {
-            lock.writeLock().unlock();
+            return ServerHandler.ACCEPTED_R;
+        } else {
+            return ServerHandler.NOT_FOUND_R;
         }
+
     }
 
     private static DefaultFullHttpResponse handleRecomended(FullHttpRequest req) {
@@ -731,17 +717,8 @@ public class Service {
     }
 
     private static DefaultFullHttpResponse handleLikes(FullHttpRequest req) {
-        lock.writeLock().lock();
+        lock.readLock().lock();
         try {
-            int countCur = count.incrementAndGet();
-            if (countCur == 200) {
-                for (Account account : list) {
-                    account.setLikesArr(null);
-                }
-                System.gc();
-                Server.printCurrentMemoryUsage();
-                System.out.println("GC run (perhaps)");
-            }
             try {
                 boolean isValid = Utils.validateLikes(req.content().toString(StandardCharsets.UTF_8));
                 if (!isValid) {
@@ -752,55 +729,69 @@ public class Service {
                 return ServerHandler.BAD_REQUEST_R;
             }
         }finally {
-            lock.writeLock().unlock();
+            lock.readLock().unlock();
         }
     }
 
     private static DefaultFullHttpResponse handleNew(FullHttpRequest req) {
-        lock.writeLock().lock();
+        Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)),false);
+        if (account == null) {
+            return ServerHandler.BAD_REQUEST_R;
+        }
+        lock.readLock().lock();
         try {
-            Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)),false);
-            if (account == null) {
-                return ServerHandler.BAD_REQUEST_R;
-            }
             if (Repository.ids[account.getId()] != null) {
                 return ServerHandler.BAD_REQUEST_R;
             }
-            if (account.getSex() != null) {
-                if (!account.getSex().equals(F)
-                        && !account.getSex().equals(M)) {
-                    return ServerHandler.BAD_REQUEST_R;
-                }
-            } else {
+        } finally {
+            lock.readLock().unlock();
+        }
+        if (account.getSex() != null) {
+            if (!account.getSex().equals(F)
+                    && !account.getSex().equals(M)) {
                 return ServerHandler.BAD_REQUEST_R;
             }
-            if (account.getStatus() != null) {
-                if (!account.getStatus().equals(STATUS1)
-                        && !account.getStatus().equals(STATUS2)
-                        && !account.getStatus().equals(STATUS3)) {
-                    return ServerHandler.BAD_REQUEST_R;
-                }
-            } else {
+        } else {
+            return ServerHandler.BAD_REQUEST_R;
+        }
+        if (account.getStatus() != null) {
+            if (!account.getStatus().equals(STATUS1)
+                    && !account.getStatus().equals(STATUS2)
+                    && !account.getStatus().equals(STATUS3)) {
                 return ServerHandler.BAD_REQUEST_R;
             }
-            if (account.getEmail() != null) {
-                if (!account.getEmail().contains("@")) {
-                    return ServerHandler.BAD_REQUEST_R;
-                }
-                if (Repository.emails.containsKey(account.getEmail())) {
-                    return ServerHandler.BAD_REQUEST_R;
-                } else {
+        } else {
+            return ServerHandler.BAD_REQUEST_R;
+        }
+        if (account.getEmail() != null) {
+            if (!account.getEmail().contains("@")) {
+                return ServerHandler.BAD_REQUEST_R;
+            }
+            boolean contains;
+            lock.readLock().lock();
+            try {
+                contains = Repository.emails.containsKey(account.getEmail());
+            } finally {
+                lock.readLock().unlock();
+            }
+
+            if (contains) {
+                return ServerHandler.BAD_REQUEST_R;
+            } else {
+                lock.writeLock().lock();
+                try {
                     Repository.list.add(account);
                     Repository.ids[account.getId()] = account;
                     Repository.emails.put(account.getEmail(), Repository.PRESENT);
                     Repository.insertToIndex(account);
                     return ServerHandler.CREATED_R;
+                } finally {
+                    lock.writeLock().unlock();
                 }
+
             }
-            return ServerHandler.CREATED_R;
-        } finally {
-            lock.writeLock().unlock();
         }
+        return ServerHandler.CREATED_R;
     }
 
 
@@ -1066,7 +1057,7 @@ public class Service {
             String[] cityArr = null;
             String[] fnameArr = null;
             String[] interArr = null;
-            Integer[] likesArr = null;
+            //Integer[] likesArr = null;
             if (birthPr) {
                 year = Integer.parseInt(birthV);
             }
@@ -1083,13 +1074,13 @@ public class Service {
             if (interestsPr) {
                 interArr = Utils.tokenize(interestsV, delim);
             }
-            if (likesPr) {
+            /*if (likesPr) {
                 String[] likesArrStr = Utils.tokenize(likesV, delim);
                 likesArr = new Integer[likesArrStr.length];
                 for (int i = 0; i < likesArrStr.length; i++) {
                     likesArr[i] = Integer.parseInt(likesArrStr[i]);
                 }
-            }
+            }*/
 
 
             Set<Account> listForSearch = getIndexForFilter(interArr,interestsPrV
@@ -1109,14 +1100,12 @@ public class Service {
                 return ServerHandler.OK_EMPTY_R;
             }
             if (likesPr) {
-                if (count.get() > 200) {
-                    return ServerHandler.OK_EMPTY_R;
-                }
+                return ServerHandler.OK_EMPTY_R;
             }
-            /*if (listForSearch.equals(Repository.list)) {
+            if (listForSearch.equals(Repository.list)) {
                 System.out.println(uri);
                 System.out.println(badIndexCount.incrementAndGet());
-            }*/
+            }
 
             for (Account account : listForSearch) {
                 //SEX ============================================
@@ -1385,7 +1374,7 @@ public class Service {
                 }
                 //INTERESTS ============================================
 
-                   if (likesPr) {
+                   /*if (likesPr) {
                         if (account.getLikesArr() != null) {
                             if (likesArr.length <= account.getLikesArr().size()) {
                                 boolean isValid = true;
@@ -1404,7 +1393,7 @@ public class Service {
                         } else {
                             continue;
                         }
-                    }
+                    }*/
 
                 accounts.add(account);
                 if (accounts.size() == limit) {

@@ -110,13 +110,13 @@ public class Repository {
                 ZipFile zipFile = new ZipFile(dataPath + "data.zip");
                 FileHeader fileHeader = zipFile.getFileHeader("accounts_" + i + ".json");
                 if (fileHeader.getFileName().contains("accounts")) {
-                    System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
+                   // System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
                     try (InputStream inputStream = zipFile.getInputStream(fileHeader)) {
                         List<Any> json = JsonIterator.deserialize(Utils.readBytes(inputStream)).get("accounts").asList();
                         for (Any accountAny : json) {
                             Account account = Utils.anyToAccount(accountAny,false);
                             emails.put(account.getEmail(),PRESENT);
-                            if (!isRait || i > 130 - 25) {
+                            if (!isRait || i > 130 - 31) {
                                 list.add(account);
                                 ids[account.getId()] = account;
                             } else {
