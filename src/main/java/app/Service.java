@@ -25,14 +25,6 @@ import static app.Repository.*;
  */
 public class Service {
 
-    private static final byte[] EMPTY = "{}".getBytes();
-    private static final byte[] EMPTY_ACCOUNTS = "{\"accounts\":[]}".getBytes();
-    private static final Result OK_EMPTY_ACCOUNTS = new Result(EMPTY_ACCOUNTS, HttpResponseStatus.OK);
-    private static final Result ACCEPTED = new Result(EMPTY, HttpResponseStatus.ACCEPTED);
-    private static final Result CREATED = new Result(EMPTY, HttpResponseStatus.CREATED);
-    private static final Result BAD_REQUEST = new Result(EMPTY, HttpResponseStatus.BAD_REQUEST);
-    private static final Result NOT_FOUND = new Result(EMPTY, HttpResponseStatus.NOT_FOUND);
-
 
     public static final String SEX = "sex";
     public static final String EMAIL = "email";
@@ -66,7 +58,7 @@ public class Service {
     private static final String YEAR_PR = "year";
     private static final String CONTAINS_PR = "contains";
     private static final String NOW_PR = "now";
-    private static final String NULL_PR_VAL_ONE = "1";
+    private static final char NULL_PR_VAL_ONE = '1';
 
     private static final String URI_FILTER = "/accounts/filter/?";
     private static final String URI_NEW = "/accounts/new/";
@@ -86,26 +78,9 @@ public class Service {
     private static final char delim = ',';
 
    // private static final AtomicInteger count = new AtomicInteger(0);
-    private static final AtomicInteger badIndexCount = new AtomicInteger(0);
+    //private static final AtomicInteger badIndexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
-
-    public static ThreadLocal<List<String>> threadLocalEnableProp =
-            new ThreadLocal<>() {
-                @Override
-                protected List<String> initialValue() {
-                    return new LinkedList<>();
-                }
-
-                @Override
-                public List<String> get() {
-                    List<String> b = super.get();
-                    b.clear();
-                    return b;
-                }
-            };
-
-
 
     public static ThreadLocal<List<Account>> threadLocalAccounts =
             new ThreadLocal<>() {
@@ -126,36 +101,61 @@ public class Service {
 
     public static DefaultFullHttpResponse handle(FullHttpRequest req) throws UnsupportedEncodingException {
         String uri = req.uri();
-        if (uri.startsWith(URI_FILTER)) {
-            return handleFilterv2(uri);
-        } else if (uri.startsWith(URI_NEW)) {
-            if (uri.substring(14).charAt(0) != '?') {
+        if (uri.charAt(10) == 'f' && uri.charAt(11) == 'i') {
+            if (uri.charAt(17) == '?') {
+                return handleFilterv2(uri);
+            } else {
+                return ServerHandler.NOT_FOUND_R;
+            }
+        } else if (uri.charAt(10) == 'n' && uri.charAt(11) == 'e') {
+            if (uri.charAt(14) != '?') {
                 return ServerHandler.NOT_FOUND_R;
             } else {
                 return handleNew(req);
             }
-        } else if (uri.startsWith(URI_LIKES)) {
-            if (uri.substring(16).charAt(0) != '?') {
+        } else if (uri.charAt(10) == 'l' && uri.charAt(11) == 'i') {
+            if (uri.charAt(16) != '?') {
                 return ServerHandler.NOT_FOUND_R;
             } else {
                 return handleLikes(req);
             }
-        } else if (uri.startsWith(URI_GROUP)) {
-            return handleGroup(req);
+        } else if (uri.charAt(10) == 'g' && uri.charAt(11) == 'r') {
+            if (uri.charAt(16) == '?') {
+                return handleGroup(req);
+            } else {
+                return ServerHandler.NOT_FOUND_R;
+            }
         } else if (uri.contains(URI_SUGGEST)) {
-            return handleSuggest(req);
+            int index = uri.indexOf(URI_SUGGEST) + 9;
+            if (uri.charAt(index) == '?') {
+                if (Character.isDigit(uri.charAt(10))) {
+                    return handleSuggest(req);
+                } else {
+                    return ServerHandler.NOT_FOUND_R;
+                }
+            } else {
+                return ServerHandler.NOT_FOUND_R;
+            }
         } else if (uri.contains(URI_RECOMENDED)) {
-            return handleRecomended(req);
+            if (Character.isDigit(uri.charAt(10))) {
+                return handleRecomended(req);
+            } else {
+                return ServerHandler.NOT_FOUND_R;
+            }
         } else {
-            return handleUpdate(req);
+            if (Character.isDigit(uri.charAt(10))) {
+                return handleUpdate(req);
+            } else {
+                return ServerHandler.NOT_FOUND_R;
+            }
         }
     }
 
     private static DefaultFullHttpResponse handleUpdate(FullHttpRequest req) {
-        String curId = req.uri().substring(10, req.uri().lastIndexOf("/?"));
-        if (!Character.isDigit(curId.charAt(0))) {
+        if (!Character.isDigit(req.uri().charAt(10))) {
             return ServerHandler.NOT_FOUND_R;
         }
+        String curId = req.uri().substring(10, req.uri().lastIndexOf("/?"));
         boolean isNull ;
         lock.readLock().lock();
         try {
@@ -183,7 +183,7 @@ public class Service {
                 }
             }
             lock.readLock().lock();
-            Account accountData = null;
+            Account accountData;
             try {
             if (account.getEmail() != null) {
                     if (!account.getEmail().contains("@")) {
@@ -450,9 +450,6 @@ public class Service {
 
             String replAcc = req.uri().substring(10);
             String id = replAcc.substring(0, replAcc.indexOf("/"));
-            if (!Character.isDigit(id.charAt(0))) {
-                return ServerHandler.NOT_FOUND_R;
-            }
 
             Account accountData = Repository.ids[Integer.parseInt(id)];
             if (accountData == null) {
@@ -621,9 +618,6 @@ public class Service {
         try {
             String replAcc = req.uri().substring(10);
             String id = replAcc.substring(0, replAcc.indexOf("/"));
-            if (!Character.isDigit(id.charAt(0))) {
-                return ServerHandler.NOT_FOUND_R;
-            }
 
             Account accountData = Repository.ids[Integer.parseInt(id)];
             if (accountData == null) {
@@ -656,6 +650,7 @@ public class Service {
                 return ServerHandler.OK_EMPTY_R;
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return ServerHandler.BAD_REQUEST_R;
         } finally {
             lock.readLock().unlock();
@@ -795,26 +790,6 @@ public class Service {
     }
 
 
-
-    private static boolean compareArrays(String[] params, List<String> enableProp) {
-        if (params.length != enableProp.size()) {
-            return false;
-        }
-        for (String key : enableProp) {
-            boolean isValid = false;
-            for (String param : params) {
-                if (param.startsWith(key)) {
-                    isValid = true;
-                    break;
-                }
-            }
-            if (!isValid) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private static String getValue(String param) throws UnsupportedEncodingException {
         if (param.startsWith(COUNTRY)
                 || param.startsWith(CITY)
@@ -887,7 +862,7 @@ public class Service {
             for (String param : params) {
                 String valueParam = getValue(param).intern();
                 String predicate = getPredicate(param).intern();
-                if (param.startsWith(SEX)) {
+                if (param.charAt(0) == 's' && param.charAt(1) == 'e') {
                     sexPr = true;
                     sexV = valueParam;
                     if (predicate.equals(EQ_PR)) {
@@ -896,7 +871,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(EMAIL)) {
+                if (param.charAt(0) == 'e') {
                     emailPr = true;
                     emailV = valueParam;
                     if (predicate.equals(DOMAIN_PR)) {
@@ -909,7 +884,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(STATUS)) {
+                if (param.charAt(0) == 's' && param.charAt(1) == 't') {
                     statusPr = true;
                     statusV = valueParam;
                     if (predicate.equals(EQ_PR)) {
@@ -920,7 +895,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(FNAME)) {
+                if (param.charAt(0) == 'f') {
                     fnamePr = true;
                     fnameV = valueParam;
                     if (predicate.equals(EQ_PR)) {
@@ -933,7 +908,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(SNAME)) {
+                if (param.charAt(0) == 's' && param.charAt(1) == 'n') {
                     snamePr = true;
                     snameV = valueParam;
                     if (predicate.equals(EQ_PR)) {
@@ -946,7 +921,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(PHONE)) {
+                if (param.charAt(0) == 'p' && param.charAt(1) == 'h') {
                     phonePr = true;
                     phoneV = valueParam;
                     if (predicate.equals(NULL_PR)) {
@@ -957,7 +932,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(COUNTRY)) {
+                if (param.charAt(0) == 'c' && param.charAt(1) == 'o') {
                     countryPr = true;
                     countryV = valueParam;
                     if (predicate.equals(NULL_PR)) {
@@ -968,7 +943,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(CITY)) {
+                if (param.charAt(0) == 'c' && param.charAt(1) == 'i') {
                     cityPr = true;
                     cityV = valueParam;
                     if (predicate.equals(EQ_PR)) {
@@ -981,7 +956,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(BIRTH)) {
+                if (param.charAt(0) == 'b') {
                     birthPr = true;
                     birthV = valueParam;
                     if (predicate.equals(YEAR_PR)) {
@@ -994,7 +969,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(INTERESTS)) {
+                if (param.charAt(0) == 'i') {
                     interestsPr = true;
                     interestsV = valueParam;
                     if (predicate.equals(CONTAINS_PR)) {
@@ -1005,7 +980,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(LIKES)) {
+                if (param.charAt(0) == 'l' && param.charAt(1) == 'i' && param.charAt(2) == 'k') {
                     likesPr = true;
                     if (predicate.equals(CONTAINS_PR)) {
                         likesV = valueParam;
@@ -1013,7 +988,7 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(PREMIUM)) {
+                if (param.charAt(0) == 'p' && param.charAt(1) == 'r') {
                     premiumPr = true;
                     premiumV = valueParam;
                     if (predicate.equals(NULL_PR)) {
@@ -1025,7 +1000,7 @@ public class Service {
                     }
                 }
 
-                if (param.startsWith(LIMIT)) {
+                if (param.charAt(0) == 'l' && param.charAt(1) == 'i' && param.charAt(2) == 'm') {
                     if (!Character.isDigit(valueParam.charAt(0))) {
                         return ServerHandler.BAD_REQUEST_R;
                     } else {
@@ -1102,10 +1077,10 @@ public class Service {
             if (likesPr) {
                 return ServerHandler.OK_EMPTY_R;
             }
-            if (listForSearch.equals(Repository.list)) {
+            /*if (listForSearch.equals(Repository.list)) {
                 System.out.println(uri);
                 System.out.println(badIndexCount.incrementAndGet());
-            }
+            }*/
 
             for (Account account : listForSearch) {
                 //SEX ============================================
@@ -1156,7 +1131,7 @@ public class Service {
                             continue;
                         }
                     } else if (snamePrV == NULL_PR) {
-                        if (snameV.equals(NULL_PR_VAL_ONE)) {
+                        if (snameV.charAt(0) == NULL_PR_VAL_ONE) {
                             if (account.getSname() != null) {
                                 continue;
                             }
@@ -1192,7 +1167,7 @@ public class Service {
                             continue;
                         }
                     } else if (phonePrV == NULL_PR) {
-                        if (phoneV.equals(NULL_PR_VAL_ONE)) {
+                        if (phoneV.charAt(0) == NULL_PR_VAL_ONE) {
                             if (account.getPhone() != null) {
                                 continue;
                             }
@@ -1213,7 +1188,7 @@ public class Service {
                             continue;
                         }
                     } else if (countryPrV == NULL_PR) {
-                        if (countryV.equals(NULL_PR_VAL_ONE)) {
+                        if (countryV.charAt(0) == NULL_PR_VAL_ONE) {
                             if (account.getCountry() != null) {
                                 continue;
                             }
@@ -1240,7 +1215,7 @@ public class Service {
                             continue;
                         }
                     } else if (premiumPrV == NULL_PR) {
-                        if (premiumV.equals(NULL_PR_VAL_ONE)) {
+                        if (premiumV.charAt(0) == NULL_PR_VAL_ONE) {
                             if (account.getStart() != 0) {
                                 continue;
                             }
@@ -1291,7 +1266,7 @@ public class Service {
                             continue;
                         }
                     } else if (cityPrV == NULL_PR) {
-                        if (cityV.equals(NULL_PR_VAL_ONE)) {
+                        if (cityV.charAt(0) == NULL_PR_VAL_ONE) {
                             if (account.getCity() != null) {
                                 continue;
                             }
@@ -1324,7 +1299,7 @@ public class Service {
                             continue;
                         }
                     } else if (fnamePrV == NULL_PR) {
-                        if (fnameV.equals(NULL_PR_VAL_ONE)) {
+                        if (fnameV.charAt(0) == NULL_PR_VAL_ONE) {
                             if (account.getFname() != null) {
                                 continue;
                             }
@@ -1447,7 +1422,7 @@ public class Service {
             if (phonePrV == CODE_PR) {
                 resultIndex = compareIndex(Repository.phone_code.get(phoneV), resultIndex);
             } else {
-                if (phoneV.equals(NULL_PR_VAL_ONE)) {
+                if (phoneV.charAt(0) == NULL_PR_VAL_ONE) {
                     resultIndex = compareIndex(Repository.phone_null, resultIndex);
                 } else {
                     resultIndex = compareIndex(Repository.phone_not_null, resultIndex);
@@ -1457,7 +1432,7 @@ public class Service {
 
         if (snamePr) {
             if (snamePrV == NULL_PR) {
-                if (snameV.equals(NULL_PR_VAL_ONE)) {
+                if (snameV.charAt(0) == NULL_PR_VAL_ONE) {
                     resultIndex = compareIndex(Repository.sname.get(null),resultIndex);
                 } else {
                     resultIndex = compareIndex(Repository.sname_not_null,resultIndex);
@@ -1478,20 +1453,20 @@ public class Service {
                 if (Service.F.equals(sexV)) {
                     if (cityPrV == EQ_PR) {
                         resultIndex = compareIndex(Repository.city.get(cityV + "_f"), resultIndex);
-                    } else if (cityPrV == NULL_PR && cityV.equals(NULL_PR_VAL_ONE)) {
+                    } else if (cityPrV == NULL_PR && cityV.charAt(0) == NULL_PR_VAL_ONE) {
                         resultIndex = compareIndex(Repository.city.get("null_f"), resultIndex);
                     }
                 }
                 if (Service.M.equals(sexV)) {
                     if (cityPrV == EQ_PR) {
                         resultIndex = compareIndex(Repository.city.get(cityV + "_m"), resultIndex);
-                    } else if (cityPrV == NULL_PR && cityV.equals(NULL_PR_VAL_ONE)) {
+                    } else if (cityPrV == NULL_PR && cityV.charAt(0) == NULL_PR_VAL_ONE) {
                         resultIndex = compareIndex(Repository.city.get("null_m"), resultIndex);
                     }
                 }
 
                 if (cityPrV == NULL_PR) {
-                    if (cityV.equals(NULL_PR_VAL_ONE)) {
+                    if (cityV.charAt(0) == NULL_PR_VAL_ONE) {
                         resultIndex = compareIndex(Repository.city.get(null), resultIndex);
                     } else {
                         resultIndex = compareIndex(Repository.city_not_null, resultIndex);
@@ -1505,7 +1480,7 @@ public class Service {
 
         if (fnamePr) {
             if (fnamePrV == NULL_PR) {
-                if (fnameV.equals(NULL_PR_VAL_ONE)) {
+                if (fnameV.charAt(0) == NULL_PR_VAL_ONE) {
                     resultIndex = compareIndex(Repository.fname.get(null),resultIndex);
                 } else {
                     resultIndex = compareIndex(Repository.fname_not_null,resultIndex);
@@ -1526,20 +1501,20 @@ public class Service {
             if (Service.F.equals(sexV)) {
                 if (countryPrV == EQ_PR) {
                     resultIndex = compareIndex(Repository.country.get(countryV + "_f"), resultIndex);
-                } else if (countryPrV == NULL_PR && countryV.equals(NULL_PR_VAL_ONE)) {
+                } else if (countryPrV == NULL_PR && countryV.charAt(0) == NULL_PR_VAL_ONE) {
                     resultIndex = compareIndex(Repository.country.get("null_f"), resultIndex);
                 }
             }
             if (Service.M.equals(sexV)) {
                 if (countryPrV == EQ_PR) {
                     resultIndex = compareIndex(Repository.country.get(countryV + "_m"), resultIndex);
-                } else if (countryPrV == NULL_PR && countryV.equals(NULL_PR_VAL_ONE)) {
+                } else if (countryPrV == NULL_PR && countryV.charAt(0) == NULL_PR_VAL_ONE) {
                     resultIndex = compareIndex(Repository.country.get("null_m"), resultIndex);
                 }
             }
 
             if (countryPrV == NULL_PR) {
-                if (countryV.equals(NULL_PR_VAL_ONE)) {
+                if (countryV.charAt(0) == NULL_PR_VAL_ONE) {
                     resultIndex = compareIndex(Repository.country.get(null), resultIndex);
                 } else {
                     resultIndex = compareIndex(Repository.country_not_null, resultIndex);
@@ -1554,7 +1529,7 @@ public class Service {
             if (premiumPrV == NOW_PR) {
                 resultIndex = compareIndex(Repository.premium_1,resultIndex);
             } else if (premiumPrV == NULL_PR) {
-                if (premiumV.equals(NULL_PR_VAL_ONE)) {
+                if (premiumV.charAt(0) == NULL_PR_VAL_ONE) {
                     resultIndex = compareIndex(Repository.premium_3,resultIndex);
                 } else {
                     resultIndex = compareIndex(Repository.premium_2,resultIndex);
