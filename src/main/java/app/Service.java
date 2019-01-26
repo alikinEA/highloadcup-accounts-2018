@@ -1,20 +1,15 @@
 package app;
 
 import app.models.Account;
-import app.models.Premium;
-import app.models.Result;
-import app.server.Server;
 import app.server.ServerHandler;
 import com.jsoniter.JsonIterator;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -39,7 +34,6 @@ public class Service {
     public static final String INTERESTS = "interests";
     public static final String LIKES = "likes";
     public static final String PREMIUM = "premium";
-    public static final String QUERY_ID = "query_id";
     public static final String LIMIT = "limit";
     public static final String ID = "id";
     public static final String TS = "ts";
@@ -59,11 +53,6 @@ public class Service {
     private static final String CONTAINS_PR = "contains";
     private static final String NOW_PR = "now";
     private static final char NULL_PR_VAL_ONE = '1';
-
-    private static final String URI_FILTER = "/accounts/filter/?";
-    private static final String URI_NEW = "/accounts/new/";
-    private static final String URI_LIKES = "/accounts/likes/";
-    private static final String URI_GROUP = "/accounts/group/?";
     private static final String URI_SUGGEST = "/suggest";
     private static final String URI_RECOMENDED = "/recommend";
 
@@ -101,7 +90,7 @@ public class Service {
 
     public static DefaultFullHttpResponse handle(FullHttpRequest req) throws UnsupportedEncodingException {
         String uri = req.uri();
-        if (uri.charAt(10) == 'f' && uri.charAt(11) == 'i') {
+        if (uri.charAt(10) == 'f' && uri.charAt(11) == 'i' && uri.charAt(12) == 'l') {
             if (uri.charAt(17) == '?') {
                 return handleFilterv2(uri);
             } else {
