@@ -687,9 +687,13 @@ public class Service {
             String[] t = Utils.tokenize(req.uri().substring(17),'&');
             String sex = null;
             String countryKey = null;
+            String cityKey = null;
             Integer limit = null;
             String order = null;
             for (String param : t) {
+                if (param.startsWith("query_id")) {
+                    continue;
+                }
                 if (param.startsWith(LIMIT)) {
                     try {
                         limit = Integer.parseInt(getValue(param));
@@ -727,18 +731,41 @@ public class Service {
                     if (value.equals(COUNTRY)) {
                         countryKey = value;
                     }
+                    if (value.equals(CITY)) {
+                        cityKey = value;
+                    }
                 }
             }
             if (order == null || limit == null) {
                 return ServerHandler.BAD_REQUEST_R;
             }
         if (phase1.get()) {
-            if (sex != null && countryKey != null) {
-                if (sex.equals(Service.F)) {
-                    return ServerHandler.createOK(Utils.groupCSToString(Repository.country_f_gr,limit,order).getBytes(StandardCharsets.UTF_8));
+            if (t.length == 5) {
+                if (sex != null && countryKey != null) {
+                    if (sex.equals(Service.F)) {
+                        return ServerHandler.createOK(Utils.groupCSToString(Repository.country_f_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                    }
+                    if (sex.equals(Service.M)) {
+                        return ServerHandler.createOK(Utils.groupCSToString(Repository.country_m_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                    }
                 }
-                if (sex.equals(Service.M)) {
-                    return ServerHandler.createOK(Utils.groupCSToString(Repository.country_m_gr,limit,order).getBytes(StandardCharsets.UTF_8));
+                if (sex != null && cityKey != null) {
+                    if (sex.equals(Service.F)) {
+                        return ServerHandler.createOK(Utils.groupCiSToString(Repository.city_f_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                    }
+                    if (sex.equals(Service.M)) {
+                        return ServerHandler.createOK(Utils.groupCiSToString(Repository.city_m_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                    }
+                }
+            }
+            if (t.length == 4) {
+                if (sex == null) {
+                    if (countryKey != null) {
+                        return ServerHandler.createOK(Utils.groupCSToString(Repository.country_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                    }
+                    if (cityKey != null) {
+                        return ServerHandler.createOK(Utils.groupCiSToString(Repository.city_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                    }
                 }
             }
         }
@@ -872,7 +899,6 @@ public class Service {
             boolean likesPr = false;
 
             String emailPrV = null;
-            String sexPrV = null;
             String fnamePrV = null;
             String interestsPrV = null;
             String statusPrV = null;
@@ -894,7 +920,6 @@ public class Service {
             String cityV = null;
             String countryV = null;
             String snameV = null;
-            String likesV = null;
 
 
             int limit = 0;
@@ -902,12 +927,13 @@ public class Service {
             for (String param : params) {
                 String valueParam = getValue(param).intern();
                 String predicate = getPredicate(param).intern();
+                if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
+                    continue;
+                }
                 if (param.charAt(0) == 's' && param.charAt(1) == 'e') {
                     sexPr = true;
                     sexV = valueParam;
-                    if (predicate.equals(EQ_PR)) {
-                        sexPrV = EQ_PR;
-                    } else {
+                    if (!predicate.equals(EQ_PR)) {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
@@ -1022,9 +1048,7 @@ public class Service {
                 }
                 if (param.charAt(0) == 'l' && param.charAt(1) == 'i' && param.charAt(2) == 'k') {
                     likesPr = true;
-                    if (predicate.equals(CONTAINS_PR)) {
-                        likesV = valueParam;
-                    } else {
+                    if (!predicate.equals(CONTAINS_PR)) {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
@@ -1072,7 +1096,6 @@ public class Service {
             String[] cityArr = null;
             String[] fnameArr = null;
             String[] interArr = null;
-            //Integer[] likesArr = null;
             if (birthPr) {
                 year = Integer.parseInt(birthV);
             }
@@ -1089,13 +1112,6 @@ public class Service {
             if (interestsPr) {
                 interArr = Utils.tokenize(interestsV, delim);
             }
-            /*if (likesPr) {
-                String[] likesArrStr = Utils.tokenize(likesV, delim);
-                likesArr = new Integer[likesArrStr.length];
-                for (int i = 0; i < likesArrStr.length; i++) {
-                    likesArr[i] = Integer.parseInt(likesArrStr[i]);
-                }
-            }*/
 
 
             Set<Account> listForSearch = getIndexForFilter(interArr,interestsPrV
@@ -1117,10 +1133,6 @@ public class Service {
             if (likesPr) {
                 return ServerHandler.OK_EMPTY_R;
             }
-            /*if (listForSearch.equals(Repository.list)) {
-                System.out.println(uri);
-                System.out.println(badIndexCount.incrementAndGet());
-            }*/
 
             for (Account account : listForSearch) {
                 //SEX ============================================

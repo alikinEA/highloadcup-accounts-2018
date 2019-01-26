@@ -89,6 +89,23 @@ public class Repository {
 
     static final Map<String, Integer> country_f = new TreeMap<>(Comparator.naturalOrder());
     static final Map<String, Integer> country_m = new TreeMap<>(Comparator.naturalOrder());
+    static final Map<String, Integer> city_f = new TreeMap<>(Comparator.naturalOrder());
+    static final Map<String, Integer> city_m = new TreeMap<>(Comparator.naturalOrder());
+
+    static final TreeSet<GroupObj> country_gr = new TreeSet<>((o1, o2) -> {
+        if (!o1.getCount().equals(o2.getCount())) {
+            return o1.getCount() - o2.getCount();
+        } else {
+            return o1.getName().compareTo(o2.getName());
+        }
+    });
+    static final TreeSet<GroupObj> city_gr = new TreeSet<>((o1, o2) -> {
+        if (!o1.getCount().equals(o2.getCount())) {
+            return o1.getCount() - o2.getCount();
+        } else {
+            return o1.getName().compareTo(o2.getName());
+        }
+    });
 
     static final TreeSet<GroupObj> country_f_gr = new TreeSet<>((o1, o2) -> {
         if (!o1.getCount().equals(o2.getCount())) {
@@ -98,6 +115,21 @@ public class Repository {
         }
     });
     static final TreeSet<GroupObj> country_m_gr = new TreeSet<>((o1, o2) -> {
+        if (!o1.getCount().equals(o2.getCount())) {
+            return o1.getCount() - o2.getCount();
+        } else {
+            return o1.getName().compareTo(o2.getName());
+        }
+    });
+
+    static final TreeSet<GroupObj> city_f_gr = new TreeSet<>((o1, o2) -> {
+        if (!o1.getCount().equals(o2.getCount())) {
+            return o1.getCount() - o2.getCount();
+        } else {
+            return o1.getName().compareTo(o2.getName());
+        }
+    });
+    static final TreeSet<GroupObj> city_m_gr = new TreeSet<>((o1, o2) -> {
         if (!o1.getCount().equals(o2.getCount())) {
             return o1.getCount() - o2.getCount();
         } else {
@@ -161,6 +193,25 @@ public class Repository {
                                     country_m.put(account.getCountry(), count);
                                 }
                             }
+                            if (account.getCity() != null) {
+                                if (Service.F.equals(account.getSex())) {
+                                    Integer count = city_f.get(account.getCity());
+                                    if (count == null) {
+                                        count = 1;
+                                    } else {
+                                        count = count + 1;
+                                    }
+                                    city_f.put(account.getCity(), count);
+                                } else {
+                                    Integer count = city_m.get(account.getCity());
+                                    if (count == null) {
+                                        count = 1;
+                                    } else {
+                                        count = count + 1;
+                                    }
+                                    city_m.put(account.getCity(), count);
+                                }
+                            }
                         }
                         json = null;
                     }
@@ -171,14 +222,30 @@ public class Repository {
             country_m.forEach((key,value) -> {
                 GroupObj grObj = new GroupObj(value,key);
                 country_m_gr.add(grObj);
+                country_gr.add(grObj);
             });
 
-            country_m.clear();
             country_f.forEach((key,value) -> {
                 GroupObj grObj = new GroupObj(value,key);
                 country_f_gr.add(grObj);
+                country_gr.add(grObj);
             });
             country_f.clear();
+            country_m.clear();
+
+            city_m.forEach((key,value) -> {
+                GroupObj grObj = new GroupObj(value,key);
+                city_m_gr.add(grObj);
+                city_gr.add(grObj);
+            });
+
+            city_f.forEach((key,value) -> {
+                GroupObj grObj = new GroupObj(value,key);
+                city_f_gr.add(grObj);
+                city_gr.add(grObj);
+            });
+            city_f.clear();
+            city_m.clear();
 
             System.out.println("list size = " + list.size());
             System.out.println("list ids size = " + ids.length);

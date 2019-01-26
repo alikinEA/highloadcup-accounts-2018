@@ -371,4 +371,30 @@ public class Utils {
         sb.append("]}");
         return sb.toString();
     }
+
+    public static String groupCiSToString(TreeSet<GroupObj> store, Integer limit, String order) {
+        StringBuilder sb = threadLocalBuilder.get();
+        sb.append("{\"groups\":[");
+        int limitC = 0;
+        Iterator<GroupObj> itr;
+        if (order.equals("1")) {
+            itr = store.iterator();
+        } else {
+            itr = store.descendingIterator();
+        }
+        while (itr.hasNext()) {
+            GroupObj gr = itr.next();
+            if (limitC < limit) {
+                limitC++;
+                sb.append("{\"city\":\"");
+                sb.append(gr.getName());
+                sb.append("\",\"count\":");
+                sb.append(gr.getCount());
+                sb.append("},");
+            }
+        }
+        sb.setLength(sb.length() - 1);
+        sb.append("]}");
+        return sb.toString();
+    }
 }

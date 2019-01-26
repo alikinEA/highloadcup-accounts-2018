@@ -2,12 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="8d804977-c50d-4f36-a630-605bce2c23cb" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/app/models/GroupObj.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/Repository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Repository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/Service.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Service.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/app/Utils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/Utils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/app/server/ServerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/app/server/ServerHandler.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -36,7 +34,7 @@
           <entry key="current" value="1" />
           <entry key="dm" value="25" />
           <entry key="iml" value="1" />
-          <entry key="java" value="306" />
+          <entry key="java" value="307" />
           <entry key="txt" value="1" />
           <entry key="xml" value="16" />
           <entry key="yaml" value="2" />
@@ -46,7 +44,7 @@
         <counts>
           <entry key="CLASS" value="44" />
           <entry key="IDEA_MODULE" value="1" />
-          <entry key="JAVA" value="306" />
+          <entry key="JAVA" value="307" />
           <entry key="PLAIN_TEXT" value="54" />
           <entry key="XML" value="16" />
         </counts>
@@ -56,16 +54,16 @@
           <entry key="Dockerfile" value="138" />
           <entry key="dm" value="285" />
           <entry key="dummy" value="9" />
-          <entry key="java" value="39127" />
-          <entry key="txt" value="377" />
+          <entry key="java" value="39469" />
+          <entry key="txt" value="391" />
           <entry key="xml" value="64" />
           <entry key="yaml" value="108" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="JAVA" value="39127" />
-          <entry key="PLAIN_TEXT" value="917" />
+          <entry key="JAVA" value="39469" />
+          <entry key="PLAIN_TEXT" value="931" />
           <entry key="XML" value="64" />
         </counts>
       </usages-collector>
@@ -78,11 +76,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Repository.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="279">
-              <caret line="181" lean-forward="true" selection-start-line="181" selection-end-line="181" />
+            <state relative-caret-position="82">
+              <caret line="224" column="38" selection-start-line="224" selection-start-column="38" selection-end-line="224" selection-end-column="38" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#846#847#0" expanded="true" />
@@ -104,44 +102,14 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar:///Library/Java/JavaVirtualMachines/jdk-11.0.2.jdk/Contents/Home/lib/src.zip!/java.base/java/nio/ByteBuffer.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="206">
-              <caret line="1298" column="19" selection-start-line="1298" selection-start-column="19" selection-end-line="1298" selection-end-column="19" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/app/models/Account.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="295">
-              <caret line="20" column="13" selection-start-line="20" selection-start-column="13" selection-end-line="20" selection-end-column="13" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Service.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="257">
-              <caret line="737" column="92" selection-start-line="737" selection-start-column="92" selection-end-line="737" selection-end-column="92" />
+            <state relative-caret-position="216">
+              <caret line="749" column="21" lean-forward="true" selection-start-line="749" selection-start-column="21" selection-end-line="749" selection-end-column="21" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/readme.dm">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="8" selection-start-line="8" selection-end-line="8" selection-end-column="56" />
             </state>
           </provider>
         </entry>
@@ -161,8 +129,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="128">
-              <caret line="354" column="34" selection-start-line="354" selection-start-column="34" selection-end-line="354" selection-end-column="34" />
+            <state relative-caret-position="199">
+              <caret line="348" column="25" selection-start-line="348" selection-start-column="25" selection-end-line="348" selection-end-column="25" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -204,9 +172,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>like</find>
-      <find>String domain = email.substring(email.indexOf(&quot;@&quot;) + 1).intern();</find>
-      <find>new TreeSet&lt;&gt;</find>
       <find>birthPr</find>
       <find>getIndex</find>
       <find>ANY_PR</find>
@@ -233,6 +198,9 @@
       <find>country</find>
       <find>handleGr</find>
       <find>groups</find>
+      <find>param.charAt(0) == 'l' &amp;&amp; param.charAt(1) == 'i'</find>
+      <find>param.charAt(0) == 'o' &amp;&amp; param.charAt(1) == 'r'</find>
+      <find>country_gr</find>
       <find>group</find>
     </findStrings>
   </component>
@@ -279,10 +247,10 @@
         <option value="$PROJECT_DIR$/src/main/java/app/models/Account.java" />
         <option value="$PROJECT_DIR$/src/main/java/app/server/ServerHandler.java" />
         <option value="$PROJECT_DIR$/src/main/java/app/models/GroupObj.java" />
-        <option value="$PROJECT_DIR$/src/main/java/app/Service.java" />
-        <option value="$PROJECT_DIR$/src/main/java/app/Utils.java" />
-        <option value="$PROJECT_DIR$/src/main/java/app/Repository.java" />
         <option value="$PROJECT_DIR$/src/main/java/app/server/Server.java" />
+        <option value="$PROJECT_DIR$/src/main/java/app/Repository.java" />
+        <option value="$PROJECT_DIR$/src/main/java/app/Utils.java" />
+        <option value="$PROJECT_DIR$/src/main/java/app/Service.java" />
       </list>
     </option>
   </component>
@@ -517,12 +485,12 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49642345" weight="0.3283767" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.37174723" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.37174723" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32961586" />
       <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.49928468" weight="0.19330855" />
-      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49642345" weight="0.20198265" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.49642345" visible="true" weight="0.20198265" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5035765" side_tool="true" weight="0.3283767" />
       <window_info anchor="bottom" id="Messages" order="10" weight="0.32961586" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
@@ -594,7 +562,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="hash map v3" />
     <MESSAGE value="hash map v4" />
     <MESSAGE value="hash map v5" />
     <MESSAGE value="mapper" />
@@ -619,7 +586,8 @@
     <MESSAGE value="premium" />
     <MESSAGE value="..." />
     <MESSAGE value="filter opt" />
-    <option name="LAST_COMMIT_MESSAGE" value="filter opt" />
+    <MESSAGE value="group v1" />
+    <option name="LAST_COMMIT_MESSAGE" value="group v1" />
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="evaluateExpression">
@@ -973,19 +941,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk-11.0.2.jdk/Contents/Home/lib/src.zip!/java.base/java/lang/String.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="29250">
-          <caret line="2034" column="19" selection-start-line="2034" selection-start-column="19" selection-end-line="2034" selection-end-column="19" />
-          <folding>
-            <element signature="e#58314#58315#0" expanded="true" />
-            <element signature="e#58358#58359#0" expanded="true" />
-            <element signature="e#81254#81255#0" expanded="true" />
-            <element signature="e#81303#81304#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/readme.dm">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="120">
@@ -1037,22 +992,15 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/app/Service.java">
+    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk-11.0.2.jdk/Contents/Home/lib/src.zip!/java.base/java/lang/String.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="737" column="92" selection-start-line="737" selection-start-column="92" selection-end-line="737" selection-end-column="92" />
+        <state relative-caret-position="452">
+          <caret line="124" column="19" selection-start-line="124" selection-start-column="19" selection-end-line="124" selection-end-column="19" />
           <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="128">
-          <caret line="354" column="34" selection-start-line="354" selection-start-column="34" selection-end-line="354" selection-end-column="34" />
-          <folding>
-            <element signature="imports" expanded="true" />
+            <element signature="e#58314#58315#0" expanded="true" />
+            <element signature="e#58358#58359#0" expanded="true" />
+            <element signature="e#81254#81255#0" expanded="true" />
+            <element signature="e#81303#81304#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1071,12 +1019,32 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/app/Repository.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="279">
-          <caret line="181" lean-forward="true" selection-start-line="181" selection-end-line="181" />
+        <state relative-caret-position="82">
+          <caret line="224" column="38" selection-start-line="224" selection-start-column="38" selection-end-line="224" selection-end-column="38" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#846#847#0" expanded="true" />
             <element signature="e#916#917#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/app/Utils.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="199">
+          <caret line="348" column="25" selection-start-line="348" selection-start-column="25" selection-end-line="348" selection-end-column="25" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/app/Service.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="749" column="21" lean-forward="true" selection-start-line="749" selection-start-column="21" selection-end-line="749" selection-end-column="21" />
+          <folding>
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
