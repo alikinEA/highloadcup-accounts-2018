@@ -19,6 +19,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class ServerHandler  extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     public static DefaultFullHttpResponse OK_EMPTY_R;
+    public static DefaultFullHttpResponse OK_EMPTY_GR_R;
     public static DefaultFullHttpResponse NOT_FOUND_R;
     public static DefaultFullHttpResponse BAD_REQUEST_R;
     public static DefaultFullHttpResponse ACCEPTED_R;
@@ -27,6 +28,7 @@ public class ServerHandler  extends SimpleChannelInboundHandler<FullHttpRequest>
 
     private static final byte[] EMPTY = "{}".getBytes();
     private static final byte[] EMPTY_ACCOUNTS = "{\"accounts\":[]}".getBytes();
+    private static final byte[] EMPTY_GROUPS = "{\"groups\":[]}".getBytes();
 
 
     static  {
@@ -34,6 +36,11 @@ public class ServerHandler  extends SimpleChannelInboundHandler<FullHttpRequest>
         OK_EMPTY_R.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         OK_EMPTY_R.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, OK_EMPTY_R.content().readableBytes());
         OK_EMPTY_R.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=utf-8");
+
+        OK_EMPTY_GR_R = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.OK,copiedBuffer(EMPTY_GROUPS));
+        OK_EMPTY_GR_R.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        OK_EMPTY_GR_R.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, OK_EMPTY_GR_R.content().readableBytes());
+        OK_EMPTY_GR_R.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=utf-8");
 
         BAD_REQUEST_R = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
         BAD_REQUEST_R.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);

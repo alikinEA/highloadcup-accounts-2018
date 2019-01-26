@@ -1,7 +1,7 @@
 package app;
 
 import app.models.Account;
-import app.models.Premium;
+import app.models.GroupObj;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.ValueType;
 import com.jsoniter.any.Any;
@@ -341,6 +341,33 @@ public class Utils {
         if (accounts.size() > 0) {
             sb.setLength(sb.length() - 1);
         }
+        sb.append("]}");
+        return sb.toString();
+    }
+
+
+    public static String groupCSToString(TreeSet<GroupObj> store ,int limit, String order) {
+        StringBuilder sb = threadLocalBuilder.get();
+        sb.append("{\"groups\":[");
+        int limitC = 0;
+        Iterator<GroupObj> itr;
+        if (order.equals("1")) {
+            itr = store.iterator();
+        } else {
+            itr = store.descendingIterator();
+        }
+        while (itr.hasNext()) {
+            GroupObj gr = itr.next();
+            if (limitC < limit) {
+                limitC++;
+                sb.append("{\"country\":\"");
+                sb.append(gr.getName());
+                sb.append("\",\"count\":");
+                sb.append(gr.getCount());
+                sb.append("},");
+            }
+        }
+        sb.setLength(sb.length() - 1);
         sb.append("]}");
         return sb.toString();
     }

@@ -6,10 +6,13 @@ import com.jsoniter.JsonIterator;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 
+import javax.management.BadAttributeValueExpException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -33,6 +36,7 @@ public class Service {
     public static final String BIRTH = "birth";
     public static final String INTERESTS = "interests";
     public static final String LIKES = "likes";
+    public static final String KEYS = "keys";
     public static final String PREMIUM = "premium";
     public static final String LIMIT = "limit";
     public static final String ID = "id";
@@ -66,7 +70,7 @@ public class Service {
     private static final String utf8 = "UTF-8";
     private static final char delim = ',';
 
-   // private static final AtomicInteger count = new AtomicInteger(0);
+    private static final AtomicBoolean phase1 = new AtomicBoolean(true);
     //private static final AtomicInteger badIndexCount = new AtomicInteger(0);
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -678,26 +682,71 @@ public class Service {
         }
     }*/
 
-    private static DefaultFullHttpResponse handleGroup(FullHttpRequest req)  {
-        /*String[] t = Utils.tokenize(req.uri().substring(17),'&');
-        for (String param : t) {
-            if (param.startsWith(KEYS)) {
-                String value = getValue(param);
-                String[] tokens = Utils.tokenize(value,delim);
-                for (String token : tokens) {
-                    if (!SEX.equals(token)
-                            && !STATUS.equals(token)
-                            && !INTERESTS.equals(token)
-                            && !COUNTRY.equals(token)
-                            && !CITY.equals(token)) {
-                        return BAD_REQUEST;
+    private static DefaultFullHttpResponse handleGroup(FullHttpRequest req) {
+        try {
+            String[] t = Utils.tokenize(req.uri().substring(17),'&');
+            String sex = null;
+            String countryKey = null;
+            Integer limit = null;
+            String order = null;
+            for (String param : t) {
+                if (param.startsWith(LIMIT)) {
+                    try {
+                        limit = Integer.parseInt(getValue(param));
+                        if (limit <= 0 || limit > 50) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    } catch (Exception e) {
+                        return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                return NOT_FOUND;
+                if (param.startsWith("order")) {
+                    order = getValue(param);
+                    if (!order.equals("-1") && !order.equals("1")) {
+                        return ServerHandler.BAD_REQUEST_R;
+                    }
+                }
+                if (param.startsWith(SEX)) {
+                    sex = getValue(param);
+                    if (!Service.F.equals(sex) && !Service.M.equals(sex)) {
+                        return ServerHandler.BAD_REQUEST_R;
+                    }
+                }
+                if (param.startsWith(KEYS)) {
+                    String value = getValue(param);
+                    String[] tokens = Utils.tokenize(value, delim);
+                    for (String token : tokens) {
+                        if (!SEX.equals(token)
+                                && !STATUS.equals(token)
+                                && !INTERESTS.equals(token)
+                                && !COUNTRY.equals(token)
+                                && !CITY.equals(token)) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    }
+                    if (value.equals(COUNTRY)) {
+                        countryKey = value;
+                    }
+                }
+            }
+            if (order == null || limit == null) {
+                return ServerHandler.BAD_REQUEST_R;
+            }
+        if (phase1.get()) {
+            if (sex != null && countryKey != null) {
+                if (sex.equals(Service.F)) {
+                    return ServerHandler.createOK(Utils.groupCSToString(Repository.country_f_gr,limit,order).getBytes(StandardCharsets.UTF_8));
+                }
+                if (sex.equals(Service.M)) {
+                    return ServerHandler.createOK(Utils.groupCSToString(Repository.country_m_gr,limit,order).getBytes(StandardCharsets.UTF_8));
+                }
             }
         }
-        return NOT_FOUND;*/
-        return ServerHandler.BAD_REQUEST_R;
+            return ServerHandler.OK_EMPTY_GR_R;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ServerHandler.NOT_FOUND_R;
+        }
     }
 
     private static DefaultFullHttpResponse handleLikes(FullHttpRequest req) {
@@ -718,6 +767,7 @@ public class Service {
     }
 
     private static DefaultFullHttpResponse handleNew(FullHttpRequest req) {
+        phase1.set(false);
         Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)),false);
         if (account == null) {
             return ServerHandler.BAD_REQUEST_R;
@@ -787,6 +837,7 @@ public class Service {
                 || param.startsWith(SNAME)
                 || param.startsWith(STATUS)
                 || param.startsWith(LIKES)
+                || param.startsWith(KEYS)
         ) {
             return URLDecoder.decode(param.substring(param.indexOf("=") + 1), utf8);
         } else {

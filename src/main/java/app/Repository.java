@@ -1,6 +1,7 @@
 package app;
 
 import app.models.Account;
+import app.models.GroupObj;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
 import net.lingala.zip4j.core.ZipFile;
@@ -11,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.List;
 
 /**
  * Created by Alikin E.A. on 13.12.18.
@@ -85,6 +87,23 @@ public class Repository {
     static final TreeSet<Account> list_status_2_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
     static final TreeSet<Account> list_status_3_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
 
+    static final Map<String, Integer> country_f = new TreeMap<>(Comparator.naturalOrder());
+    static final Map<String, Integer> country_m = new TreeMap<>(Comparator.naturalOrder());
+
+    static final TreeSet<GroupObj> country_f_gr = new TreeSet<>((o1, o2) -> {
+        if (!o1.getCount().equals(o2.getCount())) {
+            return o1.getCount() - o2.getCount();
+        } else {
+            return o1.getName().compareTo(o2.getName());
+        }
+    });
+    static final TreeSet<GroupObj> country_m_gr = new TreeSet<>((o1, o2) -> {
+        if (!o1.getCount().equals(o2.getCount())) {
+            return o1.getCount() - o2.getCount();
+        } else {
+            return o1.getName().compareTo(o2.getName());
+        }
+    });
 
     public static void initData() {
         long start = new Date().getTime();
@@ -122,12 +141,44 @@ public class Repository {
                             } else {
                                 ids[account.getId()] = PRESENT_AC;
                             }
+
+                            if (account.getCountry() != null) {
+                                if (Service.F.equals(account.getSex())) {
+                                    Integer count = country_f.get(account.getCountry());
+                                    if (count == null) {
+                                        count = 1;
+                                    } else {
+                                        count = count + 1;
+                                    }
+                                    country_f.put(account.getCountry(), count);
+                                } else {
+                                    Integer count = country_m.get(account.getCountry());
+                                    if (count == null) {
+                                        count = 1;
+                                    } else {
+                                        count = count + 1;
+                                    }
+                                    country_m.put(account.getCountry(), count);
+                                }
+                            }
                         }
                         json = null;
                     }
                 }
                 System.gc();
             }
+
+            country_m.forEach((key,value) -> {
+                GroupObj grObj = new GroupObj(value,key);
+                country_m_gr.add(grObj);
+            });
+
+            country_m.clear();
+            country_f.forEach((key,value) -> {
+                GroupObj grObj = new GroupObj(value,key);
+                country_f_gr.add(grObj);
+            });
+            country_f.clear();
 
             System.out.println("list size = " + list.size());
             System.out.println("list ids size = " + ids.length);
@@ -165,6 +216,7 @@ public class Repository {
     }
 
     public static void insertToIndex(Account account) {
+
         String email = account.getEmail();
         String domain = email.substring(email.indexOf("@") + 1).intern();
         TreeSet<Account> domainIndex = email_domain.get(domain);
