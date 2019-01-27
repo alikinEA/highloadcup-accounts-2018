@@ -682,12 +682,16 @@ public class Service {
         }
     }*/
 
-    private static DefaultFullHttpResponse handleGroup(FullHttpRequest req) {
+    public static DefaultFullHttpResponse handleGroup(FullHttpRequest req) {
         try {
             String[] t = Utils.tokenize(req.uri().substring(17),'&');
             String sex = null;
             String countryKey = null;
             String cityKey = null;
+            String statusKey = null;
+            String sexKey = null;
+            String city = null;
+            String country = null;
             Integer limit = null;
             String order = null;
             for (String param : t) {
@@ -716,6 +720,12 @@ public class Service {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
+                if (param.startsWith(CITY)) {
+                    city = getValue(param);
+                }
+                if (param.startsWith(COUNTRY)) {
+                    country = getValue(param);
+                }
                 if (param.startsWith(KEYS)) {
                     String value = getValue(param);
                     String[] tokens = Utils.tokenize(value, delim);
@@ -734,6 +744,12 @@ public class Service {
                     if (value.equals(CITY)) {
                         cityKey = value;
                     }
+                    if (value.equals(SEX)) {
+                        sexKey = value;
+                    }
+                    /*if (value.equals(STATUS)) {
+                        statusKey = value;
+                    }*/
                 }
             }
             if (order == null || limit == null) {
@@ -757,6 +773,14 @@ public class Service {
                         return ServerHandler.createOK(Utils.groupCiSToString(Repository.city_m_gr, limit, order).getBytes(StandardCharsets.UTF_8));
                     }
                 }
+                if (sexKey != null) {
+                    if (city != null) {
+                        return ServerHandler.createOK(Utils.groupSCiToString(city,limit, order).getBytes(StandardCharsets.UTF_8));
+                    }
+                    if (country != null) {
+                        return ServerHandler.createOK(Utils.groupSCToString(country,limit, order).getBytes(StandardCharsets.UTF_8));
+                    }
+                }
             }
             if (t.length == 4) {
                 if (sex == null) {
@@ -766,6 +790,12 @@ public class Service {
                     if (cityKey != null) {
                         return ServerHandler.createOK(Utils.groupCiSToString(Repository.city_gr, limit, order).getBytes(StandardCharsets.UTF_8));
                     }
+                    if (sexKey != null) {
+                        return ServerHandler.createOK(Utils.groupSCGrToString(limit, order).getBytes(StandardCharsets.UTF_8));
+                    }
+                    /*if (statusKey != null) {
+                        return ServerHandler.createOK(Utils.groupSGrToString(limit, order).getBytes(StandardCharsets.UTF_8));
+                    }*/
                 }
             }
         }

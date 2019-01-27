@@ -397,4 +397,135 @@ public class Utils {
         sb.append("]}");
         return sb.toString();
     }
+
+    public static String groupSCiToString(String city,Integer limit, String order) {
+        Integer countF = Repository.city_f.get(city);
+        Integer countM = Repository.city_m.get(city);
+        return fillStringGroup(limit, order, countF, countM);
+    }
+
+    public static String groupSCToString(String country, Integer limit, String order) {
+        Integer countF = Repository.country_f.get(country);
+        Integer countM = Repository.country_m.get(country);
+        return fillStringGroup(limit, order, countF, countM);
+    }
+
+    private static String fillStringGroup(Integer limit, String order, Integer countF, Integer countM) {
+        StringBuilder sb = threadLocalBuilder.get();
+        sb.append("{\"groups\":[");
+        if (order.equals("-1")) {
+            if (countF > countM) {
+                sb.append("{\"sex\":\"f\",\"count\":");
+                sb.append(countF);
+                sb.append("}");
+
+                if (limit > 1) {
+                    sb.append(",{\"sex\":\"m\",\"count\":");
+                    sb.append(countM);
+                    sb.append("}");
+                }
+            } else {
+                sb.append("{\"sex\":\"m\",\"count\":");
+                sb.append(countM);
+                sb.append("}");
+
+                if (limit > 1) {
+                    sb.append(",{\"sex\":\"f\",\"count\":");
+                    sb.append(countF);
+                    sb.append("}");
+                }
+
+            }
+        } else {
+            if (countF < countM) {
+                sb.append("{\"sex\":\"f\",\"count\":");
+                sb.append(countF);
+                sb.append("}");
+
+                if (limit > 1) {
+                    sb.append(",{\"sex\":\"m\",\"count\":");
+                    sb.append(countM);
+                    sb.append("}");
+                }
+            } else {
+                sb.append("{\"sex\":\"m\",\"count\":");
+                sb.append(countM);
+                sb.append("}");
+
+                if (limit > 1) {
+                    sb.append(",{\"sex\":\"f\",\"count\":");
+                    sb.append(countF);
+                    sb.append("}");
+                }
+            }
+        }
+        sb.append("]}");
+        return sb.toString();
+    }
+
+    public static String groupSCGrToString(Integer limit, String order) {
+        Integer countF = Repository.f_count.get();
+        Integer countM = Repository.m_count.get();
+        return fillStringGroup(limit, order, countF, countM);
+    }
+
+    public static String groupSGrToString(Integer limit, String order) {
+        Integer count1 = Repository.f_count.get();
+        Integer count2 = Repository.m_count.get();
+        Integer count3 = Repository.m_count.get();
+        return fillStringGroupStatus(limit, order, count1, count2,count3);
+    }
+
+    private static String fillStringGroupStatus(Integer limit, String order, Integer count1, Integer count2, Integer count3) {
+        /*StringBuilder sb = threadLocalBuilder.get();
+        sb.append("{\"groups\":[");
+        if (order.equals("-1")) {
+            if (countF > countM) {
+                sb.append("{\"sex\":\"f\",\"count\":");
+                sb.append(countF);
+                sb.append("}");
+
+                if (limit > 1) {
+                    sb.append(",{\"sex\":\"m\",\"count\":");
+                    sb.append(countM);
+                    sb.append("}");
+                }
+            } else {
+                sb.append("{\"sex\":\"m\",\"count\":");
+                sb.append(countM);
+                sb.append("}");
+
+                if (limit > 1) {
+                    sb.append(",{\"sex\":\"f\",\"count\":");
+                    sb.append(countF);
+                    sb.append("}");
+                }
+
+            }
+        } else {
+            if (countF < countM) {
+                sb.append("{\"sex\":\"f\",\"count\":");
+                sb.append(countF);
+                sb.append("}");
+
+                if (limit > 1) {
+                    sb.append(",{\"sex\":\"m\",\"count\":");
+                    sb.append(countM);
+                    sb.append("}");
+                }
+            } else {
+                sb.append("{\"sex\":\"m\",\"count\":");
+                sb.append(countM);
+                sb.append("}");
+
+                if (limit > 1) {
+                    sb.append(",{\"sex\":\"f\",\"count\":");
+                    sb.append(countF);
+                    sb.append("}");
+                }
+            }
+        }
+        sb.append("]}");
+        return sb.toString();*/return null;
+    }
 }

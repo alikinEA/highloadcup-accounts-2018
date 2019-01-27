@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Alikin E.A. on 13.12.18.
@@ -42,6 +43,13 @@ public class Repository {
             };
 
     private static final int elementCount = 1300_000  + 21_600;
+
+    static final AtomicInteger f_count = new AtomicInteger(0);
+    static final AtomicInteger m_count = new AtomicInteger(0);
+
+    static final AtomicInteger status_1_count = new AtomicInteger(0);
+    static final AtomicInteger status_2_count = new AtomicInteger(0);
+    static final AtomicInteger status_3_count = new AtomicInteger(0);
 
     static final Object PRESENT = new Object();
     static final Account PRESENT_AC = new Account();
@@ -167,11 +175,24 @@ public class Repository {
                         for (Any accountAny : json) {
                             Account account = Utils.anyToAccount(accountAny,false);
                             emails.put(account.getEmail(),PRESENT);
-                            if (!isRait || i > 130 - 37) {
+                            if (!isRait || i > 130 - 39) {
                                 list.add(account);
                                 ids[account.getId()] = account;
                             } else {
                                 ids[account.getId()] = PRESENT_AC;
+                            }
+                            if (Service.F.equals(account.getSex())) {
+                                f_count.incrementAndGet();
+                            } else {
+                                m_count.incrementAndGet();
+                            }
+
+                            if (Service.STATUS1.equals(account.getStatus())) {
+                                status_1_count.incrementAndGet();
+                            } else if (Service.STATUS2.equals(account.getStatus())) {
+                                status_2_count.incrementAndGet();
+                            } else if (Service.STATUS3.equals(account.getStatus())){
+                                status_3_count.incrementAndGet();
                             }
 
                             if (account.getCountry() != null) {
@@ -230,8 +251,6 @@ public class Repository {
                 country_f_gr.add(grObj);
                 country_gr.add(grObj);
             });
-            country_f.clear();
-            country_m.clear();
 
             city_m.forEach((key,value) -> {
                 GroupObj grObj = new GroupObj(value,key);
@@ -244,8 +263,6 @@ public class Repository {
                 city_f_gr.add(grObj);
                 city_gr.add(grObj);
             });
-            city_f.clear();
-            city_m.clear();
 
             System.out.println("list size = " + list.size());
             System.out.println("list ids size = " + ids.length);
@@ -263,7 +280,10 @@ public class Repository {
 
             System.out.println("warm up start = " + (new Date().getTime() - start));
             if (isRait) {
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < 50_000; i++) {
+                    Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
+                }
+                for (int i = 0; i < 50_000; i++) {
                     Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
                 }
             } else {
