@@ -12,7 +12,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -175,7 +174,7 @@ public class Repository {
                         for (Any accountAny : json) {
                             Account account = Utils.anyToAccount(accountAny,false);
                             emails.put(account.getEmail(),PRESENT);
-                            if (!isRait || i > 130 - 40) {
+                            if (!isRait || i > 130 - 70) {
                                 list.add(account);
                                 ids[account.getId()] = account;
                             } else {
