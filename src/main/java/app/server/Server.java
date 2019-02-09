@@ -13,7 +13,7 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
  * Created by Alikin E.A. on 15.12.18.
  */
 public class Server {
-    static final int PORT = Integer.parseInt(System.getProperty("port", "80"));
+    static final int PORT = Integer.parseInt(System.getProperty("port", "8098"));
 
     public Server() {
 
@@ -41,12 +41,12 @@ public class Server {
 
     public void run() throws Exception {
 
-        EpollEventLoopGroup bossGroup = new EpollEventLoopGroup(1);
-        EpollEventLoopGroup workerGroup = new EpollEventLoopGroup(8);
+        NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        NioEventLoopGroup workerGroup = new NioEventLoopGroup(8);
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
-                    .channel(EpollServerSocketChannel.class)
+                    .channel(NioServerSocketChannel.class)
                     //.handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new HttpServerInitializer())
                     //.option(ChannelOption.SO_BACKLOG, 512)

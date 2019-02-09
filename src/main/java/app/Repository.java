@@ -1,11 +1,16 @@
 package app;
 
 import app.models.Account;
-import app.models.GroupObj;
+import app.models.Like;
+import app.server.Server;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
+import gnu.trove.list.linked.TLinkedList;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.set.hash.THashSet;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
+import org.roaringbitmap.RoaringBitmap;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -23,11 +28,41 @@ public class Repository {
     static volatile Long currentTimeStamp2 = 0l;
     static volatile boolean isRait = false;
 
-    private static final String dataPath = "/tmp/data/";
-    //private static final String dataPath = "/mnt/data/";
+    //private static final String dataPath = "/tmp/data/";
+    private static final String dataPath = "/mnt/data/";
+
+    public static final Comparator idsComparator = (Comparator<Account>) (o1, o2) -> {
+        if (o1 == null) {
+            return 0;
+        }
+        if (o2 == null) {
+            return 0;
+        }
+        return o2.getId() - o1.getId();
+    };
+
+    private static final Comparator birthComparatorLt = (Comparator<Account>) (o1, o2) -> {
+        if (o1 == null) {
+            return 0;
+        }
+        if (o2 == null) {
+            return 0;
+        }
+        return o2.getBirth() - o1.getBirth();
+    };
+
+    private static final Comparator birthComparatorGt = (Comparator<Account>) (o1, o2) -> {
+        if (o1 == null) {
+            return 0;
+        }
+        if (o2 == null) {
+            return 0;
+        }
+        return o1.getBirth() - o2.getBirth();
+    };
 
     public static ThreadLocal<Calendar> threadLocalCalendar =
-            new ThreadLocal<Calendar>() {
+            new ThreadLocal<>() {
                 @Override
                 protected Calendar initialValue() {
                     return new GregorianCalendar();
@@ -43,106 +78,73 @@ public class Repository {
 
     private static final int elementCount = 1300_000  + 21_600;
 
-    static final AtomicInteger f_count = new AtomicInteger(0);
-    static final AtomicInteger m_count = new AtomicInteger(0);
+    public static final AtomicInteger index = new AtomicInteger(-1);
+    public static final AtomicInteger index_premium_1 = new AtomicInteger(-1);
+    public static final AtomicInteger index_premium_2 = new AtomicInteger(-1);
+    public static final AtomicInteger index_premium_3 = new AtomicInteger(-1);
 
-    static final AtomicInteger status_1_count = new AtomicInteger(0);
-    static final AtomicInteger status_2_count = new AtomicInteger(0);
-    static final AtomicInteger status_3_count = new AtomicInteger(0);
+    public static final AtomicInteger index_status_1 = new AtomicInteger(-1);
+    public static final AtomicInteger index_status_2 = new AtomicInteger(-1);
+    public static final AtomicInteger index_status_3 = new AtomicInteger(-1);
+    public static final AtomicInteger index_status_1_not = new AtomicInteger(-1);
+    public static final AtomicInteger index_status_2_not = new AtomicInteger(-1);
+    public static final AtomicInteger index_status_3_not = new AtomicInteger(-1);
 
-    static final Object PRESENT = new Object();
-    static final Account PRESENT_AC = new Account();
+    //public static final AtomicInteger index_city_not_null = new AtomicInteger(-1);
+    //public static final AtomicInteger index_country_not_null = new AtomicInteger(-1);
+
+    public static final AtomicInteger index_f = new AtomicInteger(-1);
+    public static final AtomicInteger index_m = new AtomicInteger(-1);
+
     static final Account[] ids = new Account[2_000_000];
-    static final Map<String,Object> emails = new HashMap<>(elementCount);
+    static final Set<String> emails = new THashSet<>(elementCount);
+    static final Account[] list = new Account[elementCount];
+    static final Map<String,Byte> interests = new THashMap(90);
 
-    static final Map<Integer,TreeSet<Account>> interests_count = new HashMap<>();
+    static final Map<String,Account[]> sname_by_name = new THashMap(1700);
+    static final Map<String,Integer> sname_by_name_idx_num = new THashMap(1700);
 
-    static final TreeSet<Account> phone_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> phone_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> city_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> country_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> sname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> fname_not_null = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final Map<String,Account[]> city_by_name = new THashMap(650);
+    static final Map<String,Integer> city_by_name_idx_num = new THashMap(650);
 
-    static final Map<String,TreeSet<Account>> email_domain = new HashMap<>();
-    static final Map<String,TreeSet<Account>> phone_code = new HashMap<>();
-    static final Map<String,TreeSet<Account>> city = new HashMap<>();
-    static final Map<String,TreeSet<Account>> country = new HashMap<>();
-    static final Map<String,TreeSet<Account>> fname = new HashMap<>();
-    static final Map<String,TreeSet<Account>> sname = new HashMap<>();
+    static final Map<String,Account[]> fname_by_name = new THashMap(120);
+    static final Map<String,Integer> fname_by_name_idx_num = new THashMap(120);
 
-    static final Map<Integer,TreeSet<Account>> year = new HashMap<>();
+    static final Map<String,Account[]> phone_code_by_name = new THashMap(110);
+    static final Map<String,Integer> phone_code_by_name_idx_num = new THashMap(110);
 
-    static final TreeSet<Account> premium_1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> premium_2 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> premium_3 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_status_1 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_status_2 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_status_3 = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_status_1_not = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_status_2_not = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_status_3_not = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final Map<String,Account[]> country_by_name = new THashMap(100);
+    static final Map<String,Integer> country_by_name_idx_num = new THashMap(100);
 
-    static final TreeSet<Account> list_status_1_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_status_2_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_status_3_f = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final Map<String,Account[]> interests_by_name = new THashMap(90);
+    static final Map<String,Integer> interests_by_name_idx_num = new THashMap(90);
 
-    static final TreeSet<Account> list_status_1_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_status_2_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-    static final TreeSet<Account> list_status_3_m = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
+    static final Map<Integer,Account[]> year = new THashMap(30);
+    static final Map<Integer,Integer> year_idx_num = new THashMap(30);
 
-    static final Map<String, Integer> country_f = new TreeMap<>(Comparator.naturalOrder());
-    static final Map<String, Integer> country_m = new TreeMap<>(Comparator.naturalOrder());
-    static final Map<String, Integer> city_f = new TreeMap<>(Comparator.naturalOrder());
-    static final Map<String, Integer> city_m = new TreeMap<>(Comparator.naturalOrder());
+    static final Map<String,Account[]> email_domain_by_name = new THashMap(15);
+    static final Map<String,Integer> email_domain_by_name_idx_num = new THashMap(15);
 
-    static final TreeSet<GroupObj> country_gr = new TreeSet<>((o1, o2) -> {
-        if (!o1.getCount().equals(o2.getCount())) {
-            return o1.getCount() - o2.getCount();
-        } else {
-            return o1.getName().compareTo(o2.getName());
-        }
-    });
-    static final TreeSet<GroupObj> city_gr = new TreeSet<>((o1, o2) -> {
-        if (!o1.getCount().equals(o2.getCount())) {
-            return o1.getCount() - o2.getCount();
-        } else {
-            return o1.getName().compareTo(o2.getName());
-        }
-    });
+    //static final Account[] birth_idx_lt = new Account[elementCount];
+    //static final Account[] birth_idx_gt = new Account[elementCount];
 
-    static final TreeSet<GroupObj> country_f_gr = new TreeSet<>((o1, o2) -> {
-        if (!o1.getCount().equals(o2.getCount())) {
-            return o1.getCount() - o2.getCount();
-        } else {
-            return o1.getName().compareTo(o2.getName());
-        }
-    });
-    static final TreeSet<GroupObj> country_m_gr = new TreeSet<>((o1, o2) -> {
-        if (!o1.getCount().equals(o2.getCount())) {
-            return o1.getCount() - o2.getCount();
-        } else {
-            return o1.getName().compareTo(o2.getName());
-        }
-    });
+    static final Account[] premium_1 = new Account[200_000];
+    static final Account[] premium_2 = new Account[500_000];
+    static final Account[] premium_3 = new Account[900_000];
 
-    static final TreeSet<GroupObj> city_f_gr = new TreeSet<>((o1, o2) -> {
-        if (!o1.getCount().equals(o2.getCount())) {
-            return o1.getCount() - o2.getCount();
-        } else {
-            return o1.getName().compareTo(o2.getName());
-        }
-    });
-    static final TreeSet<GroupObj> city_m_gr = new TreeSet<>((o1, o2) -> {
-        if (!o1.getCount().equals(o2.getCount())) {
-            return o1.getCount() - o2.getCount();
-        } else {
-            return o1.getName().compareTo(o2.getName());
-        }
-    });
+
+    static final Account[] status_1 = new Account[700_000];
+    static final Account[] status_2 = new Account[300_000];
+    static final Account[] status_3 = new Account[400_000];
+    static final Account[] status_1_not = new Account[700_000];
+    static final Account[] status_2_not = new Account[1_100_000];
+    static final Account[] status_3_not = new Account[1_000_000];
+
+    //static final Account[] city_not_null = new Account[elementCount];
+    //static final Account[] country_not_null = new Account[elementCount];
+
+    static final Account[] list_f = new Account[700_000];
+    static final Account[] list_m = new Account[700_000];
 
     public static void initData() {
         long start = new Date().getTime();
@@ -164,73 +166,99 @@ public class Repository {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            Byte intIndex = 0;
             for (int i = fileCount; i > 0; i--) {
                 ZipFile zipFile = new ZipFile(dataPath + "data.zip");
                 FileHeader fileHeader = zipFile.getFileHeader("accounts_" + i + ".json");
-                if (fileHeader.getFileName().contains("accounts")) {
-                   // System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
+                 if (fileHeader.getFileName().contains("accounts")) {
+                    System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
                     try (InputStream inputStream = zipFile.getInputStream(fileHeader)) {
                         List<Any> json = JsonIterator.deserialize(Utils.readBytes(inputStream)).get("accounts").asList();
                         for (Any accountAny : json) {
-                            Account account = Utils.anyToAccount(accountAny,false);
-                            emails.put(account.getEmail(),PRESENT);
-                            if (!isRait || i > 130 - 70) {
-                                list.add(account);
-                                ids[account.getId()] = account;
-                            } else {
-                                ids[account.getId()] = PRESENT_AC;
-                            }
-                            if (Service.F.equals(account.getSex())) {
-                                f_count.incrementAndGet();
-                            } else {
-                                m_count.incrementAndGet();
-                            }
-
-                            if (Service.STATUS1.equals(account.getStatus())) {
-                                status_1_count.incrementAndGet();
-                            } else if (Service.STATUS2.equals(account.getStatus())) {
-                                status_2_count.incrementAndGet();
-                            } else if (Service.STATUS3.equals(account.getStatus())){
-                                status_3_count.incrementAndGet();
-                            }
-
-                            if (account.getCountry() != null) {
-                                if (Service.F.equals(account.getSex())) {
-                                    Integer count = country_f.get(account.getCountry());
-                                    if (count == null) {
-                                        count = 1;
-                                    } else {
-                                        count = count + 1;
+                            Account account = Utils.anyToAccount(accountAny);
+                            emails.add(account.getEmail());
+                            ids[account.getId()] = account;
+                            list[index.incrementAndGet()] = account;
+                            if (account.getInterests() != null) {
+                                for (String interest : account.getInterests()) {
+                                    Byte intId = interests.get(interest);
+                                    if (intId == null) {
+                                        interests.put(interest,intIndex);
+                                        intIndex++;
                                     }
-                                    country_f.put(account.getCountry(), count);
-                                } else {
-                                    Integer count = country_m.get(account.getCountry());
+                                    Integer count = interests_by_name_idx_num.get(interest);
                                     if (count == null) {
-                                        count = 1;
+                                        interests_by_name_idx_num.put(interest,1);
                                     } else {
-                                        count = count + 1;
+                                        count++;
+                                        interests_by_name_idx_num.put(interest,count);
                                     }
-                                    country_m.put(account.getCountry(), count);
                                 }
                             }
-                            if (account.getCity() != null) {
-                                if (Service.F.equals(account.getSex())) {
-                                    Integer count = city_f.get(account.getCity());
-                                    if (count == null) {
-                                        count = 1;
-                                    } else {
-                                        count = count + 1;
-                                    }
-                                    city_f.put(account.getCity(), count);
+                            Calendar calendar = threadLocalCalendar.get();
+                            calendar.setTimeInMillis((long)account.getBirth() * 1000);
+                            Integer yearValue = calendar.get(Calendar.YEAR);
+
+                            Integer countYear = year_idx_num.get(yearValue);
+                            if (countYear == null) {
+                                year_idx_num.put(yearValue,1);
+                            } else {
+                                countYear++;
+                                year_idx_num.put(yearValue,countYear);
+                            }
+
+                            Integer countCity = city_by_name_idx_num.get(account.getCity());
+                            if (countCity == null) {
+                                city_by_name_idx_num.put(account.getCity(),1);
+                            } else {
+                                countCity++;
+                                city_by_name_idx_num.put(account.getCity(),countCity);
+                            }
+
+                            Integer countSname = sname_by_name_idx_num.get(account.getSname());
+                            if (countSname == null) {
+                                sname_by_name_idx_num.put(account.getSname(),1);
+                            } else {
+                                countSname++;
+                                sname_by_name_idx_num.put(account.getSname(),countSname);
+                            }
+
+                            Integer countFname = fname_by_name_idx_num.get(account.getFname());
+                            if (countFname == null) {
+                                fname_by_name_idx_num.put(account.getFname(),1);
+                            } else {
+                                countFname++;
+                                fname_by_name_idx_num.put(account.getFname(),countFname);
+                            }
+
+                            if (account.getPhone() != null) {
+                                String code = account.getPhone()
+                                        .substring(account.getPhone().indexOf("(") + 1
+                                                , account.getPhone().indexOf(")")).intern();
+                                Integer countPhoneCode = phone_code_by_name_idx_num.get(code);
+                                if (countPhoneCode == null) {
+                                    phone_code_by_name_idx_num.put(code, 1);
                                 } else {
-                                    Integer count = city_m.get(account.getCity());
-                                    if (count == null) {
-                                        count = 1;
-                                    } else {
-                                        count = count + 1;
-                                    }
-                                    city_m.put(account.getCity(), count);
+                                    countPhoneCode++;
+                                    phone_code_by_name_idx_num.put(code, countPhoneCode);
                                 }
+                            }
+
+                            Integer countCountry = country_by_name_idx_num.get(account.getCountry());
+                            if (countCountry == null) {
+                                country_by_name_idx_num.put(account.getCountry(),1);
+                            } else {
+                                countCountry++;
+                                country_by_name_idx_num.put(account.getCountry(),countCountry);
+                            }
+
+                            String domain = account.getEmail().substring(account.getEmail().indexOf("@") + 1).intern();
+                            Integer countDomain = email_domain_by_name_idx_num.get(domain);
+                            if (countDomain == null) {
+                                email_domain_by_name_idx_num.put(domain,1);
+                            } else {
+                                countDomain++;
+                                email_domain_by_name_idx_num.put(domain,countDomain);
                             }
                         }
                         json = null;
@@ -238,257 +266,249 @@ public class Repository {
                 }
                 System.gc();
             }
-
-            country_m.forEach((key,value) -> {
-                GroupObj grObj = new GroupObj(value,key);
-                country_m_gr.add(grObj);
-                country_gr.add(grObj);
-            });
-
-            country_f.forEach((key,value) -> {
-                GroupObj grObj = new GroupObj(value,key);
-                country_f_gr.add(grObj);
-                country_gr.add(grObj);
-            });
-
-            city_m.forEach((key,value) -> {
-                GroupObj grObj = new GroupObj(value,key);
-                city_m_gr.add(grObj);
-                city_gr.add(grObj);
-            });
-
-            city_f.forEach((key,value) -> {
-                GroupObj grObj = new GroupObj(value,key);
-                city_f_gr.add(grObj);
-                city_gr.add(grObj);
-            });
-
-            System.out.println("list size = " + list.size());
-            System.out.println("list ids size = " + ids.length);
-            System.out.println("list emails size = " + emails.size());
-
-            for (int i = 0; i < 11; i++) {
-                interests_count.put(i,new TreeSet<>(Comparator.comparing(Account::getId).reversed()));
+            for(Map.Entry<Integer, Integer> entry : year_idx_num.entrySet()) {
+                year.put(entry.getKey(),new Account[year_idx_num.get(entry.getKey()) + 21_600]);
+                year_idx_num.put(entry.getKey(), 0);
             }
+
+            for(Map.Entry<String, Integer> entry : interests_by_name_idx_num.entrySet()) {
+                interests_by_name.put(entry.getKey(),new Account[interests_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                interests_by_name_idx_num.put(entry.getKey(), 0);
+            }
+
+            for(Map.Entry<String, Integer> entry : sname_by_name_idx_num.entrySet()) {
+                sname_by_name.put(entry.getKey(),new Account[sname_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                sname_by_name_idx_num.put(entry.getKey(), 0);
+            }
+
+            for(Map.Entry<String, Integer> entry : fname_by_name_idx_num.entrySet()) {
+                fname_by_name.put(entry.getKey(),new Account[fname_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                fname_by_name_idx_num.put(entry.getKey(), 0);
+            }
+
+            for(Map.Entry<String, Integer> entry : phone_code_by_name_idx_num.entrySet()) {
+                phone_code_by_name.put(entry.getKey(),new Account[phone_code_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                phone_code_by_name_idx_num.put(entry.getKey(), 0);
+            }
+
+            for(Map.Entry<String, Integer> entry : city_by_name_idx_num.entrySet()) {
+                city_by_name.put(entry.getKey(),new Account[city_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                city_by_name_idx_num.put(entry.getKey(), 0);
+            }
+
+            for(Map.Entry<String, Integer> entry : country_by_name_idx_num.entrySet()) {
+                country_by_name.put(entry.getKey(),new Account[country_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                country_by_name_idx_num.put(entry.getKey(), 0);
+            }
+
+            for(Map.Entry<String, Integer> entry : email_domain_by_name_idx_num.entrySet()) {
+                email_domain_by_name.put(entry.getKey(),new Account[email_domain_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                email_domain_by_name_idx_num.put(entry.getKey(), 0);
+            }
+
             for (Account account : list) {
                 insertToIndex(account);
             }
-            System.out.println("list premium_1 size = " + premium_1.size());
-            System.out.println("list premium_2 size = " + premium_2.size());
-            System.out.println("list premium_3 size = " + premium_3.size());
 
-            System.out.println("warm up start = " + (new Date().getTime() - start));
-            if (isRait) {
-                for (int i = 0; i < 50_000; i++) {
-                    Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
-                }
-                for (int i = 0; i < 50_000; i++) {
-                    Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
-                }
-            } else {
-                for (int i = 0; i < 1_000; i++) {
-                    Service.handleFilterv2("/accounts/filter/?sex_eq=f&birth_lt=642144352&limit=16&city_any=Роттеростан,Белосинки,Зеленобург,Светлокенск&country_eq=Индания&status_neq=свободны");
-                }
-            }
-
+            reSortIndex();
+            System.out.println("list size = " + index);
+            System.out.println("emails size = " + emails.size());
             System.gc();//¯\_(ツ)_/¯
-            System.out.println("End like Set" + (new Date().getTime() - start));
+            System.out.println("End" + (new Date().getTime() - start));
+
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
             Service.lock.writeLock().unlock();
         }
-
     }
 
-    public static void insertToIndex(Account account) {
+    private static void insertToIndex(Account account) {
+        if (account != null) {
+            //account.setInterestBitmap(getInterestBitMap(account.getInterests()));
+           // account.setLikesBitmap(getLikesBitMap(account.getLikes()));
 
-        String email = account.getEmail();
-        String domain = email.substring(email.indexOf("@") + 1).intern();
-        TreeSet<Account> domainIndex = email_domain.get(domain);
-        if (domainIndex == null) {
-            domainIndex = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-            domainIndex.add(account);
-            email_domain.put(domain,domainIndex);
-        } else {
-            domainIndex.add(account);
-        }
-
-        if (account.getInterests() != null && account.getInterests().size() > 0) {
-            for (int size = account.getInterests().size(); size > 0; size--) {
-                TreeSet<Account> interestCountIndex = interests_count.get(size);
-                interestCountIndex.add(account);
-            }
-        }
-        if (account.getPhone() != null) {
-            phone_not_null.add(account);
-            String code = account.getPhone()
-                    .substring(account.getPhone().indexOf("(") + 1
-                            , account.getPhone().indexOf(")")).intern();
-            TreeSet<Account> codeIndex = phone_code.get(code);
-            if (codeIndex == null) {
-                codeIndex = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                codeIndex.add(account);
-                phone_code.put(code,codeIndex);
+            if (account.getPhone() != null) {
+               // phone_not_null.add(account);
+                String code = account.getPhone()
+                        .substring(account.getPhone().indexOf("(") + 1
+                                , account.getPhone().indexOf(")")).intern();
+                Account[] index = phone_code_by_name.get(code);
+                Integer idx = phone_code_by_name_idx_num.get(code);
+                index[idx] = account;
+                idx++;
+                phone_code_by_name_idx_num.put(code,idx);
             } else {
-                codeIndex.add(account);
+                //phone_null.add(account);
             }
-        } else {
-            phone_null.add(account);
-        }
-        if (account.getStart() != 0) {
-            if (currentTimeStamp2 < account.getFinish()
-                    && currentTimeStamp2 > account.getStart()) {
-                premium_1.add(account);
+
+            /*if (account.getCity() != null) {
+                city_not_null[index_city_not_null.incrementAndGet()] = account;
             }
-            premium_2.add(account);
-        } else {
-            premium_3.add(account);
-        }
-        TreeSet<Account> list = Repository.sname.get(account.getSname());
-        if (list != null) {
-            list.add(account);
-        } else {
-            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-            list.add(account);
-            Repository.sname.put(account.getSname(),list);
-        }
-        list = Repository.fname.get(account.getFname());
-        if (list != null) {
-            list.add(account);
-        } else {
-            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-            list.add(account);
-            Repository.fname.put(account.getFname(),list);
 
-        }
-        list = Repository.city.get(account.getCity());
-        if (list != null) {
-            list.add(account);
-        } else {
-            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-            list.add(account);
-            Repository.city.put(account.getCity(),list);
+            if (account.getCountry() != null) {
+                country_not_null[index_country_not_null.incrementAndGet()] = account;
+            }*/
 
-        }
-        if (account.getCity() != null) {
-            Repository.city_not_null.add(account);
-        }
-        if (account.getCountry() != null) {
-            Repository.country_not_null.add(account);
-        }
-        if (account.getSname() != null) {
-            Repository.sname_not_null.add(account);
-        }
-        if (account.getFname() != null) {
-            Repository.fname_not_null.add(account);
-        }
-        list = Repository.country.get(account.getCountry());
-        if (list != null) {
-            list.add(account);
-        } else {
-            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-            list.add(account);
-            Repository.country.put(account.getCountry(),list);
-        }
+            if (account.getInterests() != null) {
+                for (String interest : account.getInterests()) {
+                    Account[] index = interests_by_name.get(interest);
+                    Integer idx = interests_by_name_idx_num.get(interest);
+                    index[idx] = account;
+                    idx++;
+                    interests_by_name_idx_num.put(interest,idx);
+                }
+            }
 
-        if (account.getSex().equals(Service.M)) {
-            list = Repository.city.get(account.getCity() + "_m");
-            if (list != null) {
-                list.add(account);
+            Account[] index = city_by_name.get(account.getCity());
+            Integer idx = city_by_name_idx_num.get(account.getCity());
+            index[idx] = account;
+            idx++;
+            city_by_name_idx_num.put(account.getCity(),idx);
+
+            index = country_by_name.get(account.getCountry());
+            idx = country_by_name_idx_num.get(account.getCountry());
+            index[idx] = account;
+            idx++;
+            country_by_name_idx_num.put(account.getCountry(),idx);
+
+            index = sname_by_name.get(account.getSname());
+            idx = sname_by_name_idx_num.get(account.getSname());
+            index[idx] = account;
+            idx++;
+            sname_by_name_idx_num.put(account.getSname(),idx);
+
+            index = fname_by_name.get(account.getFname());
+            idx = fname_by_name_idx_num.get(account.getFname());
+            index[idx] = account;
+            idx++;
+            fname_by_name_idx_num.put(account.getFname(),idx);
+
+            String email = account.getEmail();
+            String domain = email.substring(email.indexOf("@") + 1).intern();
+            index = email_domain_by_name.get(domain);
+            idx = email_domain_by_name_idx_num.get(domain);
+            index[idx] = account;
+            idx++;
+            email_domain_by_name_idx_num.put(domain,idx);
+
+            Calendar calendar = threadLocalCalendar.get();
+            calendar.setTimeInMillis((long)account.getBirth() * 1000);
+            Integer yearValue = calendar.get(Calendar.YEAR);
+            index = Repository.year.get(yearValue);
+            idx = year_idx_num.get(yearValue);
+            index[idx] = account;
+            idx++;
+            year_idx_num.put(yearValue,idx);
+
+            if (account.getStart() != 0) {
+                if (currentTimeStamp2 < account.getFinish()
+                        && currentTimeStamp2 > account.getStart()) {
+                    premium_1[index_premium_1.incrementAndGet()] = account;
+                }
+                premium_2[index_premium_2.incrementAndGet()] = account;
             } else {
-                list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                list.add(account);
-                Repository.city.put(account.getCity() + "_m", list);
+                premium_3[index_premium_3.incrementAndGet()] = account;
             }
-            list = Repository.country.get(account.getCountry() + "_m");
-            if (list != null) {
-                list.add(account);
+
+            if (account.getSex() == Service.F) {
+                list_f[index_f.incrementAndGet()] = account;
             } else {
-                list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                list.add(account);
-                Repository.country.put(account.getCountry() + "_m", list);
+                list_m[index_m.incrementAndGet()] = account;
             }
-        }
-        if (account.getSex().equals(Service.F)) {
-            list = Repository.city.get(account.getCity() + "_f");
-            if (list != null) {
-                list.add(account);
+
+            if (account.getStatus().equals(Service.STATUS1)) {
+                Repository.status_1[index_status_1.incrementAndGet()] = account;
+                Repository.status_2_not[index_status_2_not.incrementAndGet()] = account;
+                Repository.status_3_not[index_status_3_not.incrementAndGet()] = account;
+            } else if (account.getStatus().equals(Service.STATUS2)) {
+                Repository.status_2[index_status_2.incrementAndGet()] = account;
+                Repository.status_1_not[index_status_1_not.incrementAndGet()] = account;
+                Repository.status_3_not[index_status_3_not.incrementAndGet()] = account;
             } else {
-                list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                list.add(account);
-                Repository.city.put(account.getCity()+ "_f",list);
+                Repository.status_3[index_status_3.incrementAndGet()] = account;
+                Repository.status_2_not[index_status_2_not.incrementAndGet()] = account;
+                Repository.status_1_not[index_status_1_not.incrementAndGet()] = account;
             }
-            list = Repository.country.get(account.getCountry() + "_f");
-            if (list != null) {
-                list.add(account);
-            } else {
-                list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-                list.add(account);
-                Repository.country.put(account.getCountry()+ "_f",list);
-            }
+
+            //birth_idx_gt[idxC] = account;
+            //birth_idx_lt[idxC] = account;
         }
-        if (account.getSex().equals(Service.M)) {
-            Repository.list_m.add(account);
-        } else {
-            Repository.list_f.add(account);
+    }
+
+    public static RoaringBitmap getLikesBitMap(int[] likes) {
+        if (likes == null) {
+            return null;
         }
-        if (account.getStatus().equals(Service.STATUS1)) {
-            Repository.list_status_1.add(account);
-            Repository.list_status_2_not.add(account);
-            Repository.list_status_3_not.add(account);
-        } else if (account.getStatus().equals(Service.STATUS2)) {
-            Repository.list_status_2.add(account);
-            Repository.list_status_1_not.add(account);
-            Repository.list_status_3_not.add(account);
-        } else {
-            Repository.list_status_3.add(account);
-            Repository.list_status_2_not.add(account);
-            Repository.list_status_1_not.add(account);
+        return RoaringBitmap.bitmapOf(likes);
+    }
+
+    public static RoaringBitmap getInterestBitMap(String[] interests) {
+        if (interests == null) {
+            return null;
         }
 
-        if (account.getSex().equals(Service.M)
-                && account.getStatus().equals(Service.STATUS1)) {
-            Repository.list_status_1_m.add(account);
+        RoaringBitmap bitmap = new RoaringBitmap();
+        for (String interest : interests) {
+            bitmap.add(Repository.interests.get(interest));
         }
 
-        if (account.getSex().equals(Service.M)
-                && account.getStatus().equals(Service.STATUS2)) {
-            Repository.list_status_2_m.add(account);
+        return bitmap;
+    }
+
+    public static void reSortIndex() {
+        long start = new Date().getTime();
+        System.out.println("Start reindex = " + start);
+
+        Arrays.sort(list,idsComparator);
+
+        Arrays.sort(list_f,idsComparator);
+        Arrays.sort(list_m,idsComparator);
+
+        Arrays.sort(premium_1,idsComparator);
+        Arrays.sort(premium_2,idsComparator);
+        Arrays.sort(premium_3,idsComparator);
+
+        Arrays.sort(status_1,idsComparator);
+        Arrays.sort(status_2,idsComparator);
+        Arrays.sort(status_3,idsComparator);
+
+        Arrays.sort(status_1_not,idsComparator);
+        Arrays.sort(status_2_not,idsComparator);
+        Arrays.sort(status_3_not,idsComparator);
+
+        //Arrays.sort(city_not_null,idsComparator);
+        //Arrays.sort(country_not_null,idsComparator);
+
+        for(Map.Entry<String, Account[]> entry : phone_code_by_name.entrySet()) {
+            Arrays.sort(entry.getValue(),idsComparator);
+        }
+        for(Map.Entry<String, Account[]> entry : interests_by_name.entrySet()) {
+            Arrays.sort(entry.getValue(),idsComparator);
+        }
+        for(Map.Entry<String, Account[]> entry : city_by_name.entrySet()) {
+            Arrays.sort(entry.getValue(),idsComparator);
+        }
+        for(Map.Entry<String, Account[]> entry : sname_by_name.entrySet()) {
+            Arrays.sort(entry.getValue(),idsComparator);
+        }
+        for(Map.Entry<String, Account[]> entry : fname_by_name.entrySet()) {
+            Arrays.sort(entry.getValue(),idsComparator);
+        }
+        for(Map.Entry<String, Account[]> entry : country_by_name.entrySet()) {
+            Arrays.sort(entry.getValue(),idsComparator);
+        }
+        for(Map.Entry<String, Account[]> entry : email_domain_by_name.entrySet()) {
+            Arrays.sort(entry.getValue(),idsComparator);
+        }
+        for(Map.Entry<Integer, Account[]> entry : year.entrySet()) {
+            Arrays.sort(entry.getValue(),idsComparator);
         }
 
-        if (account.getSex().equals(Service.M)
-                && account.getStatus().equals(Service.STATUS3)) {
-            Repository.list_status_3_m.add(account);
-        }
-
-        if (account.getSex().equals(Service.F)
-                && account.getStatus().equals(Service.STATUS1)) {
-            Repository.list_status_1_f.add(account);
-        }
-
-        if (account.getSex().equals(Service.F)
-                && account.getStatus().equals(Service.STATUS2)) {
-            Repository.list_status_2_f.add(account);
-        }
-
-        if (account.getSex().equals(Service.F)
-                && account.getStatus().equals(Service.STATUS3)) {
-            Repository.list_status_3_f.add(account);
-        }
-
-        Calendar calendar = threadLocalCalendar.get();
-        calendar.setTimeInMillis((long)account.getBirth() * 1000);
-        Integer yearValue = calendar.get(Calendar.YEAR);
-        list = Repository.year.get(yearValue);
-        if (list != null) {
-            list.add(account);
-        } else {
-            list = new TreeSet<>(Comparator.comparing(Account::getId).reversed());
-            list.add(account);
-            Repository.year.put(yearValue,list);
-        }
-
+        //Arrays.sort(birth_idx_lt,birthComparatorLt);
+        //Arrays.sort(birth_idx_gt,birthComparatorGt);
+        System.gc();// перерыв между фазами
+        System.out.println("end reindex = " + (new Date().getTime() - start) );
     }
 
 

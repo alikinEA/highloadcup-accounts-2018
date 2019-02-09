@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class Utils {
     private static ThreadLocal<StringBuilder> threadLocalBuilder =
-            new ThreadLocal<StringBuilder>() {
+            new ThreadLocal<>() {
                 @Override
                 protected StringBuilder initialValue() {
                     return new StringBuilder();
@@ -57,7 +57,7 @@ public class Utils {
         return output.toByteArray();
     }
 
-    public static Account anyToAccount(Any accountAny, boolean forUpdate) {
+    public static Account anyToAccount(Any accountAny) {
         try {
             for (String key : accountAny.keys()) {
                 if (!key.equals(Service.ID)
@@ -79,43 +79,22 @@ public class Utils {
                 }
             }
 
-            if (!forUpdate) {
-                if (!accountAny.keys().contains(Service.ID)) {
-                    return null;
-                }
-            }
-
-
             Account account = new Account();
             for (String key : accountAny.keys()) {
                 if (key.equals(Service.SEX)) {
-                    String valueStr = accountAny.get(Service.SEX).toString();
-                    if (valueStr.equals(Service.F)) {
-                        account.setSex(Service.F);
-                    } else if (valueStr.equals(Service.M)) {
-                        account.setSex(Service.M);
-                    } else {
-                        return null;
-                    }
+                    account.setSex(accountAny.get(Service.SEX).toString().intern());
                 }
 
                 if (key.equals(Service.STATUS)) {
-                    String valueStr = accountAny.get(Service.STATUS).toString();
-                    if (valueStr.equals(Service.STATUS1)) {
-                        account.setStatus(Service.STATUS1);
-                    } else if (valueStr.equals(Service.STATUS2)) {
-                        account.setStatus(Service.STATUS2);
-                    } else if (valueStr.equals(Service.STATUS3)) {
-                        account.setStatus(Service.STATUS3);
-                    } else {
-                        return null;
-                    }
+                    account.setStatus(accountAny.get(Service.STATUS).toString().intern());
                 }
 
                 if (key.equals(Service.JOINED)) {
                     Any any = accountAny.get(Service.JOINED);
                     if (!ValueType.NUMBER.equals(any.valueType())) {
                         return null;
+                    } else {
+                        account.setJoined(any.toInt());
                     }
 
                 }
@@ -130,15 +109,18 @@ public class Utils {
                 }
                 if (key.equals(Service.INTERESTS)) {
                     List<Any> listInter = accountAny.get(Service.INTERESTS).asList();
-                    Set<String> list = new HashSet<>();
+                    String[] list = new String[listInter.size()];
+                    int index = 0;
                     for (Any anyInter : listInter) {
-                        list.add(anyInter.toString().intern());
+                        list[index] = anyInter.toString().intern();
+                        index++;
                     }
                     account.setInterests(list);
                 }
                 if (key.equals(Service.LIKES)) {
                     List<Any> listLike = accountAny.get(Service.LIKES).asList();
-                    //Set<Integer> list = new HashSet<>(listLike.size());
+                    int[] list = new int[listLike.size()];
+                    int index = 0;
                     for (Any anyLike : listLike) {
                         if (!ValueType.NUMBER.equals(anyLike.get(Service.TS).valueType())) {
                             return null;
@@ -147,9 +129,10 @@ public class Utils {
                         if (!ValueType.NUMBER.equals(any.valueType())) {
                             return null;
                         }
-                        //list.add(any.toInt());
+                        list[index] = any.toInt();
+                        index++;
                     }
-                   // account.setLikesArr(list);
+                    account.setLikes(list);
                 }
 
                 if (key.equals(Service.PREMIUM)) {
@@ -185,6 +168,9 @@ public class Utils {
                 }
                 if (key.equals(Service.FNAME)) {
                     account.setFname(accountAny.get(Service.FNAME).toString().intern());
+                }
+                if (key.equals(Service.JOINED)) {
+                    account.setJoined(accountAny.get(Service.JOINED).toInt());
                 }
                 if (key.equals(Service.BIRTH)) {
                     Any any = accountAny.get(Service.BIRTH);
@@ -399,15 +385,15 @@ public class Utils {
     }
 
     public static String groupSCiToString(String city,Integer limit, String order) {
-        Integer countF = Repository.city_f.get(city);
-        Integer countM = Repository.city_m.get(city);
-        return fillStringGroup(limit, order, countF, countM);
+        //Integer countF = Repository.country_f.get(country);
+        //Integer countM = Repository.country_m.get(country);
+        return null;
     }
 
     public static String groupSCToString(String country, Integer limit, String order) {
-        Integer countF = Repository.country_f.get(country);
-        Integer countM = Repository.country_m.get(country);
-        return fillStringGroup(limit, order, countF, countM);
+        //Integer countF = Repository.country_f.get(country);
+        //Integer countM = Repository.country_m.get(country);
+        return null;
     }
 
     private static String fillStringGroup(Integer limit, String order, Integer countF, Integer countM) {
@@ -463,69 +449,49 @@ public class Utils {
         return sb.toString();
     }
 
-    public static String groupSCGrToString(Integer limit, String order) {
-        Integer countF = Repository.f_count.get();
-        Integer countM = Repository.m_count.get();
-        return fillStringGroup(limit, order, countF, countM);
-    }
-
-    public static String groupSGrToString(Integer limit, String order) {
-        Integer count1 = Repository.f_count.get();
-        Integer count2 = Repository.m_count.get();
-        Integer count3 = Repository.m_count.get();
-        return fillStringGroupStatus(limit, order, count1, count2,count3);
-    }
-
-    private static String fillStringGroupStatus(Integer limit, String order, Integer count1, Integer count2, Integer count3) {
-        /*StringBuilder sb = threadLocalBuilder.get();
-        sb.append("{\"groups\":[");
-        if (order.equals("-1")) {
-            if (countF > countM) {
-                sb.append("{\"sex\":\"f\",\"count\":");
-                sb.append(countF);
-                sb.append("}");
-
-                if (limit > 1) {
-                    sb.append(",{\"sex\":\"m\",\"count\":");
-                    sb.append(countM);
-                    sb.append("}");
-                }
-            } else {
-                sb.append("{\"sex\":\"m\",\"count\":");
-                sb.append(countM);
-                sb.append("}");
-
-                if (limit > 1) {
-                    sb.append(",{\"sex\":\"f\",\"count\":");
-                    sb.append(countF);
-                    sb.append("}");
-                }
-
-            }
-        } else {
-            if (countF < countM) {
-                sb.append("{\"sex\":\"f\",\"count\":");
-                sb.append(countF);
-                sb.append("}");
-
-                if (limit > 1) {
-                    sb.append(",{\"sex\":\"m\",\"count\":");
-                    sb.append(countM);
-                    sb.append("}");
-                }
-            } else {
-                sb.append("{\"sex\":\"m\",\"count\":");
-                sb.append(countM);
-                sb.append("}");
-
-                if (limit > 1) {
-                    sb.append(",{\"sex\":\"f\",\"count\":");
-                    sb.append(countF);
-                    sb.append("}");
-                }
+    public static boolean contains(String[] strings, String searchString) {
+        for (String string : strings) {
+            if (string.equals(searchString)) {
+                return true;
             }
         }
-        sb.append("]}");
-        return sb.toString();*/return null;
+
+        return false;
+    }
+
+    public static boolean contains(int[] ints, int searchInt) {
+        for (int value : ints) {
+            if (value == searchInt) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public static int binarySearchStartPos(Account[] listForSearch,Integer value, int startIndex, int endIndex) {
+
+        if (listForSearch[startIndex] == null)  {
+            return startIndex;
+        }
+        boolean isSearchElement = listForSearch[startIndex].getBirth() == value;
+
+        if (isSearchElement) {
+            return startIndex;
+        } else {
+            if (endIndex - startIndex == 1) {
+                return startIndex;
+            }
+        }
+
+        int middleIndex = startIndex + ((endIndex - startIndex) / 2);
+        if (listForSearch[middleIndex] == null)  {
+            return startIndex;
+        }
+        if (listForSearch[middleIndex].getBirth() < value) {
+            return binarySearchStartPos(listForSearch,value, startIndex, middleIndex);
+        } else {
+            return binarySearchStartPos(listForSearch,value, middleIndex, endIndex);
+        }
     }
 }
