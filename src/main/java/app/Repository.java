@@ -26,10 +26,12 @@ public class Repository {
 
     static volatile long currentTimeStamp = 0l;
     static volatile Long currentTimeStamp2 = 0l;
-    static volatile boolean isRait = false;
+    public static volatile boolean isRait = false;
 
-    //private static final String dataPath = "/tmp/data/";
-    private static final String dataPath = "/mnt/data/";
+    private static final AtomicInteger queryCount = new AtomicInteger(1);
+
+    private static final String dataPath = "/tmp/data/";
+    //private static final String dataPath = "/mnt/data/";
 
     public static final Comparator idsComparator = (Comparator<Account>) (o1, o2) -> {
         if (o1 == null) {
@@ -130,7 +132,7 @@ public class Repository {
 
     static final Account[] premium_1 = new Account[200_000];
     static final Account[] premium_2 = new Account[500_000];
-    static final Account[] premium_3 = new Account[900_000];
+    static final Account[] premium_3 = new Account[920_000];
 
 
     static final Account[] status_1 = new Account[700_000];
@@ -323,24 +325,11 @@ public class Repository {
         }
     }
 
-    private static void insertToIndex(Account account) {
+    public static void insertToIndex(Account account) {
         if (account != null) {
             //account.setInterestBitmap(getInterestBitMap(account.getInterests()));
            // account.setLikesBitmap(getLikesBitMap(account.getLikes()));
-
-            if (account.getPhone() != null) {
-               // phone_not_null.add(account);
-                String code = account.getPhone()
-                        .substring(account.getPhone().indexOf("(") + 1
-                                , account.getPhone().indexOf(")")).intern();
-                Account[] index = phone_code_by_name.get(code);
-                Integer idx = phone_code_by_name_idx_num.get(code);
-                index[idx] = account;
-                idx++;
-                phone_code_by_name_idx_num.put(code,idx);
-            } else {
-                //phone_null.add(account);
-            }
+            updatePhoneIndex(account);
 
             /*if (account.getCity() != null) {
                 city_not_null[index_city_not_null.incrementAndGet()] = account;
@@ -349,22 +338,22 @@ public class Repository {
             if (account.getCountry() != null) {
                 country_not_null[index_country_not_null.incrementAndGet()] = account;
             }*/
-
-            if (account.getInterests() != null) {
-                for (String interest : account.getInterests()) {
-                    Account[] index = interests_by_name.get(interest);
-                    Integer idx = interests_by_name_idx_num.get(interest);
-                    index[idx] = account;
-                    idx++;
-                    interests_by_name_idx_num.put(interest,idx);
-                }
-            }
+            updateInterestIndex(account);
 
             Account[] index = city_by_name.get(account.getCity());
-            Integer idx = city_by_name_idx_num.get(account.getCity());
-            index[idx] = account;
-            idx++;
-            city_by_name_idx_num.put(account.getCity(),idx);
+            Integer idx;
+            if (index != null) {
+                idx = city_by_name_idx_num.get(account.getCity());
+                index[idx] = account;
+                idx++;
+                city_by_name_idx_num.put(account.getCity(), idx);
+            } else {
+                index = new Account[100];
+                idx = 0;
+                index[idx] = account;
+                city_by_name.put(account.getCity(),index);
+                city_by_name_idx_num.put(account.getCity(), idx);
+            }
 
             index = country_by_name.get(account.getCountry());
             idx = country_by_name_idx_num.get(account.getCountry());
@@ -435,6 +424,35 @@ public class Repository {
             //birth_idx_lt[idxC] = account;
         }
     }
+
+    public static void updateInterestIndex(Account account) {
+        if (account.getInterests() != null) {
+            for (String interest : account.getInterests()) {
+                Account[] index = interests_by_name.get(interest);
+                Integer idx = interests_by_name_idx_num.get(interest);
+                index[idx] = account;
+                idx++;
+                interests_by_name_idx_num.put(interest,idx);
+            }
+        }
+    }
+
+    public static void updatePhoneIndex(Account account) {
+        if (account.getPhone() != null) {
+            // phone_not_null.add(account);
+            String code = account.getPhone()
+                    .substring(account.getPhone().indexOf("(") + 1
+                            , account.getPhone().indexOf(")")).intern();
+            Account[] index = phone_code_by_name.get(code);
+            Integer idx = phone_code_by_name_idx_num.get(code);
+            index[idx] = account;
+            idx++;
+            phone_code_by_name_idx_num.put(code,idx);
+        } else {
+            //phone_null.add(account);
+        }
+    }
+
 
     public static RoaringBitmap getLikesBitMap(int[] likes) {
         if (likes == null) {
@@ -512,5 +530,15 @@ public class Repository {
     }
 
 
-
+    public static void resortIndexForStage() {
+        if (Repository.isRait) {
+            if (queryCount.incrementAndGet() == 90000) {
+                Repository.reSortIndex();
+            }
+        } else {
+            if (queryCount.incrementAndGet() == 13000) {
+                Repository.reSortIndex();
+            }
+        }
+    }
 }

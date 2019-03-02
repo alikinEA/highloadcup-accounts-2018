@@ -13,7 +13,7 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
  * Created by Alikin E.A. on 15.12.18.
  */
 public class Server {
-    static final int PORT = Integer.parseInt(System.getProperty("port", "8098"));
+    static final int PORT = Integer.parseInt(System.getProperty("port", "80"));
 
     public Server() {
 

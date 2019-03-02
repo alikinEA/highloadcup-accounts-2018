@@ -19,6 +19,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static app.Repository.currentTimeStamp2;
+import static app.Repository.resortIndexForStage;
 
 /**
  * Created by Alikin E.A. on 15.12.18.
@@ -71,8 +72,6 @@ public class Service {
     private static final String utf8 = "UTF-8";
     private static final char delim = ',';
 
-    private static final AtomicInteger queryCount = new AtomicInteger(0);
-
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public static ThreadLocal<List<Account>> threadLocalAccounts =
@@ -94,6 +93,7 @@ public class Service {
 
     public static DefaultFullHttpResponse handle(FullHttpRequest req) throws UnsupportedEncodingException {
         String uri = req.uri();
+        Repository.resortIndexForStage();
         if (uri.charAt(10) == 'f' && uri.charAt(11) == 'i' && uri.charAt(12) == 'l') {
             if (uri.charAt(17) == '?') {
                 return handleFilterv2(uri);
@@ -101,17 +101,11 @@ public class Service {
             return ServerHandler.NOT_FOUND_R;
         } else if (uri.charAt(10) == 'n' && uri.charAt(11) == 'e') {
             if (uri.charAt(14) == '?') {
-                if (queryCount.incrementAndGet() == 90000) {
-                    Repository.reSortIndex();
-                }
                 return handleNew(req);
             }
             return ServerHandler.NOT_FOUND_R;
         } else if (uri.charAt(10) == 'l' && uri.charAt(11) == 'i') {
             if (uri.charAt(16) == '?') {
-                if (queryCount.incrementAndGet() == 90000) {
-                    Repository.reSortIndex();
-                }
                 return handleLikes(req);
             }
             return ServerHandler.NOT_FOUND_R;
@@ -133,9 +127,6 @@ public class Service {
             return ServerHandler.NOT_FOUND_R;
         } else {
             if (Character.isDigit(uri.charAt(10))) {
-                if (queryCount.incrementAndGet() == 90000) {
-                    Repository.reSortIndex();
-                }
                 return handleUpdate(req);
             }
             return ServerHandler.NOT_FOUND_R;
@@ -198,6 +189,7 @@ public class Service {
             }
             if (account.getInterests() != null) {
                 accountData.setInterests(account.getInterests());
+                Repository.updateInterestIndex(accountData);
             }
             if (account.getStatus() != null) {
                 accountData.setStatus(account.getStatus());
@@ -208,6 +200,7 @@ public class Service {
             }
             if (account.getPhone() != null) {
                 accountData.setPhone(account.getPhone());
+                Repository.updatePhoneIndex(accountData);
             }
             if (account.getBirth() != 0) {
                 accountData.setBirth(account.getBirth());
@@ -309,6 +302,7 @@ public class Service {
                     Repository.list[Repository.index.incrementAndGet()] = account;
                     Repository.ids[account.getId()] = account;
                     Repository.emails.add(account.getEmail());
+                    Repository.insertToIndex(account);
                     return ServerHandler.CREATED_R;
                 } finally {
                     lock.writeLock().unlock();
