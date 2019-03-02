@@ -339,93 +339,124 @@ public class Repository {
                 country_not_null[index_country_not_null.incrementAndGet()] = account;
             }*/
             updateInterestIndex(account);
-
-            Account[] index = city_by_name.get(account.getCity());
-            Integer idx;
-            if (index != null) {
-                idx = city_by_name_idx_num.get(account.getCity());
-                index[idx] = account;
-                idx++;
-                city_by_name_idx_num.put(account.getCity(), idx);
-            } else {
-                index = new Account[100];
-                idx = 0;
-                index[idx] = account;
-                city_by_name.put(account.getCity(),index);
-                city_by_name_idx_num.put(account.getCity(), idx);
-            }
-
-            index = country_by_name.get(account.getCountry());
-            idx = country_by_name_idx_num.get(account.getCountry());
-            index[idx] = account;
-            idx++;
-            country_by_name_idx_num.put(account.getCountry(),idx);
-
-            index = sname_by_name.get(account.getSname());
-            idx = sname_by_name_idx_num.get(account.getSname());
-            index[idx] = account;
-            idx++;
-            sname_by_name_idx_num.put(account.getSname(),idx);
-
-            index = fname_by_name.get(account.getFname());
-            idx = fname_by_name_idx_num.get(account.getFname());
-            index[idx] = account;
-            idx++;
-            fname_by_name_idx_num.put(account.getFname(),idx);
-
-            String email = account.getEmail();
-            String domain = email.substring(email.indexOf("@") + 1).intern();
-            index = email_domain_by_name.get(domain);
-            idx = email_domain_by_name_idx_num.get(domain);
-            index[idx] = account;
-            idx++;
-            email_domain_by_name_idx_num.put(domain,idx);
-
-            Calendar calendar = threadLocalCalendar.get();
-            calendar.setTimeInMillis((long)account.getBirth() * 1000);
-            Integer yearValue = calendar.get(Calendar.YEAR);
-            index = Repository.year.get(yearValue);
-            idx = year_idx_num.get(yearValue);
-            index[idx] = account;
-            idx++;
-            year_idx_num.put(yearValue,idx);
-
-            if (account.getStart() != 0) {
-                if (currentTimeStamp2 < account.getFinish()
-                        && currentTimeStamp2 > account.getStart()) {
-                    premium_1[index_premium_1.incrementAndGet()] = account;
-                }
-                premium_2[index_premium_2.incrementAndGet()] = account;
-            } else {
-                premium_3[index_premium_3.incrementAndGet()] = account;
-            }
-
-            if (account.getSex() == Service.F) {
-                list_f[index_f.incrementAndGet()] = account;
-            } else {
-                list_m[index_m.incrementAndGet()] = account;
-            }
-
-            if (account.getStatus().equals(Service.STATUS1)) {
-                Repository.status_1[index_status_1.incrementAndGet()] = account;
-                Repository.status_2_not[index_status_2_not.incrementAndGet()] = account;
-                Repository.status_3_not[index_status_3_not.incrementAndGet()] = account;
-            } else if (account.getStatus().equals(Service.STATUS2)) {
-                Repository.status_2[index_status_2.incrementAndGet()] = account;
-                Repository.status_1_not[index_status_1_not.incrementAndGet()] = account;
-                Repository.status_3_not[index_status_3_not.incrementAndGet()] = account;
-            } else {
-                Repository.status_3[index_status_3.incrementAndGet()] = account;
-                Repository.status_2_not[index_status_2_not.incrementAndGet()] = account;
-                Repository.status_1_not[index_status_1_not.incrementAndGet()] = account;
-            }
+            updateCityIndex(account);
+            updateCountryIndex(account);
+            updateSnameIndex(account);
+            updateFnameIndex(account);
+            updateEmailIndex(account);
+            updateYearIndex(account);
+            updatePremiumIndex(account);
+            updateSexIndex(account);
+            updateStatusIndex(account);
 
             //birth_idx_gt[idxC] = account;
             //birth_idx_lt[idxC] = account;
         }
     }
 
-    public static void updateInterestIndex(Account account) {
+    static void updateStatusIndex(Account account) {
+        if (account.getStatus().equals(Service.STATUS1)) {
+            Repository.status_1[index_status_1.incrementAndGet()] = account;
+            Repository.status_2_not[index_status_2_not.incrementAndGet()] = account;
+            Repository.status_3_not[index_status_3_not.incrementAndGet()] = account;
+        } else if (account.getStatus().equals(Service.STATUS2)) {
+            Repository.status_2[index_status_2.incrementAndGet()] = account;
+            Repository.status_1_not[index_status_1_not.incrementAndGet()] = account;
+            Repository.status_3_not[index_status_3_not.incrementAndGet()] = account;
+        } else {
+            Repository.status_3[index_status_3.incrementAndGet()] = account;
+            Repository.status_2_not[index_status_2_not.incrementAndGet()] = account;
+            Repository.status_1_not[index_status_1_not.incrementAndGet()] = account;
+        }
+    }
+
+    static void updateSexIndex(Account account) {
+        if (account.getSex() == Service.F) {
+            list_f[index_f.incrementAndGet()] = account;
+        } else {
+            list_m[index_m.incrementAndGet()] = account;
+        }
+    }
+
+    static void updatePremiumIndex(Account account) {
+        if (account.getStart() != 0) {
+            if (currentTimeStamp2 < account.getFinish()
+                    && currentTimeStamp2 > account.getStart()) {
+                premium_1[index_premium_1.incrementAndGet()] = account;
+            }
+            premium_2[index_premium_2.incrementAndGet()] = account;
+        } else {
+            premium_3[index_premium_3.incrementAndGet()] = account;
+        }
+    }
+
+    static void updateYearIndex(Account account) {
+        Calendar calendar = threadLocalCalendar.get();
+        calendar.setTimeInMillis((long)account.getBirth() * 1000);
+        Integer yearValue = calendar.get(Calendar.YEAR);
+        Account[] index = Repository.year.get(yearValue);
+        Integer idx = year_idx_num.get(yearValue);
+        index[idx] = account;
+        idx++;
+        year_idx_num.put(yearValue,idx);
+    }
+
+    static void updateEmailIndex(Account account) {
+        String email = account.getEmail();
+        String domain = email.substring(email.indexOf("@") + 1).intern();
+        Account[] index = email_domain_by_name.get(domain);
+        Integer idx = email_domain_by_name_idx_num.get(domain);
+        index[idx] = account;
+        idx++;
+        email_domain_by_name_idx_num.put(domain,idx);
+    }
+
+    static void updateFnameIndex(Account account) {
+        Account[] index = fname_by_name.get(account.getFname());
+        Integer idx;
+        idx = fname_by_name_idx_num.get(account.getFname());
+        index[idx] = account;
+        idx++;
+        fname_by_name_idx_num.put(account.getFname(),idx);
+    }
+
+    static void updateSnameIndex(Account account) {
+        Account[] index = sname_by_name.get(account.getSname());
+        Integer idx;
+        idx = sname_by_name_idx_num.get(account.getSname());
+        index[idx] = account;
+        idx++;
+        sname_by_name_idx_num.put(account.getSname(),idx);
+    }
+
+    static void updateCountryIndex(Account account) {
+        Account[] index = country_by_name.get(account.getCountry());
+        Integer idx;
+        idx = country_by_name_idx_num.get(account.getCountry());
+        index[idx] = account;
+        idx++;
+        country_by_name_idx_num.put(account.getCountry(),idx);
+    }
+
+    static void updateCityIndex(Account account) {
+        Account[] index = city_by_name.get(account.getCity());
+        Integer idx;
+        if (index != null) {
+            idx = city_by_name_idx_num.get(account.getCity());
+            index[idx] = account;
+            idx++;
+            city_by_name_idx_num.put(account.getCity(), idx);
+        } else {
+            index = new Account[100];
+            idx = 0;
+            index[idx] = account;
+            city_by_name.put(account.getCity(),index);
+            city_by_name_idx_num.put(account.getCity(), idx);
+        }
+
+    }
+
+    static void updateInterestIndex(Account account) {
         if (account.getInterests() != null) {
             for (String interest : account.getInterests()) {
                 Account[] index = interests_by_name.get(interest);
@@ -437,7 +468,7 @@ public class Repository {
         }
     }
 
-    public static void updatePhoneIndex(Account account) {
+    static void updatePhoneIndex(Account account) {
         if (account.getPhone() != null) {
             // phone_not_null.add(account);
             String code = account.getPhone()

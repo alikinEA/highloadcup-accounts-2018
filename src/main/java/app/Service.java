@@ -180,12 +180,15 @@ public class Service {
                 Repository.emails.remove(accountData.getEmail());
                 Repository.emails.add(account.getEmail());
                 accountData.setEmail(account.getEmail());
+                Repository.updateEmailIndex(accountData);
             }
             if (account.getSex() != null) {
                 accountData.setSex(account.getSex());
+                Repository.updateSexIndex(accountData);
             }
             if (account.getFname() != null) {
                 accountData.setFname(account.getFname());
+                Repository.updateFnameIndex(accountData);
             }
             if (account.getInterests() != null) {
                 accountData.setInterests(account.getInterests());
@@ -193,10 +196,12 @@ public class Service {
             }
             if (account.getStatus() != null) {
                 accountData.setStatus(account.getStatus());
+                Repository.updateStatusIndex(accountData);
             }
             if (account.getStart() != 0) {
                 accountData.setStart(account.getStart());
                 accountData.setFinish(account.getFinish());
+                Repository.updatePremiumIndex(accountData);
             }
             if (account.getPhone() != null) {
                 accountData.setPhone(account.getPhone());
@@ -204,15 +209,19 @@ public class Service {
             }
             if (account.getBirth() != 0) {
                 accountData.setBirth(account.getBirth());
+                Repository.updateYearIndex(accountData);
             }
             if (account.getCity() != null) {
                 accountData.setCity(account.getCity());
+                Repository.updateCityIndex(accountData);
             }
             if (account.getCountry() != null) {
                 accountData.setCountry(account.getCountry());
+                Repository.updateCountryIndex(accountData);
             }
             if (account.getSname() != null) {
                 accountData.setSname(account.getSname());
+                Repository.updateSnameIndex(accountData);
             }
         } finally {
             lock.writeLock().unlock();
