@@ -563,11 +563,11 @@ public class Repository {
 
     public static void resortIndexForStage() {
         if (Repository.isRait) {
-            if (queryCount.incrementAndGet() == 90000) {
+            if (queryCount.incrementAndGet() == 117_000) {
                 Repository.reSortIndex();
             }
         } else {
-            if (queryCount.incrementAndGet() == 13000) {
+            if (queryCount.incrementAndGet() == 13_000) {
                 Repository.reSortIndex();
             }
         }

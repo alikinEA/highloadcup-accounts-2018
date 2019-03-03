@@ -3,6 +3,8 @@ package app;
 import app.models.Account;
 import app.server.ServerHandler;
 import com.jsoniter.JsonIterator;
+import com.jsoniter.ValueType;
+import com.jsoniter.any.Any;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import org.roaringbitmap.RoaringBitmap;
@@ -10,10 +12,7 @@ import org.roaringbitmap.RoaringBitmap;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -74,16 +73,16 @@ public class Service {
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public static ThreadLocal<List<Account>> threadLocalAccounts =
+    public static ThreadLocal<Set<Account>> threadLocalAccounts =
             new ThreadLocal<>() {
                 @Override
-                protected List<Account> initialValue() {
-                    return new LinkedList<>();
+                protected Set<Account> initialValue() {
+                    return new LinkedHashSet<>();
                 }
 
                 @Override
-                public List<Account> get() {
-                    List<Account> b = super.get();
+                public Set<Account> get() {
+                    Set<Account> b = super.get();
                     b.clear();
                     return b;
                 }
@@ -223,6 +222,9 @@ public class Service {
                 accountData.setSname(account.getSname());
                 Repository.updateSnameIndex(accountData);
             }
+            if (account.getLikes() != null) {
+                accountData.setLikes(account.getLikes());
+            }
         } finally {
             lock.writeLock().unlock();
         }
@@ -245,19 +247,55 @@ public class Service {
     }
 
     private static DefaultFullHttpResponse handleLikes(FullHttpRequest req) {
-        lock.readLock().lock();
+        lock.writeLock().lock();
         try {
             try {
-                boolean isValid = Utils.validateLikes(req.content().toString(StandardCharsets.UTF_8));
-                if (!isValid) {
-                    return ServerHandler.BAD_REQUEST_R;
+                Any likesRequestAny = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8));
+                List<Any>likesListAny = likesRequestAny.get(Service.LIKES).asList();
+
+                for (Any any : likesListAny) {
+                    Any value = any.get(Service.TS);
+                    if (!ValueType.NUMBER.equals(value.valueType())) {
+                        return ServerHandler.BAD_REQUEST_R;
+                    }
+                    value = any.get(Service.LIKEE);
+                    int likeeId;
+                    if (!ValueType.NUMBER.equals(value.valueType())) {
+                        return ServerHandler.BAD_REQUEST_R;
+                    } else {
+                        likeeId = value.toInt();
+                        if (Repository.ids[likeeId] == null) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    }
+                    value = any.get(Service.LIKER);
+                    if (!ValueType.NUMBER.equals(value.valueType())) {
+                        return ServerHandler.BAD_REQUEST_R;
+                    } else {
+                        Account liker = Repository.ids[value.toInt()];
+                        if (liker == null) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        } else {
+                            int[] likesOld = liker.getLikes();
+                            int[] likesNew;
+                            if (likesOld != null) {
+                                likesNew = Arrays.copyOf(likesOld, likesOld.length + 1);
+                            } else {
+                                likesNew = new int[1];
+                            }
+                            likesNew[likesNew.length - 1] = likeeId;
+                            liker.setLikes(likesNew);
+
+                        }
+                    }
                 }
                 return ServerHandler.ACCEPTED_R;
             } catch (Exception e) {
+                e.printStackTrace();
                 return ServerHandler.BAD_REQUEST_R;
             }
         }finally {
-            lock.readLock().unlock();
+            lock.writeLock().unlock();
         }
     }
 
@@ -544,7 +582,7 @@ public class Service {
                 }
             }
 
-            List<Account> accounts = threadLocalAccounts.get();
+            Set<Account> accounts = threadLocalAccounts.get();
             if (params.length == 2) {
                 for (Account account : Repository.list) {
                     if (accounts.size() == limit) {

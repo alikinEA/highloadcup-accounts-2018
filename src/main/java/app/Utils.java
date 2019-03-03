@@ -208,36 +208,8 @@ public class Utils {
         return result;
     }
 
-    public static boolean validateLikes(String string) {
-        Any likesRequestAny = JsonIterator.deserialize(string);
-        List<Any>likesListAny = likesRequestAny.get(Service.LIKES).asList();
 
-        for (Any any : likesListAny) {
-            Any value = any.get(Service.TS);
-            if (!ValueType.NUMBER.equals(value.valueType())) {
-                return false;
-            }
-            value = any.get(Service.LIKEE);
-            if (!ValueType.NUMBER.equals(value.valueType())) {
-                return false;
-            } else {
-                if (Repository.ids[value.toInt()] == null) {
-                    return false;
-                }
-            }
-            value = any.get(Service.LIKER);
-            if (!ValueType.NUMBER.equals(value.valueType())) {
-                return false;
-            } else {
-                if (Repository.ids[value.toInt()] == null) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    public static String accountToString(List<Account> accounts,boolean sexPr, boolean fnamePr, boolean statusPr, boolean premiumPr, boolean phonePr, boolean birthPr, boolean cityPr, boolean countryPr, boolean snamePr) {
+    public static String accountToString(Set<Account> accounts,boolean sexPr, boolean fnamePr, boolean statusPr, boolean premiumPr, boolean phonePr, boolean birthPr, boolean cityPr, boolean countryPr, boolean snamePr) {
         StringBuilder sb = threadLocalBuilder.get();
         sb.append("{\"accounts\":[");
         for (Account account : accounts) {
