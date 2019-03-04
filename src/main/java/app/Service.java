@@ -247,55 +247,54 @@ public class Service {
     }
 
     private static DefaultFullHttpResponse handleLikes(FullHttpRequest req) {
-        lock.writeLock().lock();
         try {
-            try {
-                Any likesRequestAny = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8));
-                List<Any>likesListAny = likesRequestAny.get(Service.LIKES).asList();
+            Any likesRequestAny = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8));
+            List<Any>likesListAny = likesRequestAny.get(Service.LIKES).asList();
 
-                for (Any any : likesListAny) {
-                    Any value = any.get(Service.TS);
-                    if (!ValueType.NUMBER.equals(value.valueType())) {
+            for (Any any : likesListAny) {
+                Any value = any.get(Service.TS);
+                if (!ValueType.NUMBER.equals(value.valueType())) {
+                    return ServerHandler.BAD_REQUEST_R;
+                }
+                value = any.get(Service.LIKEE);
+                int likeeId;
+                if (!ValueType.NUMBER.equals(value.valueType())) {
+                    return ServerHandler.BAD_REQUEST_R;
+                } else {
+                    likeeId = value.toInt();
+                    if (Repository.ids[likeeId] == null) {
                         return ServerHandler.BAD_REQUEST_R;
                     }
-                    value = any.get(Service.LIKEE);
-                    int likeeId;
-                    if (!ValueType.NUMBER.equals(value.valueType())) {
+                }
+                value = any.get(Service.LIKER);
+                if (!ValueType.NUMBER.equals(value.valueType())) {
+                    return ServerHandler.BAD_REQUEST_R;
+                } else {
+                    Account liker = Repository.ids[value.toInt()];
+                    if (liker == null) {
                         return ServerHandler.BAD_REQUEST_R;
                     } else {
-                        likeeId = value.toInt();
-                        if (Repository.ids[likeeId] == null) {
-                            return ServerHandler.BAD_REQUEST_R;
-                        }
-                    }
-                    value = any.get(Service.LIKER);
-                    if (!ValueType.NUMBER.equals(value.valueType())) {
-                        return ServerHandler.BAD_REQUEST_R;
-                    } else {
-                        Account liker = Repository.ids[value.toInt()];
-                        if (liker == null) {
-                            return ServerHandler.BAD_REQUEST_R;
+                        int[] likesOld = liker.getLikes();
+                        int[] likesNew;
+                        if (likesOld != null) {
+                            likesNew = Arrays.copyOf(likesOld, likesOld.length + 1);
                         } else {
-                            int[] likesOld = liker.getLikes();
-                            int[] likesNew;
-                            if (likesOld != null) {
-                                likesNew = Arrays.copyOf(likesOld, likesOld.length + 1);
-                            } else {
-                                likesNew = new int[1];
-                            }
-                            likesNew[likesNew.length - 1] = likeeId;
+                            likesNew = new int[1];
+                        }
+                        likesNew[likesNew.length - 1] = likeeId;
+                        lock.writeLock().lock();
+                        try {
                             liker.setLikes(likesNew);
-
+                        } finally {
+                            lock.writeLock().unlock();
                         }
                     }
                 }
-                return ServerHandler.ACCEPTED_R;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return ServerHandler.BAD_REQUEST_R;
             }
-        }finally {
-            lock.writeLock().unlock();
+            return ServerHandler.ACCEPTED_R;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ServerHandler.BAD_REQUEST_R;
         }
     }
 
@@ -888,6 +887,7 @@ public class Service {
                         if (interestsPrV == ANY_PR) {
                             boolean isValid = false;
                             for (String value : interArr) {
+                                //todo упорядочить
                                 if (Utils.contains(account.getInterests(),value)) {
                                     isValid = true;
                                     break;
@@ -897,6 +897,7 @@ public class Service {
                                 continue;
                             }
                         } else if (interestsPrV == CONTAINS_PR) {
+                            //todo чекнуть битмапы
                             if (interArr.length <= account.getInterests().length) {
                                 /*RoaringBitmap bitmapQ = Repository.getInterestBitMap(interArr);
                                 bitmapQ.or(account.getInterestBitmap());
@@ -929,6 +930,7 @@ public class Service {
                             if (likesArr.length <= account.getLikes().length) {
                                 boolean isValid = true;
                                 for (int value : likesArr) {
+                                    //todo упорядочить
                                     if (!Utils.contains(account.getLikes(),value)) {
                                         isValid = false;
                                         break;

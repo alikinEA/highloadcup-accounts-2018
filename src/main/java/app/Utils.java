@@ -93,9 +93,9 @@ public class Utils {
                     Any any = accountAny.get(Service.JOINED);
                     if (!ValueType.NUMBER.equals(any.valueType())) {
                         return null;
-                    } else {
+                    } /*else {
                         account.setJoined(any.toInt());
-                    }
+                    }*/
 
                 }
 
@@ -169,9 +169,9 @@ public class Utils {
                 if (key.equals(Service.FNAME)) {
                     account.setFname(accountAny.get(Service.FNAME).toString().intern());
                 }
-                if (key.equals(Service.JOINED)) {
+                /*if (key.equals(Service.JOINED)) {
                     account.setJoined(accountAny.get(Service.JOINED).toInt());
-                }
+                }*/
                 if (key.equals(Service.BIRTH)) {
                     Any any = accountAny.get(Service.BIRTH);
                     if (!ValueType.NUMBER.equals(any.valueType())) {

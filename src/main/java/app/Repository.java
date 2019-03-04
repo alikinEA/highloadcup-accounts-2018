@@ -557,6 +557,7 @@ public class Repository {
         //Arrays.sort(birth_idx_lt,birthComparatorLt);
         //Arrays.sort(birth_idx_gt,birthComparatorGt);
         System.gc();// перерыв между фазами
+        Server.printCurrentMemoryUsage();
         System.out.println("end reindex = " + (new Date().getTime() - start) );
     }
 
