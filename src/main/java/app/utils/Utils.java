@@ -1,8 +1,10 @@
-package app;
+package app.utils;
 
+import app.models.Constants;
+import app.service.LocalPool;
+import app.service.Service;
 import app.models.Account;
 import app.models.GroupObj;
-import com.jsoniter.JsonIterator;
 import com.jsoniter.ValueType;
 import com.jsoniter.any.Any;
 
@@ -11,28 +13,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+import static app.models.Constants.FINISH;
+import static app.models.Constants.START;
+
 /**
  * Created by Alikin E.A. on 27.12.18.
  */
 public class Utils {
-    private static ThreadLocal<StringBuilder> threadLocalBuilder =
-            new ThreadLocal<>() {
-                @Override
-                protected StringBuilder initialValue() {
-                    return new StringBuilder();
-                }
-
-                @Override
-                public StringBuilder get() {
-                    StringBuilder b = super.get();
-                    b.setLength(0); // clear/reset the buffer
-                    return b;
-                }
-
-            };
-
-    private static final String START = "start";
-    private static final String FINISH = "finish";
 
     public static byte[] readBytes(InputStream stream) throws IOException {
         if (stream == null) return new byte[] {};
@@ -60,20 +47,20 @@ public class Utils {
     public static Account anyToAccount(Any accountAny) {
         try {
             for (String key : accountAny.keys()) {
-                if (!key.equals(Service.ID)
-                        && !key.equals(Service.INTERESTS)
-                        && !key.equals(Service.LIKES)
-                        && !key.equals(Service.PREMIUM)
-                        && !key.equals(Service.EMAIL)
-                        && !key.equals(Service.CITY)
-                        && !key.equals(Service.COUNTRY)
-                        && !key.equals(Service.SNAME)
-                        && !key.equals(Service.PHONE)
-                        && !key.equals(Service.BIRTH)
-                        && !key.equals(Service.SEX)
-                        && !key.equals(Service.FNAME)
-                        && !key.equals(Service.STATUS)
-                        && !key.equals(Service.JOINED)
+                if (!key.equals(Constants.ID)
+                        && !key.equals(Constants.INTERESTS)
+                        && !key.equals(Constants.LIKES)
+                        && !key.equals(Constants.PREMIUM)
+                        && !key.equals(Constants.EMAIL)
+                        && !key.equals(Constants.CITY)
+                        && !key.equals(Constants.COUNTRY)
+                        && !key.equals(Constants.SNAME)
+                        && !key.equals(Constants.PHONE)
+                        && !key.equals(Constants.BIRTH)
+                        && !key.equals(Constants.SEX)
+                        && !key.equals(Constants.FNAME)
+                        && !key.equals(Constants.STATUS)
+                        && !key.equals(Constants.JOINED)
                 ) {
                     return null;
                 }
@@ -81,16 +68,16 @@ public class Utils {
 
             Account account = new Account();
             for (String key : accountAny.keys()) {
-                if (key.equals(Service.SEX)) {
-                    account.setSex(accountAny.get(Service.SEX).toString().intern());
+                if (key.equals(Constants.SEX)) {
+                    account.setSex(accountAny.get(Constants.SEX).toString().intern());
                 }
 
-                if (key.equals(Service.STATUS)) {
-                    account.setStatus(accountAny.get(Service.STATUS).toString().intern());
+                if (key.equals(Constants.STATUS)) {
+                    account.setStatus(accountAny.get(Constants.STATUS).toString().intern());
                 }
 
-                if (key.equals(Service.JOINED)) {
-                    Any any = accountAny.get(Service.JOINED);
+                if (key.equals(Constants.JOINED)) {
+                    Any any = accountAny.get(Constants.JOINED);
                     if (!ValueType.NUMBER.equals(any.valueType())) {
                         return null;
                     } /*else {
@@ -99,16 +86,16 @@ public class Utils {
 
                 }
 
-                if (key.equals(Service.ID)) {
-                    Any any = accountAny.get(Service.ID);
+                if (key.equals(Constants.ID)) {
+                    Any any = accountAny.get(Constants.ID);
                     if (ValueType.NUMBER.equals(any.valueType())) {
                         account.setId(any.toInt());
                     } else {
                         return null;
                     }
                 }
-                if (key.equals(Service.INTERESTS)) {
-                    List<Any> listInter = accountAny.get(Service.INTERESTS).asList();
+                if (key.equals(Constants.INTERESTS)) {
+                    List<Any> listInter = accountAny.get(Constants.INTERESTS).asList();
                     String[] list = new String[listInter.size()];
                     int index = 0;
                     for (Any anyInter : listInter) {
@@ -117,15 +104,15 @@ public class Utils {
                     }
                     account.setInterests(list);
                 }
-                if (key.equals(Service.LIKES)) {
-                    List<Any> listLike = accountAny.get(Service.LIKES).asList();
+                if (key.equals(Constants.LIKES)) {
+                    List<Any> listLike = accountAny.get(Constants.LIKES).asList();
                     int[] list = new int[listLike.size()];
                     int index = 0;
                     for (Any anyLike : listLike) {
-                        if (!ValueType.NUMBER.equals(anyLike.get(Service.TS).valueType())) {
+                        if (!ValueType.NUMBER.equals(anyLike.get(Constants.TS).valueType())) {
                             return null;
                         }
-                        Any any = anyLike.get(Service.ID);
+                        Any any = anyLike.get(Constants.ID);
                         if (!ValueType.NUMBER.equals(any.valueType())) {
                             return null;
                         }
@@ -135,8 +122,8 @@ public class Utils {
                     account.setLikes(list);
                 }
 
-                if (key.equals(Service.PREMIUM)) {
-                    Any any = accountAny.get(Service.PREMIUM);
+                if (key.equals(Constants.PREMIUM)) {
+                    Any any = accountAny.get(Constants.PREMIUM);
                     if (!any.keys().contains(FINISH) || !any.keys().contains(START)) {
                         return null;
                     }
@@ -150,30 +137,30 @@ public class Utils {
                     account.setStart(any.get(START).toInt());
                 }
 
-                if (key.equals(Service.EMAIL)) {
-                    account.setEmail(accountAny.get(Service.EMAIL).toString().intern());
+                if (key.equals(Constants.EMAIL)) {
+                    account.setEmail(accountAny.get(Constants.EMAIL).toString().intern());
                 }
 
-                if (key.equals(Service.CITY)) {
-                    account.setCity(accountAny.get(Service.CITY).toString().intern());
+                if (key.equals(Constants.CITY)) {
+                    account.setCity(accountAny.get(Constants.CITY).toString().intern());
                 }
-                if (key.equals(Service.COUNTRY)) {
-                    account.setCountry(accountAny.get(Service.COUNTRY).toString().intern());
+                if (key.equals(Constants.COUNTRY)) {
+                    account.setCountry(accountAny.get(Constants.COUNTRY).toString().intern());
                 }
-                if (key.equals(Service.SNAME)) {
-                    account.setSname(accountAny.get(Service.SNAME).toString().intern());
+                if (key.equals(Constants.SNAME)) {
+                    account.setSname(accountAny.get(Constants.SNAME).toString().intern());
                 }
-                if (key.equals(Service.PHONE)) {
-                    account.setPhone(accountAny.get(Service.PHONE).toString().intern());
+                if (key.equals(Constants.PHONE)) {
+                    account.setPhone(accountAny.get(Constants.PHONE).toString().intern());
                 }
-                if (key.equals(Service.FNAME)) {
-                    account.setFname(accountAny.get(Service.FNAME).toString().intern());
+                if (key.equals(Constants.FNAME)) {
+                    account.setFname(accountAny.get(Constants.FNAME).toString().intern());
                 }
                 /*if (key.equals(Service.JOINED)) {
                     account.setJoined(accountAny.get(Service.JOINED).toInt());
                 }*/
-                if (key.equals(Service.BIRTH)) {
-                    Any any = accountAny.get(Service.BIRTH);
+                if (key.equals(Constants.BIRTH)) {
+                    Any any = accountAny.get(Constants.BIRTH);
                     if (!ValueType.NUMBER.equals(any.valueType())) {
                         return null;
                     } else {
@@ -210,7 +197,7 @@ public class Utils {
 
 
     public static String accountToString(Set<Account> accounts,boolean sexPr, boolean fnamePr, boolean statusPr, boolean premiumPr, boolean phonePr, boolean birthPr, boolean cityPr, boolean countryPr, boolean snamePr) {
-        StringBuilder sb = threadLocalBuilder.get();
+        StringBuilder sb = LocalPool.threadLocalBuilder.get();
         sb.append("{\"accounts\":[");
         for (Account account : accounts) {
 
@@ -305,7 +292,7 @@ public class Utils {
 
 
     public static String groupCSToString(TreeSet<GroupObj> store ,int limit, String order) {
-        StringBuilder sb = threadLocalBuilder.get();
+        StringBuilder sb = LocalPool.threadLocalBuilder.get();
         sb.append("{\"groups\":[");
         int limitC = 0;
         Iterator<GroupObj> itr;
@@ -331,7 +318,7 @@ public class Utils {
     }
 
     public static String groupCiSToString(TreeSet<GroupObj> store, Integer limit, String order) {
-        StringBuilder sb = threadLocalBuilder.get();
+        StringBuilder sb = LocalPool.threadLocalBuilder.get();
         sb.append("{\"groups\":[");
         int limitC = 0;
         Iterator<GroupObj> itr;
@@ -369,7 +356,7 @@ public class Utils {
     }
 
     private static String fillStringGroup(Integer limit, String order, Integer countF, Integer countM) {
-        StringBuilder sb = threadLocalBuilder.get();
+        StringBuilder sb = LocalPool.threadLocalBuilder.get();
         sb.append("{\"groups\":[");
         if (order.equals("-1")) {
             if (countF > countM) {

@@ -1,13 +1,11 @@
 package app.server;
 
-import app.Repository;
+import app.Repository.Repository;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollServerSocketChannel;
 
 /**
  * Created by Alikin E.A. on 15.12.18.

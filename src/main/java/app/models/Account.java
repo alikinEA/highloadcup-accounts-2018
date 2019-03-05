@@ -25,7 +25,7 @@ public class Account {
     private String city;
     private String country;
     private String sname;
-    //private RoaringBitmap interestBitmap;
+   // private RoaringBitmap interestBitmap;
     //private RoaringBitmap likesBitmap;
 
 }

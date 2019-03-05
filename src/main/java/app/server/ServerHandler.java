@@ -1,7 +1,6 @@
 package app.server;
 
-import app.Service;
-import app.models.Result;
+import app.service.Service;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
