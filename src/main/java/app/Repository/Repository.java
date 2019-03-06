@@ -95,7 +95,7 @@ public class Repository {
 
     public static final Account[] status_1 = new Account[700_000];
     public static final Account[] status_2 = new Account[300_000];
-    public static final Account[] status_3 = new Account[400_000];
+    public static final Account[] status_3 = new Account[430_000];
     public static final Account[] status_1_not = new Account[700_000];
     public static final Account[] status_2_not = new Account[1_100_000];
     public static final Account[] status_3_not = new Account[1_000_000];
@@ -131,7 +131,7 @@ public class Repository {
                 ZipFile zipFile = new ZipFile(dataPath + "data.zip");
                 FileHeader fileHeader = zipFile.getFileHeader("accounts_" + i + ".json");
                  if (fileHeader.getFileName().contains("accounts")) {
-                    System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
+                    //System.out.println("file= " + fileHeader.getFileName() + ",time = " + new Date().getTime());
                     try (InputStream inputStream = zipFile.getInputStream(fileHeader)) {
                         List<Any> json = JsonIterator.deserialize(Utils.readBytes(inputStream)).get("accounts").asList();
                         for (Any accountAny : json) {

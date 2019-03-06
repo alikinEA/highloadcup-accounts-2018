@@ -72,37 +72,44 @@ public class Service {
     private static DefaultFullHttpResponse handleUpdate(FullHttpRequest req) {
         String curId = req.uri().substring(10, req.uri().lastIndexOf("/?"));
 
+        Account accountData;
+        Account account;
+        lock.readLock().lock();
+        try {
+            accountData = Repository.ids[Integer.parseInt(curId)];
+            if (accountData == null) {
+                return ServerHandler.NOT_FOUND_R;
+            }
 
-        Account accountData = Repository.ids[Integer.parseInt(curId)];
-        if (accountData == null) {
-            return ServerHandler.NOT_FOUND_R;
+            account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
+            if (account == null) {
+                return ServerHandler.BAD_REQUEST_R;
+            }
+            if (account.getSex() != null) {
+                if (!account.getSex().equals(Constants.F)
+                        && !account.getSex().equals(Constants.M)) {
+                    return ServerHandler.BAD_REQUEST_R;
+                }
+            }
+            if (account.getStatus() != null) {
+                if (!account.getStatus().equals(Constants.STATUS1)
+                        && !account.getStatus().equals(Constants.STATUS2)
+                        && !account.getStatus().equals(Constants.STATUS3)) {
+                    return ServerHandler.BAD_REQUEST_R;
+                }
+            }
+            if (account.getEmail() != null) {
+                if (!account.getEmail().contains("@")) {
+                    return ServerHandler.BAD_REQUEST_R;
+                }
+                if (Repository.emails.contains(account.getEmail())) {
+                    return ServerHandler.BAD_REQUEST_R;
+                }
+            }
+        } finally {
+            lock.readLock().unlock();
         }
 
-        Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
-        if (account == null) {
-            return ServerHandler.BAD_REQUEST_R;
-        }
-        if (account.getSex() != null) {
-            if (!account.getSex().equals(Constants.F)
-                    && !account.getSex().equals(Constants.M)) {
-                return ServerHandler.BAD_REQUEST_R;
-            }
-        }
-        if (account.getStatus() != null) {
-            if (!account.getStatus().equals(Constants.STATUS1)
-                    && !account.getStatus().equals(Constants.STATUS2)
-                    && !account.getStatus().equals(Constants.STATUS3)) {
-                return ServerHandler.BAD_REQUEST_R;
-            }
-        }
-        if (account.getEmail() != null) {
-            if (!account.getEmail().contains("@")) {
-                return ServerHandler.BAD_REQUEST_R;
-            }
-            if (Repository.emails.contains(account.getEmail())) {
-                return ServerHandler.BAD_REQUEST_R;
-            }
-        }
 
         lock.writeLock().lock();
         try {
@@ -213,6 +220,7 @@ public class Service {
                             likesNew = new int[1];
                         }
                         likesNew[likesNew.length - 1] = likeeId;
+                        Arrays.sort(likesNew);
                         lock.writeLock().lock();
                         try {
                             liker.setLikes(likesNew);
@@ -234,9 +242,7 @@ public class Service {
         if (account == null || account.getId() == -1) {
             return ServerHandler.BAD_REQUEST_R;
         }
-        if (Repository.ids[account.getId()] != null) {
-            return ServerHandler.BAD_REQUEST_R;
-        }
+
         if (account.getSex() != null) {
             if (!account.getSex().equals(Constants.F)
                     && !account.getSex().equals(Constants.M)) {
@@ -258,23 +264,28 @@ public class Service {
             if (!account.getEmail().contains("@")) {
                 return ServerHandler.BAD_REQUEST_R;
             }
-            boolean contains;
-            contains = Repository.emails.contains(account.getEmail());
 
-            if (contains) {
-                return ServerHandler.BAD_REQUEST_R;
-            } else {
-                lock.writeLock().lock();
-                try {
-                    Repository.list[Repository.index.incrementAndGet()] = account;
-                    Repository.ids[account.getId()] = account;
-                    Repository.emails.add(account.getEmail());
-                    Repository.insertToIndex(account);
-                    return ServerHandler.CREATED_R;
-                } finally {
-                    lock.writeLock().unlock();
+            lock.readLock().lock();
+            try {
+                if (Repository.ids[account.getId()] != null) {
+                    return ServerHandler.BAD_REQUEST_R;
                 }
+                if (Repository.emails.contains(account.getEmail())) {
+                    return ServerHandler.BAD_REQUEST_R;
+                }
+            } finally {
+                lock.readLock().unlock();
+            }
 
+            lock.writeLock().lock();
+            try {
+                Repository.list[Repository.index.incrementAndGet()] = account;
+                Repository.ids[account.getId()] = account;
+                Repository.emails.add(account.getEmail());
+                Repository.insertToIndex(account);
+                return ServerHandler.CREATED_R;
+            } finally {
+                lock.writeLock().unlock();
             }
         }
         return ServerHandler.CREATED_R;
@@ -848,10 +859,20 @@ public class Service {
 
                 if (likesPr) {
                         if (account.getLikes() != null) {
-                            if (likesArr.length <= account.getLikes().length) {
+                            int[] likes = account.getLikes();
+                            if (likesArr.length <= likes.length) {
                                 boolean isValid = true;
                                 for (int value : likesArr) {
-                                    //todo упорядочить
+                                    if (likes[0] > value
+                                            || likes[likes.length - 1] < value) {
+                                        isValid = false;
+                                        break;
+                                    }
+                                }
+                                if (!isValid) {
+                                    continue;
+                                }
+                                for (int value : likesArr) {
                                     if (!Utils.contains(account.getLikes(),value)) {
                                         isValid = false;
                                         break;
@@ -860,11 +881,6 @@ public class Service {
                                 if (!isValid) {
                                     continue;
                                 }
-                                /*RoaringBitmap bitmapQ = Repository.getLikesBitMap(likesArr);
-                                bitmapQ.or(account.getInterestBitmap());
-                                if (!bitmapQ.equals(account.getInterestBitmap())) {
-                                    continue;
-                                }*/
                             } else {
                                 continue;
                             }

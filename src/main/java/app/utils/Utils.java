@@ -102,6 +102,7 @@ public class Utils {
                         list[index] = anyInter.toString().intern();
                         index++;
                     }
+                    Arrays.sort(list);
                     account.setInterests(list);
                 }
                 if (key.equals(Constants.LIKES)) {
@@ -119,6 +120,7 @@ public class Utils {
                         list[index] = any.toInt();
                         index++;
                     }
+                    Arrays.sort(list);
                     account.setLikes(list);
                 }
 
