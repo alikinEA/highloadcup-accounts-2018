@@ -37,6 +37,7 @@ public class Repository {
     //private static final String dataPath = "/mnt/data/";
 
     private static final int elementCount = 1300_000  + 21_600;
+    public static final int MAX_ID = 1_520_000;
 
     public static final AtomicInteger index = new AtomicInteger(-1);
     public static final AtomicInteger index_premium_1 = new AtomicInteger(-1);
@@ -56,34 +57,34 @@ public class Repository {
     public static final AtomicInteger index_f = new AtomicInteger(-1);
     public static final AtomicInteger index_m = new AtomicInteger(-1);
 
-    public static final Account[] ids = new Account[2_000_000];
-    public static final Set<String> emails = new THashSet<>(elementCount);
+    public static final Account[] ids = new Account[MAX_ID];
+    public static final Set<String> emails = new THashSet<>(elementCount,1);
     public static final Account[] list = new Account[elementCount];
-    static final Map<String,Byte> interests = new THashMap(90);
+    static final Map<String,Byte> interests = new THashMap(90,1);
 
-    public static final Map<String,Account[]> sname_by_name = new THashMap(1700);
-    static final Map<String,Integer> sname_by_name_idx_num = new THashMap(1700);
+    public static final Map<String,Account[]> sname_by_name = new THashMap(1700,1);
+    static final Map<String,Integer> sname_by_name_idx_num = new THashMap(1700,1);
 
-    public static final Map<String,Account[]> city_by_name = new THashMap(650);
-    static final Map<String,Integer> city_by_name_idx_num = new THashMap(650);
+    public static final Map<String,Account[]> city_by_name = new THashMap(650,1);
+    static final Map<String,Integer> city_by_name_idx_num = new THashMap(650,1);
 
-    public static final Map<String,Account[]> fname_by_name = new THashMap(120);
-    static final Map<String,Integer> fname_by_name_idx_num = new THashMap(120);
+    public static final Map<String,Account[]> fname_by_name = new THashMap(120,1);
+    static final Map<String,Integer> fname_by_name_idx_num = new THashMap(120,1);
 
-    public static final Map<String,Account[]> phone_code_by_name = new THashMap(110);
-    static final Map<String,Integer> phone_code_by_name_idx_num = new THashMap(110);
+    public static final Map<String,Account[]> phone_code_by_name = new THashMap(110,1);
+    static final Map<String,Integer> phone_code_by_name_idx_num = new THashMap(110,1);
 
-    public static final Map<String,Account[]> country_by_name = new THashMap(100);
-    static final Map<String,Integer> country_by_name_idx_num = new THashMap(100);
+    public static final Map<String,Account[]> country_by_name = new THashMap(100,1);
+    static final Map<String,Integer> country_by_name_idx_num = new THashMap(100,1);
 
-    public static final Map<String,Account[]> interests_by_name = new THashMap(90);
-    static final Map<String,Integer> interests_by_name_idx_num = new THashMap(90);
+    public static final Map<String,Account[]> interests_by_name = new THashMap(90,1);
+    static final Map<String,Integer> interests_by_name_idx_num = new THashMap(90,1);
 
-    public static final Map<Integer,Account[]> year = new THashMap(30);
-    static final Map<Integer,Integer> year_idx_num = new THashMap(30);
+    public static final Map<Integer,Account[]> year = new THashMap(30,1);
+    static final Map<Integer,Integer> year_idx_num = new THashMap(30,1);
 
-    public static final Map<String,Account[]> email_domain_by_name = new THashMap(15);
-    static final Map<String,Integer> email_domain_by_name_idx_num = new THashMap(15);
+    public static final Map<String,Account[]> email_domain_by_name = new THashMap(15,1);
+    static final Map<String,Integer> email_domain_by_name_idx_num = new THashMap(15,1);
 
     //static final Account[] birth_idx_lt = new Account[elementCount];
     //static final Account[] birth_idx_gt = new Account[elementCount];

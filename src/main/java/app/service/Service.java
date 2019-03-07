@@ -29,7 +29,6 @@ public class Service {
 
     public static DefaultFullHttpResponse handle(FullHttpRequest req) throws UnsupportedEncodingException {
         String uri = req.uri();
-        Repository.resortIndexForStage();
         if (uri.charAt(10) == 'f' && uri.charAt(11) == 'i' && uri.charAt(12) == 'l') {
             if (uri.charAt(17) == '?') {
                 return handleFilterv2(uri);
@@ -76,7 +75,11 @@ public class Service {
         Account account;
         lock.readLock().lock();
         try {
-            accountData = Repository.ids[Integer.parseInt(curId)];
+            int id = Integer.parseInt(curId);
+            if (id > Repository.MAX_ID) {
+                return ServerHandler.NOT_FOUND_R;
+            }
+            accountData = Repository.ids[id];
             if (accountData == null) {
                 return ServerHandler.NOT_FOUND_R;
             }
@@ -200,6 +203,9 @@ public class Service {
                     return ServerHandler.BAD_REQUEST_R;
                 } else {
                     likeeId = value.toInt();
+                    if (likeeId > Repository.MAX_ID) {
+                        return ServerHandler.BAD_REQUEST_R;
+                    }
                     if (Repository.ids[likeeId] == null) {
                         return ServerHandler.BAD_REQUEST_R;
                     }
@@ -208,7 +214,11 @@ public class Service {
                 if (!ValueType.NUMBER.equals(value.valueType())) {
                     return ServerHandler.BAD_REQUEST_R;
                 } else {
-                    Account liker = Repository.ids[value.toInt()];
+                    int id = value.toInt();
+                    if (id > Repository.MAX_ID) {
+                        return ServerHandler.BAD_REQUEST_R;
+                    }
+                    Account liker = Repository.ids[id];
                     if (liker == null) {
                         return ServerHandler.BAD_REQUEST_R;
                     } else {

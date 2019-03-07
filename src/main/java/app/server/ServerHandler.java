@@ -1,5 +1,6 @@
 package app.server;
 
+import app.Repository.Repository;
 import app.service.Service;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -89,6 +90,7 @@ public class ServerHandler  extends SimpleChannelInboundHandler<FullHttpRequest>
             FullHttpResponse response = Service.handle(request);
             response = response.duplicate().retain();
             ctx.writeAndFlush(response);
+            Repository.resortIndexForStage();
         } catch (Exception e) {
             e.printStackTrace();
             ctx.writeAndFlush(INTERNAL_ERROR_R);
