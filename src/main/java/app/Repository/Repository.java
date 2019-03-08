@@ -9,7 +9,10 @@ import app.utils.Comparators;
 import app.utils.Utils;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
+import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.map.hash.TObjectByteHashMap;
 import gnu.trove.set.hash.THashSet;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
@@ -31,7 +34,9 @@ public class Repository {
     public static volatile Long currentTimeStamp2 = 0l;
     public static volatile boolean isRait = false;
 
-    private static final AtomicInteger queryCount = new AtomicInteger(1);
+    public static final AtomicInteger queryCount = new AtomicInteger(1);
+    public static final AtomicInteger queryCacheCount = new AtomicInteger(1);
+    public static final TIntObjectMap<byte[]> queryCache = new TIntObjectHashMap<>(30_000,1);
 
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";

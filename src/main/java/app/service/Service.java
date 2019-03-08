@@ -19,6 +19,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static app.Repository.Repository.currentTimeStamp2;
+import static app.Repository.Repository.queryCache;
+import static app.Repository.Repository.queryCacheCount;
 
 /**
  * Created by Alikin E.A. on 15.12.18.
@@ -371,11 +373,20 @@ public class Service {
 
 
             int limit = 0;
+            int queryId = 0;
 
             for (String param : params) {
                 String valueParam = getValue(param).intern();
                 String predicate = getPredicate(param).intern();
                 if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
+                    queryId = Integer.parseInt(valueParam);
+                    if (Repository.queryCount.get() > 117_000) {
+                        byte[] cachedQuery = Repository.queryCache.get(queryId);
+                        if (cachedQuery != null) {
+                            System.out.println("from cache = " + queryCacheCount.incrementAndGet());
+                            return ServerHandler.createOK(cachedQuery);
+                        }
+                    }
                     continue;
                 }
                 if (param.charAt(0) == 's' && param.charAt(1) == 'e') {
@@ -527,7 +538,7 @@ public class Service {
             if (params.length == 2) {
                 for (Account account : Repository.list) {
                     if (accounts.size() == limit) {
-                        return ServerHandler.createOK(Utils.accountToString(accounts
+                        byte[] body = Utils.accountToString(accounts
                                 ,sexPr
                                 ,fnamePr
                                 ,statusPr
@@ -536,7 +547,11 @@ public class Service {
                                 ,birthPr
                                 ,cityPr
                                 ,countryPr
-                                ,snamePr).getBytes(StandardCharsets.UTF_8));
+                                ,snamePr).getBytes(StandardCharsets.UTF_8);
+                        if (Repository.queryCount.get() > 117_000) {
+                            Repository.queryCache.put(queryId, body);
+                        }
+                        return ServerHandler.createOK(body);
                     } else {
                         accounts.add(account);
                     }
@@ -907,7 +922,7 @@ public class Service {
             if (accounts.size() == 0) {
                 return ServerHandler.OK_EMPTY_R;
             }
-            return ServerHandler.createOK(Utils.accountToString(accounts
+            byte[] body = Utils.accountToString(accounts
                     ,sexPr
                     ,fnamePr
                     ,statusPr
@@ -916,7 +931,11 @@ public class Service {
                     ,birthPr
                     ,cityPr
                     ,countryPr
-                    ,snamePr).getBytes(StandardCharsets.UTF_8));
+                    ,snamePr).getBytes(StandardCharsets.UTF_8);
+            if (Repository.queryCount.get() > 117_000) {
+                Repository.queryCache.put(queryId, body);
+            }
+            return ServerHandler.createOK(body);
         } catch (Exception e) {
             System.out.println(uri);
             e.printStackTrace();

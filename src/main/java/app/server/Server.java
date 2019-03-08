@@ -6,6 +6,17 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Date;
 
 /**
  * Created by Alikin E.A. on 15.12.18.
@@ -34,7 +45,46 @@ public class Server {
     public static void main(String[] args) throws Exception {
         Repository.initData();
         printCurrentMemoryUsage();
+        Thread thread = new Thread(Server::warmUp);
+
+        thread.start();
         new Server().run();
+
+    }
+
+    private static void warmUp() {
+        try {
+            Thread.sleep(5_000);
+            System.out.println("start warm up"+ new Date().getTime());
+            HttpClient client = new DefaultHttpClient();
+            int warpUpCount = 500;
+            if (Repository.isRait) {
+                warpUpCount = 5_000;
+            }
+            for (int i = 0; i < warpUpCount; i++) {
+                HttpGet request = new HttpGet("http://localhost:" + PORT + "/accounts/filter/?country_eq=Румция&sname_starts=Кис&limit=38&sex_eq=f&query_id=1");
+                HttpResponse response = client.execute(request);
+                EntityUtils.consumeQuietly(response.getEntity());
+                /*try (BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()))) {
+                    String line = "";
+                    while ((line = rd.readLine()) != null) {
+                        System.out.println(line);
+                    }
+                }*/
+            }
+
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Repository.queryCount.set(1);
+        System.gc();
+        printCurrentMemoryUsage();
+        System.out.println("end warm up" + new Date().getTime());
     }
 
     public void run() throws Exception {
