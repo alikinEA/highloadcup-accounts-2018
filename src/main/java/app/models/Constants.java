@@ -23,6 +23,7 @@ public class Constants {
     public static final String TS = "ts";
     public static final String LIKEE = "likee";
     public static final String LIKER = "liker";
+    public static final String LIMIT = "limit";
 
     public static final String EQ_PR = "eq";
     public static final String NEQ_PR = "neq";

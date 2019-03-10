@@ -178,15 +178,255 @@ public class Service {
 
 
     private static DefaultFullHttpResponse handleRecomended(FullHttpRequest req) {
-        return ServerHandler.BAD_REQUEST_R;
+        lock.readLock().lock();
+        try {
+
+            String replAcc = req.uri().substring(10);
+            String idStr = replAcc.substring(0, replAcc.indexOf("/"));
+
+            int id = Integer.parseInt(idStr);
+            if (id > Repository.MAX_ID) {
+                return ServerHandler.NOT_FOUND_R;
+            }
+            Account accountData = Repository.ids[id];
+            if (accountData == null) {
+                return ServerHandler.NOT_FOUND_R;
+            } else {
+                String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(Constants.URI_RECOMENDED) + 12), '&');
+                int limit;
+                String country;
+                String city;
+                for (String param : params) {
+                    if (param.startsWith(Constants.LIMIT)) {
+                        try {
+                            limit = Integer.parseInt(getValue(param));
+                            if (limit <= 0) {
+                                return ServerHandler.BAD_REQUEST_R;
+                            }
+                        } catch (Exception e) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    }
+                    if (param.startsWith(Constants.COUNTRY)) {
+                        country = getValue(param);
+                        if (country.isEmpty()) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    }
+                    if (param.startsWith(Constants.CITY)) {
+                        city = getValue(param);
+                        if (city.isEmpty()) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    }
+                }
+
+                return ServerHandler.OK_EMPTY_R;
+
+                /*if (!accountData.equals(Repository.PRESENT_AC)) {
+                    TreeSet<AccountC> compat = new TreeSet<>(Comparator.comparing(AccountC::getC).reversed());
+                    TreeSet<Account> list = null;
+
+                    if (accountData.getSex().equals(F)) {
+                        if (!country.isEmpty()) {
+                            list = Repository.country.get(country + "_m");
+                        }
+                        if (!city.isEmpty()) {
+                            list = Repository.country.get(city + "_m");
+                        }
+                        if (list == null) {
+                            list = Repository.list_status_1_m;
+                        }
+                    } else {
+                        if (!country.isEmpty()) {
+                            list = Repository.country.get(country + "_f");
+                        }
+                        if (!city.isEmpty()) {
+                            list = Repository.country.get(city + "_m");
+                        }
+                        if (list == null) {
+                            list = Repository.list_status_1_f;
+                        }
+                    }
+
+                    Iterator<Account> iterator = list.descendingIterator();
+                    calcCompat(accountData, country, city, compat, iterator);
+                    if (list.equals(Repository.list_status_1_f) || list.equals(Repository.list_status_1_m)) {
+                        if (compat.size() >= limit) {
+                            return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
+                        } else {
+                            if (list.equals(Repository.list_status_1_f)) {
+                                list = Repository.list_status_2_f;
+                            } else {
+                                list = Repository.list_status_2_m;
+                            }
+                            iterator = list.descendingIterator();
+                            calcCompat(accountData, country, city, compat, iterator);
+                            if (compat.size() >= limit) {
+                                return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
+                            } else {
+                                if (list.equals(Repository.list_status_2_f)) {
+                                    iterator = Repository.list_status_3_f.descendingIterator();
+                                } else {
+                                    iterator = Repository.list_status_3_m.descendingIterator();
+                                }
+                                calcCompat(accountData, country, city, compat, iterator);
+                                return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
+                            }
+                        }
+                    } else {
+                        return new Result(Utils.accountToString2(compat, limit).getBytes(StandardCharsets.UTF_8), HttpResponseStatus.OK);
+                    }
+                }*/
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ServerHandler.BAD_REQUEST_R;
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     private static DefaultFullHttpResponse handleSuggest(FullHttpRequest req) {
-        return ServerHandler.BAD_REQUEST_R;
+        lock.readLock().lock();
+        try {
+            String replAcc = req.uri().substring(10);
+            String idStr = replAcc.substring(0, replAcc.indexOf("/"));
+
+            int id = Integer.parseInt(idStr);
+            if (id > Repository.MAX_ID) {
+                return ServerHandler.NOT_FOUND_R;
+            }
+            Account accountData = Repository.ids[id];
+            if (accountData == null) {
+                return ServerHandler.NOT_FOUND_R;
+            } else {
+                String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(Constants.URI_SUGGEST) + 10), '&');
+                for (String param : params) {
+                    if (param.startsWith(Constants.LIMIT)) {
+                        try {
+                            Integer limit = Integer.parseInt(getValue(param));
+                            if (limit <= 0) {
+                                return ServerHandler.BAD_REQUEST_R;
+                            }
+                        } catch (Exception e) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    }
+                    if (param.startsWith(Constants.COUNTRY)) {
+                        if (getValue(param).isEmpty()) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    }
+                    if (param.startsWith(Constants.CITY)) {
+                        if (getValue(param).isEmpty()) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    }
+                }
+
+                return ServerHandler.OK_EMPTY_R;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ServerHandler.BAD_REQUEST_R;
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
-    public static DefaultFullHttpResponse handleGroup(FullHttpRequest req) {
-        return ServerHandler.NOT_FOUND_R;
+    private static DefaultFullHttpResponse handleGroup(FullHttpRequest req) {
+        try {
+            String[] t = Utils.tokenize(req.uri().substring(17),'&');
+            String sex = null;
+            String countryKey = null;
+            String cityKey = null;
+            Integer limit = null;
+            String order = null;
+            for (String param : t) {
+                if (param.startsWith("query_id")) {
+                    continue;
+                }
+                if (param.startsWith(Constants.LIMIT)) {
+                    try {
+                        limit = Integer.parseInt(getValue(param));
+                        if (limit <= 0 || limit > 50) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    } catch (Exception e) {
+                        return ServerHandler.BAD_REQUEST_R;
+                    }
+                }
+                if (param.startsWith("order")) {
+                    order = getValue(param);
+                    if (!order.equals("-1") && !order.equals("1")) {
+                        return ServerHandler.BAD_REQUEST_R;
+                    }
+                }
+                if (param.startsWith(Constants.SEX)) {
+                    sex = getValue(param);
+                    if (!Constants.F.equals(sex) && !Constants.M.equals(sex)) {
+                        return ServerHandler.BAD_REQUEST_R;
+                    }
+                }
+                if (param.startsWith(Constants.KEYS)) {
+                    String value = getValue(param);
+                    String[] tokens = Utils.tokenize(value, Constants.DELIM);
+                    for (String token : tokens) {
+                        if (!Constants.SEX.equals(token)
+                                && !Constants.STATUS.equals(token)
+                                && !Constants.INTERESTS.equals(token)
+                                && !Constants.COUNTRY.equals(token)
+                                && !Constants.CITY.equals(token)) {
+                            return ServerHandler.BAD_REQUEST_R;
+                        }
+                    }
+                    if (value.equals(Constants.COUNTRY)) {
+                        countryKey = value;
+                    }
+                    if (value.equals(Constants.CITY)) {
+                        cityKey = value;
+                    }
+                }
+            }
+            if (order == null || limit == null) {
+                return ServerHandler.BAD_REQUEST_R;
+            }
+            /*if (phase1.get()) {
+                if (t.length == 5) {
+                    if (sex != null && countryKey != null) {
+                        if (sex.equals(Service.F)) {
+                            return ServerHandler.createOK(Utils.groupCSToString(Repository.country_f_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                        }
+                        if (sex.equals(Service.M)) {
+                            return ServerHandler.createOK(Utils.groupCSToString(Repository.country_m_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                        }
+                    }
+                    if (sex != null && cityKey != null) {
+                        if (sex.equals(Service.F)) {
+                            return ServerHandler.createOK(Utils.groupCiSToString(Repository.city_f_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                        }
+                        if (sex.equals(Service.M)) {
+                            return ServerHandler.createOK(Utils.groupCiSToString(Repository.city_m_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                        }
+                    }
+                }
+                if (t.length == 4) {
+                    if (sex == null) {
+                        if (countryKey != null) {
+                            return ServerHandler.createOK(Utils.groupCSToString(Repository.country_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                        }
+                        if (cityKey != null) {
+                            return ServerHandler.createOK(Utils.groupCiSToString(Repository.city_gr, limit, order).getBytes(StandardCharsets.UTF_8));
+                        }
+                    }
+                }
+            }*/
+            return ServerHandler.OK_EMPTY_GR_R;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ServerHandler.NOT_FOUND_R;
+        }
     }
 
     private static DefaultFullHttpResponse handleLikes(FullHttpRequest req) {
