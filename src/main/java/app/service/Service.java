@@ -166,7 +166,7 @@ public class Service {
                 Repository.updateSnameIndex(accountData);
             }
             if (account.getLikes() != null) {
-                accountData.setLikes(account.getLikes());
+                Repository.updateLikesInvertIndex(account);
             }
         } finally {
             lock.writeLock().unlock();
@@ -383,7 +383,7 @@ public class Service {
                     if (Repository.queryCount.get() > 117_000) {
                         byte[] cachedQuery = Repository.queryCache.get(queryId);
                         if (cachedQuery != null) {
-                            System.out.println("from cache = " + queryCacheCount.incrementAndGet());
+                            //System.out.println("from cache = " + queryCacheCount.incrementAndGet());
                             return ServerHandler.createOK(cachedQuery);
                         }
                     }
@@ -600,6 +600,7 @@ public class Service {
                     ,birthPr,birthPrV,year
                     ,emailPr,emailPrV,emailV
                     ,cityArr,fnameArr
+                    ,likesPr,likesArr
             );
             if (listForSearch == null) {
                 return ServerHandler.OK_EMPTY_R;
@@ -882,7 +883,7 @@ public class Service {
                 }
                 //INTERESTS ============================================
 
-                if (likesPr) {
+                /*if (likesPr) {
                         if (account.getLikes() != null) {
                             int[] likes = account.getLikes();
                             if (likesArr.length <= likes.length) {
@@ -912,7 +913,7 @@ public class Service {
                         } else {
                             continue;
                         }
-                }
+                }*/
 
                 accounts.add(account);
                 if (accounts.size() == limit) {
@@ -956,9 +957,12 @@ public class Service {
             ,boolean sexPr
             , boolean birthPr, String birthPrV, Integer year
             ,boolean emailPr,String emailPrV,String emailV
-            ,String[] cityArr,String[] fnameArr) {
+            ,String[] cityArr,String[] fnameArr,boolean likesPr,int[] likesArr) {
         Account[] resultIndex = Repository.list;
 
+        if (likesPr) {
+            return Repository.likeInvert.get(likesArr[likesArr.length - 1]);
+        }
 
         if (snamePr) {
             if (snamePrV == Constants.NULL_PR) {

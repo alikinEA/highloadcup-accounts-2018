@@ -41,7 +41,8 @@ public class Repository {
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
 
-    private static final int elementCount = 1300_000  + 21_600;
+    private static final int NEW_ACCOUNT = 18_500;
+    private static final int elementCount = 1300_000 + NEW_ACCOUNT;
     public static final int MAX_ID = 1_520_000;
 
     public static final AtomicInteger index = new AtomicInteger(-1);
@@ -63,6 +64,7 @@ public class Repository {
     public static final AtomicInteger index_m = new AtomicInteger(-1);
 
     public static final Account[] ids = new Account[MAX_ID];
+    public static final TIntObjectHashMap<Account[]> likeInvert = new TIntObjectHashMap(MAX_ID,1);
     public static final Set<String> emails = new THashSet<>(elementCount,1);
     public static final Account[] list = new Account[elementCount];
     static final Map<String,Byte> interests = new THashMap(90,1);
@@ -233,42 +235,42 @@ public class Repository {
                 System.gc();
             }
             for(Map.Entry<Integer, Integer> entry : year_idx_num.entrySet()) {
-                year.put(entry.getKey(),new Account[year_idx_num.get(entry.getKey()) + 21_600]);
+                year.put(entry.getKey(),new Account[year_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
                 year_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : interests_by_name_idx_num.entrySet()) {
-                interests_by_name.put(entry.getKey(),new Account[interests_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                interests_by_name.put(entry.getKey(),new Account[interests_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
                 interests_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : sname_by_name_idx_num.entrySet()) {
-                sname_by_name.put(entry.getKey(),new Account[sname_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                sname_by_name.put(entry.getKey(),new Account[sname_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
                 sname_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : fname_by_name_idx_num.entrySet()) {
-                fname_by_name.put(entry.getKey(),new Account[fname_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                fname_by_name.put(entry.getKey(),new Account[fname_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
                 fname_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : phone_code_by_name_idx_num.entrySet()) {
-                phone_code_by_name.put(entry.getKey(),new Account[phone_code_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                phone_code_by_name.put(entry.getKey(),new Account[phone_code_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
                 phone_code_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : city_by_name_idx_num.entrySet()) {
-                city_by_name.put(entry.getKey(),new Account[city_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                city_by_name.put(entry.getKey(),new Account[city_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
                 city_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : country_by_name_idx_num.entrySet()) {
-                country_by_name.put(entry.getKey(),new Account[country_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                country_by_name.put(entry.getKey(),new Account[country_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
                 country_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : email_domain_by_name_idx_num.entrySet()) {
-                email_domain_by_name.put(entry.getKey(),new Account[email_domain_by_name_idx_num.get(entry.getKey()) + 21_600]);
+                email_domain_by_name.put(entry.getKey(),new Account[email_domain_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
                 email_domain_by_name_idx_num.put(entry.getKey(), 0);
             }
 
@@ -312,9 +314,30 @@ public class Repository {
             updatePremiumIndex(account);
             updateSexIndex(account);
             updateStatusIndex(account);
+            updateLikesInvertIndex(account);
 
             //birth_idx_gt[idxC] = account;
             //birth_idx_lt[idxC] = account;
+        }
+    }
+
+    public static void updateLikesInvertIndex(Account account) {
+        if (account.getLikes() != null) {
+            for (int like : account.getLikes()) {
+                Account[] invertLikesArr = likeInvert.get(like);
+                if (invertLikesArr == null) {
+                    invertLikesArr = new Account[1];
+                    invertLikesArr[0] = account;
+                    likeInvert.put(like, invertLikesArr);
+
+                } else {
+                    invertLikesArr = Arrays.copyOf(invertLikesArr, invertLikesArr.length + 1);
+                    invertLikesArr[invertLikesArr.length - 1] = account;
+                    Arrays.sort(invertLikesArr,Comparators.idsComparator);
+                    likeInvert.put(like, invertLikesArr);
+                }
+            }
+            account.setLikes(null);
         }
     }
 
