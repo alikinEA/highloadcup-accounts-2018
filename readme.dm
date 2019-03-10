@@ -23,6 +23,7 @@ Load:
 7. Прогрев сервера
 8. json parser jsoniter,самописная сериализация
 9. trove4j
+10. дедупликация строк
 
 Запуск теста локально:
 https://github.com/atercattus/highloadcup_tester
