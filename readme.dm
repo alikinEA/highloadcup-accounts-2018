@@ -1,5 +1,7 @@
 Highloadcup 2018 Accounts https://highloadcup.ru
 
+Решение допилино относительно рейтинга (штраф 70155)
+
 Hardware:
 4 core cpu
 2gb ram
@@ -13,13 +15,14 @@ Load:
 
 Особенности реализации:
 1. In memory implementation
-1. Netty epoll transport (Non-blocking IO)
+2. Netty epoll transport (Non-blocking IO)
 3. Кеш запросов
 4. Подготовленные готовых ответов (404,200,400,501 ect.)
-2. Массивы вместо коллекций, пересчет индексов перед 3 фазой
-3. Минимизация алокаций
-4. json parser jsoniter,самописная сериализация
-5. trove4j
+5. Массивы вместо коллекций, пересчет индексов перед 3 фазой
+6. Минимизация алокаций
+7. Прогрев сервера
+8. json parser jsoniter,самописная сериализация
+9. trove4j
 
 Запуск теста локально:
 https://github.com/atercattus/highloadcup_tester
