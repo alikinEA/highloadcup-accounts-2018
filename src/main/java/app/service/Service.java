@@ -4,6 +4,7 @@ import app.Repository.Repository;
 import app.models.Account;
 import app.models.Constants;
 import app.server.ServerHandler;
+import app.utils.Comparators;
 import app.utils.Utils;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.ValueType;
@@ -464,18 +465,19 @@ public class Service {
                     if (liker == null) {
                         return ServerHandler.BAD_REQUEST_R;
                     } else {
-                        int[] likesOld = liker.getLikes();
-                        int[] likesNew;
-                        if (likesOld != null) {
-                            likesNew = Arrays.copyOf(likesOld, likesOld.length + 1);
-                        } else {
-                            likesNew = new int[1];
-                        }
-                        likesNew[likesNew.length - 1] = likeeId;
-                        Arrays.sort(likesNew);
                         lock.writeLock().lock();
                         try {
-                            liker.setLikes(likesNew);
+                            Account[] invertLikesArr = Repository.likeInvert.get(likeeId);
+                            if (invertLikesArr == null) {
+                                invertLikesArr = new Account[1];
+                                invertLikesArr[0] = liker;
+                                Repository.likeInvert.put(likeeId, invertLikesArr);
+                            } else {
+                                invertLikesArr = Arrays.copyOf(invertLikesArr, invertLikesArr.length + 1);
+                                invertLikesArr[invertLikesArr.length - 1] = liker;
+                                Arrays.sort(invertLikesArr, Comparators.idsComparator);
+                                Repository.likeInvert.put(likeeId, invertLikesArr);
+                            }
                         } finally {
                             lock.writeLock().unlock();
                         }

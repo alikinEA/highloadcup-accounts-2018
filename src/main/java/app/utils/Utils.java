@@ -1,5 +1,6 @@
 package app.utils;
 
+import app.Repository.Repository;
 import app.models.Constants;
 import app.service.LocalPool;
 import app.service.Service;
@@ -420,14 +421,6 @@ public class Utils {
         return false;
     }
 
-    public static boolean contains(int[] ints, int searchInt) {
-        for (int value : ints) {
-            if (value == searchInt) {
-                return true;
-            }
-        }
-        return false;
-    }
 
 
     public static int binarySearchStartPos(Account[] listForSearch,Integer value, int startIndex, int endIndex) {
@@ -453,6 +446,18 @@ public class Utils {
             return binarySearchStartPos(listForSearch,value, startIndex, middleIndex);
         } else {
             return binarySearchStartPos(listForSearch,value, middleIndex, endIndex);
+        }
+    }
+
+    public static void printIndexSize(Account[] index, String name) {
+        if (Repository.queryCount.get() > 17_000) {
+            int count = 0;
+            for (Account account : index) {
+                if (account != null) {
+                    count++;
+                }
+            }
+            System.out.println("Index: " + name + " - " + count);
         }
     }
 }

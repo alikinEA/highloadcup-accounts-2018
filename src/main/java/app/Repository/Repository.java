@@ -12,7 +12,6 @@ import com.jsoniter.any.Any;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.map.hash.TObjectByteHashMap;
 import gnu.trove.set.hash.THashSet;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
@@ -24,6 +23,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static app.utils.Comparators.*;
 
 /**
  * Created by Alikin E.A. on 13.12.18.
@@ -44,6 +45,9 @@ public class Repository {
     private static final int NEW_ACCOUNT = 18_500;
     private static final int elementCount = 1300_000 + NEW_ACCOUNT;
     public static final int MAX_ID = 1_520_000;
+
+    //public static final int[] newLikes = new int[500];
+    //public static final AtomicInteger newLikesIdex = new AtomicInteger(-1);
 
     public static final AtomicInteger index = new AtomicInteger(-1);
     public static final AtomicInteger index_premium_1 = new AtomicInteger(-1);
@@ -96,23 +100,23 @@ public class Repository {
     //static final Account[] birth_idx_lt = new Account[elementCount];
     //static final Account[] birth_idx_gt = new Account[elementCount];
 
-    public static final Account[] premium_1 = new Account[200_000];
-    public static final Account[] premium_2 = new Account[500_000];
-    public static final Account[] premium_3 = new Account[920_000];
+    public static final Account[] premium_1 = new Account[135_936];
+    public static final Account[] premium_2 = new Account[413_874];
+    public static final Account[] premium_3 = new Account[909_506];
 
 
-    public static final Account[] status_1 = new Account[700_000];
-    public static final Account[] status_2 = new Account[300_000];
-    public static final Account[] status_3 = new Account[430_000];
-    public static final Account[] status_1_not = new Account[700_000];
-    public static final Account[] status_2_not = new Account[1_100_000];
-    public static final Account[] status_3_not = new Account[1_000_000];
+    public static final Account[] status_1 = new Account[667_655];
+    public static final Account[] status_2 = new Account[266_824];
+    public static final Account[] status_3 = new Account[400_720];
+    public static final Account[] status_1_not = new Account[667_544];
+    public static final Account[] status_2_not = new Account[1_068_375];
+    public static final Account[] status_3_not = new Account[934_479];
 
     //static final Account[] city_not_null = new Account[elementCount];
     //static final Account[] country_not_null = new Account[elementCount];
 
-    public static final Account[] list_f = new Account[700_000];
-    public static final Account[] list_m = new Account[700_000];
+    public static final Account[] list_f = new Account[659_140];
+    public static final Account[] list_m = new Account[659_140];
 
     public static void initData() {
         long start = new Date().getTime();
@@ -235,42 +239,42 @@ public class Repository {
                 System.gc();
             }
             for(Map.Entry<Integer, Integer> entry : year_idx_num.entrySet()) {
-                year.put(entry.getKey(),new Account[year_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
+                year.put(entry.getKey(),new Account[year_idx_num.get(entry.getKey()) + 10_000]);
                 year_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : interests_by_name_idx_num.entrySet()) {
-                interests_by_name.put(entry.getKey(),new Account[interests_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
+                interests_by_name.put(entry.getKey(),new Account[45_000]);
                 interests_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : sname_by_name_idx_num.entrySet()) {
-                sname_by_name.put(entry.getKey(),new Account[sname_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
+                sname_by_name.put(entry.getKey(),new Account[sname_by_name_idx_num.get(entry.getKey()) + 5_000]);
                 sname_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : fname_by_name_idx_num.entrySet()) {
-                fname_by_name.put(entry.getKey(),new Account[fname_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
+                fname_by_name.put(entry.getKey(),new Account[fname_by_name_idx_num.get(entry.getKey()) + 5_000]);
                 fname_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : phone_code_by_name_idx_num.entrySet()) {
-                phone_code_by_name.put(entry.getKey(),new Account[phone_code_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
+                phone_code_by_name.put(entry.getKey(),new Account[6000]);
                 phone_code_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : city_by_name_idx_num.entrySet()) {
-                city_by_name.put(entry.getKey(),new Account[city_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
+                city_by_name.put(entry.getKey(),new Account[city_by_name_idx_num.get(entry.getKey()) + 8_000]);
                 city_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : country_by_name_idx_num.entrySet()) {
-                country_by_name.put(entry.getKey(),new Account[country_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
+                country_by_name.put(entry.getKey(),new Account[country_by_name_idx_num.get(entry.getKey()) + 5_000]);
                 country_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : email_domain_by_name_idx_num.entrySet()) {
-                email_domain_by_name.put(entry.getKey(),new Account[email_domain_by_name_idx_num.get(entry.getKey()) + NEW_ACCOUNT]);
+                email_domain_by_name.put(entry.getKey(),new Account[110_000]);
                 email_domain_by_name_idx_num.put(entry.getKey(), 0);
             }
 
@@ -333,7 +337,7 @@ public class Repository {
                 } else {
                     invertLikesArr = Arrays.copyOf(invertLikesArr, invertLikesArr.length + 1);
                     invertLikesArr[invertLikesArr.length - 1] = account;
-                    Arrays.sort(invertLikesArr,Comparators.idsComparator);
+                    Arrays.sort(invertLikesArr, idsComparator);
                     likeInvert.put(like, invertLikesArr);
                 }
             }
@@ -496,49 +500,46 @@ public class Repository {
         long start = new Date().getTime();
         System.out.println("Start reindex = " + start);
 
-        Arrays.sort(list, Comparators.idsComparator);
+        Arrays.sort(list, idsComparator);
 
-        Arrays.sort(list_f,Comparators.idsComparator);
-        Arrays.sort(list_m,Comparators.idsComparator);
+        Arrays.sort(list_f, idsComparator);
+        Arrays.sort(list_m, idsComparator);
 
-        Arrays.sort(premium_1,Comparators.idsComparator);
-        Arrays.sort(premium_2,Comparators.idsComparator);
-        Arrays.sort(premium_3,Comparators.idsComparator);
+        Arrays.sort(premium_1, idsComparator);
+        Arrays.sort(premium_2, idsComparator);
+        Arrays.sort(premium_3, idsComparator);
 
-        Arrays.sort(status_1,Comparators.idsComparator);
-        Arrays.sort(status_2,Comparators.idsComparator);
-        Arrays.sort(status_3,Comparators.idsComparator);
+        Arrays.sort(status_1, idsComparator);
+        Arrays.sort(status_2, idsComparator);
+        Arrays.sort(status_3, idsComparator);
 
-        Arrays.sort(status_1_not,Comparators.idsComparator);
-        Arrays.sort(status_2_not,Comparators.idsComparator);
-        Arrays.sort(status_3_not,Comparators.idsComparator);
-
-        //Arrays.sort(city_not_null,idsComparator);
-        //Arrays.sort(country_not_null,idsComparator);
+        Arrays.sort(status_1_not, idsComparator);
+        Arrays.sort(status_2_not, idsComparator);
+        Arrays.sort(status_3_not, idsComparator);
 
         for(Map.Entry<String, Account[]> entry : phone_code_by_name.entrySet()) {
-            Arrays.sort(entry.getValue(),Comparators.idsComparator);
+            Arrays.sort(entry.getValue(), idsComparator);
         }
         for(Map.Entry<String, Account[]> entry : interests_by_name.entrySet()) {
-            Arrays.sort(entry.getValue(),Comparators.idsComparator);
+            Arrays.sort(entry.getValue(), idsComparator);
         }
         for(Map.Entry<String, Account[]> entry : city_by_name.entrySet()) {
-            Arrays.sort(entry.getValue(),Comparators.idsComparator);
+            Arrays.sort(entry.getValue(), idsComparator);
         }
         for(Map.Entry<String, Account[]> entry : sname_by_name.entrySet()) {
-            Arrays.sort(entry.getValue(),Comparators.idsComparator);
+            Arrays.sort(entry.getValue(), idsComparator);
         }
         for(Map.Entry<String, Account[]> entry : fname_by_name.entrySet()) {
-            Arrays.sort(entry.getValue(),Comparators.idsComparator);
+            Arrays.sort(entry.getValue(), idsComparator);
         }
         for(Map.Entry<String, Account[]> entry : country_by_name.entrySet()) {
-            Arrays.sort(entry.getValue(),Comparators.idsComparator);
+            Arrays.sort(entry.getValue(), idsComparator);
         }
         for(Map.Entry<String, Account[]> entry : email_domain_by_name.entrySet()) {
-            Arrays.sort(entry.getValue(),Comparators.idsComparator);
+            Arrays.sort(entry.getValue(), idsComparator);
         }
         for(Map.Entry<Integer, Account[]> entry : year.entrySet()) {
-            Arrays.sort(entry.getValue(),Comparators.idsComparator);
+            Arrays.sort(entry.getValue(), idsComparator);
         }
 
         //Arrays.sort(birth_idx_lt,birthComparatorLt);

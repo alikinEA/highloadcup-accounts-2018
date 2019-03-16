@@ -4,6 +4,8 @@ import app.Repository.Repository;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.http.HttpResponse;
@@ -12,10 +14,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Date;
 
 /**
@@ -89,12 +88,12 @@ public class Server {
 
     public void run() throws Exception {
 
-        NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        NioEventLoopGroup workerGroup = new NioEventLoopGroup(8);
+        EpollEventLoopGroup bossGroup = new EpollEventLoopGroup(1);
+        EpollEventLoopGroup workerGroup = new EpollEventLoopGroup(8);
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel.class)
+                    .channel(EpollServerSocketChannel.class)
                     //.handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new HttpServerInitializer())
                     //.option(ChannelOption.SO_BACKLOG, 512)
