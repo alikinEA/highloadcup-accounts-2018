@@ -2,13 +2,15 @@ package app.Repository;
 
 import app.models.Account;
 import app.models.Constants;
+import app.models.GroupObj;
 import app.server.Server;
-import app.service.LocalPool;
+import app.service.LocalPoolService;
 import app.service.Service;
 import app.utils.Comparators;
 import app.utils.Utils;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
+import gnu.trove.list.linked.TLinkedList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -36,7 +38,6 @@ public class Repository {
     public static volatile boolean isRait = false;
 
     public static final AtomicInteger queryCount = new AtomicInteger(1);
-    public static final AtomicInteger queryCacheCount = new AtomicInteger(1);
     public static final TIntObjectMap<byte[]> queryCache = new TIntObjectHashMap<>(30_000,1);
 
     private static final String dataPath = "/tmp/data/";
@@ -45,9 +46,6 @@ public class Repository {
     private static final int NEW_ACCOUNT = 18_500;
     private static final int elementCount = 1300_000 + NEW_ACCOUNT;
     public static final int MAX_ID = 1_520_000;
-
-    //public static final int[] newLikes = new int[500];
-    //public static final AtomicInteger newLikesIdex = new AtomicInteger(-1);
 
     public static final AtomicInteger index = new AtomicInteger(-1);
     public static final AtomicInteger index_premium_1 = new AtomicInteger(-1);
@@ -60,9 +58,6 @@ public class Repository {
     public static final AtomicInteger index_status_1_not = new AtomicInteger(-1);
     public static final AtomicInteger index_status_2_not = new AtomicInteger(-1);
     public static final AtomicInteger index_status_3_not = new AtomicInteger(-1);
-
-    //public static final AtomicInteger index_city_not_null = new AtomicInteger(-1);
-    //public static final AtomicInteger index_country_not_null = new AtomicInteger(-1);
 
     public static final AtomicInteger index_f = new AtomicInteger(-1);
     public static final AtomicInteger index_m = new AtomicInteger(-1);
@@ -97,13 +92,9 @@ public class Repository {
     public static final Map<String,Account[]> email_domain_by_name = new THashMap(15,1);
     static final Map<String,Integer> email_domain_by_name_idx_num = new THashMap(15,1);
 
-    //static final Account[] birth_idx_lt = new Account[elementCount];
-    //static final Account[] birth_idx_gt = new Account[elementCount];
-
     public static final Account[] premium_1 = new Account[135_936];
     public static final Account[] premium_2 = new Account[413_874];
     public static final Account[] premium_3 = new Account[909_506];
-
 
     public static final Account[] status_1 = new Account[667_655];
     public static final Account[] status_2 = new Account[266_824];
@@ -112,11 +103,15 @@ public class Repository {
     public static final Account[] status_2_not = new Account[1_068_375];
     public static final Account[] status_3_not = new Account[934_479];
 
-    //static final Account[] city_not_null = new Account[elementCount];
-    //static final Account[] country_not_null = new Account[elementCount];
-
     public static final Account[] list_f = new Account[659_140];
     public static final Account[] list_m = new Account[659_140];
+
+    //groups
+    public static final LinkedList<GroupObj> city_gr_n = new LinkedList<>();
+    public static final LinkedList<GroupObj> city_gr_r = new LinkedList<>();
+
+    public static final LinkedList<GroupObj> country_gr_n = new LinkedList<>();
+    public static final LinkedList<GroupObj> country_gr_r = new LinkedList<>();
 
     public static void initData() {
         long start = new Date().getTime();
@@ -167,7 +162,7 @@ public class Repository {
                                     }
                                 }
                             }
-                            Calendar calendar = LocalPool.threadLocalCalendar.get();
+                            Calendar calendar = LocalPoolService.threadLocalCalendar.get();
                             calendar.setTimeInMillis((long)account.getBirth() * 1000);
                             Integer yearValue = calendar.get(Calendar.YEAR);
 
@@ -297,17 +292,7 @@ public class Repository {
 
     public static void insertToIndex(Account account) {
         if (account != null) {
-            //account.setInterestBitmap(getInterestBitMap(account.getInterests()));
-           // account.setLikesBitmap(getLikesBitMap(account.getLikes()));
             updatePhoneIndex(account);
-
-            /*if (account.getCity() != null) {
-                city_not_null[index_city_not_null.incrementAndGet()] = account;
-            }
-
-            if (account.getCountry() != null) {
-                country_not_null[index_country_not_null.incrementAndGet()] = account;
-            }*/
             updateInterestIndex(account);
             updateCityIndex(account);
             updateCountryIndex(account);
@@ -320,8 +305,8 @@ public class Repository {
             updateStatusIndex(account);
             updateLikesInvertIndex(account);
 
-            //birth_idx_gt[idxC] = account;
-            //birth_idx_lt[idxC] = account;
+            Utils.insertStrToIndexGr(account.getCity(),city_gr_n);
+            Utils.insertStrToIndexGr(account.getCountry(),country_gr_n);
         }
     }
 
@@ -382,7 +367,7 @@ public class Repository {
     }
 
     public static void updateYearIndex(Account account) {
-        Calendar calendar = LocalPool.threadLocalCalendar.get();
+        Calendar calendar = LocalPoolService.threadLocalCalendar.get();
         calendar.setTimeInMillis((long)account.getBirth() * 1000);
         Integer yearValue = calendar.get(Calendar.YEAR);
         Account[] index = Repository.year.get(yearValue);
@@ -542,6 +527,16 @@ public class Repository {
             Arrays.sort(entry.getValue(), idsComparator);
         }
 
+        city_gr_n.sort(groupComparatorN);
+        city_gr_r.clear();
+        city_gr_r.addAll(city_gr_n);
+        city_gr_r.sort(groupComparatorR);
+
+        country_gr_n.sort(groupComparatorN);
+        country_gr_r.clear();
+        country_gr_r.addAll(country_gr_n);
+        country_gr_r.sort(groupComparatorR);
+
         //Arrays.sort(birth_idx_lt,birthComparatorLt);
         //Arrays.sort(birth_idx_gt,birthComparatorGt);
         System.gc();// перерыв между фазами
@@ -561,4 +556,5 @@ public class Repository {
             }
         }
     }
+
 }

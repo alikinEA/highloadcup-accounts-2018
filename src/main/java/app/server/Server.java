@@ -14,7 +14,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Date;
 
 /**
@@ -42,6 +45,19 @@ public class Server {
     }
 
     public static void main(String[] args) throws Exception {
+        try {
+            Process p = Runtime.getRuntime().exec("uname -r");
+
+            BufferedReader stdInput = new BufferedReader(new
+                    InputStreamReader(p.getInputStream()));
+            String line = null;
+            while ((line = stdInput.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
         Repository.initData();
         printCurrentMemoryUsage();
         Thread thread = new Thread(Server::warmUp);

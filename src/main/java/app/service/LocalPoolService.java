@@ -6,11 +6,15 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Created by Alikin E.A. on 05.03.19.
  */
-public class LocalPool {
+public class LocalPoolService {
+
+    public static ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public static ThreadLocal<Calendar> threadLocalCalendar =
 

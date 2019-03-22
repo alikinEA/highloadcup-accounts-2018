@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class GroupObj {
-    private Integer count;
+    private int count = 0;
     private String name;
 
 }

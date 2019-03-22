@@ -1,6 +1,7 @@
 package app.utils;
 
 import app.models.Account;
+import app.models.GroupObj;
 
 import java.util.Comparator;
 
@@ -19,24 +20,19 @@ public class Comparators {
         return o2.getId() - o1.getId();
     };
 
-    private static final Comparator birthComparatorLt = (Comparator<Account>) (o1, o2) -> {
-        if (o1 == null) {
-            return 0;
+    public static final Comparator groupComparatorR = (Comparator<GroupObj>) (o1, o2) -> {
+        if (o1.getCount() != o2.getCount()) {
+            return o2.getCount() - o1.getCount();
+        } else {
+            return o2.getName().compareTo(o1.getName());
         }
-        if (o2 == null) {
-            return 0;
-        }
-        return o2.getBirth() - o1.getBirth();
     };
 
-    private static final Comparator birthComparatorGt = (Comparator<Account>) (o1, o2) -> {
-        if (o1 == null) {
-            return 0;
+    public static final Comparator groupComparatorN = (Comparator<GroupObj>) (o1, o2) -> {
+        if (o1.getCount() != o2.getCount()) {
+            return o1.getCount() - o2.getCount();
+        } else {
+            return o1.getName().compareTo(o2.getName());
         }
-        if (o2 == null) {
-            return 0;
-        }
-        return o1.getBirth() - o2.getBirth();
     };
-
 }

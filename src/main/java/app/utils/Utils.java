@@ -2,16 +2,18 @@ package app.utils;
 
 import app.Repository.Repository;
 import app.models.Constants;
-import app.service.LocalPool;
-import app.service.Service;
+import app.service.LocalPoolService;
 import app.models.Account;
 import app.models.GroupObj;
 import com.jsoniter.ValueType;
 import com.jsoniter.any.Any;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.sql.ResultSet;
 import java.util.*;
 
 import static app.models.Constants.FINISH;
@@ -199,8 +201,8 @@ public class Utils {
     }
 
 
-    public static String accountToString(Set<Account> accounts,boolean sexPr, boolean fnamePr, boolean statusPr, boolean premiumPr, boolean phonePr, boolean birthPr, boolean cityPr, boolean countryPr, boolean snamePr) {
-        StringBuilder sb = LocalPool.threadLocalBuilder.get();
+    public static byte[] accountToString(Set<Account> accounts,boolean sexPr, boolean fnamePr, boolean statusPr, boolean premiumPr, boolean phonePr, boolean birthPr, boolean cityPr, boolean countryPr, boolean snamePr) {
+        StringBuilder sb = LocalPoolService.threadLocalBuilder.get();
         sb.append("{\"accounts\":[");
         for (Account account : accounts) {
 
@@ -290,125 +292,38 @@ public class Utils {
             sb.setLength(sb.length() - 1);
         }
         sb.append("]}");
-        return sb.toString();
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
 
 
-    public static String groupCSToString(TreeSet<GroupObj> store ,int limit, String order) {
-        StringBuilder sb = LocalPool.threadLocalBuilder.get();
+    public static byte[] groupToString(LinkedList<GroupObj> store, Integer limit,String keyName) {
+        StringBuilder sb = LocalPoolService.threadLocalBuilder.get();
         sb.append("{\"groups\":[");
         int limitC = 0;
-        Iterator<GroupObj> itr;
-        if (order.equals("1")) {
-            itr = store.iterator();
-        } else {
-            itr = store.descendingIterator();
-        }
+        Iterator<GroupObj> itr = store.iterator();
         while (itr.hasNext()) {
             GroupObj gr = itr.next();
+            if (gr.getCount() < 1) {
+                continue;
+            }
             if (limitC < limit) {
                 limitC++;
-                sb.append("{\"country\":\"");
-                sb.append(gr.getName());
-                sb.append("\",\"count\":");
+                sb.append("{");
+                if (gr.getName() != Constants.NULL) {
+                    sb.append("\"");
+                    sb.append(keyName);
+                    sb.append("\":\"");
+                    sb.append(gr.getName());
+                    sb.append("\",");
+                }
+                sb.append("\"count\":");
                 sb.append(gr.getCount());
                 sb.append("},");
             }
         }
         sb.setLength(sb.length() - 1);
         sb.append("]}");
-        return sb.toString();
-    }
-
-    public static String groupCiSToString(TreeSet<GroupObj> store, Integer limit, String order) {
-        StringBuilder sb = LocalPool.threadLocalBuilder.get();
-        sb.append("{\"groups\":[");
-        int limitC = 0;
-        Iterator<GroupObj> itr;
-        if (order.equals("1")) {
-            itr = store.iterator();
-        } else {
-            itr = store.descendingIterator();
-        }
-        while (itr.hasNext()) {
-            GroupObj gr = itr.next();
-            if (limitC < limit) {
-                limitC++;
-                sb.append("{\"city\":\"");
-                sb.append(gr.getName());
-                sb.append("\",\"count\":");
-                sb.append(gr.getCount());
-                sb.append("},");
-            }
-        }
-        sb.setLength(sb.length() - 1);
-        sb.append("]}");
-        return sb.toString();
-    }
-
-    public static String groupSCiToString(String city,Integer limit, String order) {
-        //Integer countF = Repository.country_f.get(country);
-        //Integer countM = Repository.country_m.get(country);
-        return null;
-    }
-
-    public static String groupSCToString(String country, Integer limit, String order) {
-        //Integer countF = Repository.country_f.get(country);
-        //Integer countM = Repository.country_m.get(country);
-        return null;
-    }
-
-    private static String fillStringGroup(Integer limit, String order, Integer countF, Integer countM) {
-        StringBuilder sb = LocalPool.threadLocalBuilder.get();
-        sb.append("{\"groups\":[");
-        if (order.equals("-1")) {
-            if (countF > countM) {
-                sb.append("{\"sex\":\"f\",\"count\":");
-                sb.append(countF);
-                sb.append("}");
-
-                if (limit > 1) {
-                    sb.append(",{\"sex\":\"m\",\"count\":");
-                    sb.append(countM);
-                    sb.append("}");
-                }
-            } else {
-                sb.append("{\"sex\":\"m\",\"count\":");
-                sb.append(countM);
-                sb.append("}");
-
-                if (limit > 1) {
-                    sb.append(",{\"sex\":\"f\",\"count\":");
-                    sb.append(countF);
-                    sb.append("}");
-                }
-
-            }
-        } else {
-            if (countF < countM) {
-                sb.append("{\"sex\":\"f\",\"count\":");
-                sb.append(countF);
-                sb.append("}");
-
-                if (limit > 1) {
-                    sb.append(",{\"sex\":\"m\",\"count\":");
-                    sb.append(countM);
-                    sb.append("}");
-                }
-            } else {
-                sb.append("{\"sex\":\"m\",\"count\":");
-                sb.append(countM);
-                sb.append("}");
-
-                if (limit > 1) {
-                    sb.append(",{\"sex\":\"f\",\"count\":");
-                    sb.append(countF);
-                    sb.append("}");
-                }
-            }
-        }
-        sb.append("]}");
-        return sb.toString();
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     public static boolean contains(String[] strings, String searchString) {
@@ -420,7 +335,6 @@ public class Utils {
 
         return false;
     }
-
 
 
     public static int binarySearchStartPos(Account[] listForSearch,Integer value, int startIndex, int endIndex) {
@@ -460,4 +374,57 @@ public class Utils {
             System.out.println("Index: " + name + " - " + count);
         }
     }
+
+    public static String getPredicate(String param) {
+        return param.substring(param.indexOf("_") + 1,param.indexOf("="));
+    }
+
+    public static String getValue(String param) throws UnsupportedEncodingException {
+        if (param.startsWith(Constants.COUNTRY)
+                || param.startsWith(Constants.CITY)
+                || param.startsWith(Constants.INTERESTS)
+                || param.startsWith(Constants.FNAME)
+                || param.startsWith(Constants.SNAME)
+                || param.startsWith(Constants.STATUS)
+                || param.startsWith(Constants.LIKES)
+                || param.startsWith(Constants.KEYS)
+        ) {
+            return URLDecoder.decode(param.substring(param.indexOf("=") + 1), Constants.UTF_8);
+        } else {
+            return param.substring(param.indexOf("=") + 1);
+        }
+    }
+
+    public static void updateStrValue(String newV, String oldV, LinkedList<GroupObj> gr_index) {
+        for (GroupObj groupObj : gr_index) {
+            if (groupObj.getName() == newV) {
+                groupObj.setCount(groupObj.getCount() + 1);
+                continue;
+            }
+            if (groupObj.getName() == oldV
+                    || (groupObj.getName() == Constants.NULL && oldV == null)) {
+                groupObj.setCount(groupObj.getCount() - 1);
+            }
+        }
+    }
+
+    public static void insertStrToIndexGr(String value, LinkedList<GroupObj> index) {
+        String str = Constants.NULL;
+        if (value != null) {
+            str = value;
+        }
+        GroupObj gr = null;
+        for (GroupObj groupObj : index) {
+            if (groupObj.getName() == str) {
+                gr = groupObj;
+                break;
+            }
+        }
+        if (gr == null) {
+            index.add(new GroupObj(1,str));
+        } else {
+            gr.setCount(gr.getCount() + 1);
+        }
+    }
+
 }
