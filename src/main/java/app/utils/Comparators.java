@@ -21,16 +21,16 @@ public class Comparators {
     };
 
     public static final Comparator groupComparatorR = (Comparator<GroupObj>) (o1, o2) -> {
-        if (o1.getCount() != o2.getCount()) {
-            return o2.getCount() - o1.getCount();
+        if (o1.getCount().get() != o2.getCount().get()) {
+            return o2.getCount().get() - o1.getCount().get();
         } else {
             return o2.getName().compareTo(o1.getName());
         }
     };
 
     public static final Comparator groupComparatorN = (Comparator<GroupObj>) (o1, o2) -> {
-        if (o1.getCount() != o2.getCount()) {
-            return o1.getCount() - o2.getCount();
+        if (o1.getCount().get() != o2.getCount().get()) {
+            return o1.getCount().get() - o2.getCount().get();
         } else {
             return o1.getName().compareTo(o2.getName());
         }

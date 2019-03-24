@@ -1,5 +1,6 @@
 package app.service;
 
+import app.Repository.GroupRepository;
 import app.Repository.Repository;
 import app.models.Constants;
 import app.models.GroupObj;
@@ -20,9 +21,10 @@ public class GroupService {
     public static DefaultFullHttpResponse handleGroup(FullHttpRequest req) {
         try {
             String[] t = Utils.tokenize(req.uri().substring(17),'&');
-            String sex = null;
             String countryKey = null;
             String cityKey = null;
+            String statusKey = null;
+            String sexKey = null;
             Integer limit = null;
             String order = null;
             for (String param : t) {
@@ -45,12 +47,6 @@ public class GroupService {
                         return ServerHandler.BAD_REQUEST_R;
                     }
                 }
-                if (param.startsWith(Constants.SEX)) {
-                    sex = Utils.getValue(param);
-                    if (!Constants.F.equals(sex) && !Constants.M.equals(sex)) {
-                        return ServerHandler.BAD_REQUEST_R;
-                    }
-                }
                 if (param.startsWith(Constants.KEYS)) {
                     String value = Utils.getValue(param);
                     String[] tokens = Utils.tokenize(value, Constants.DELIM);
@@ -65,9 +61,12 @@ public class GroupService {
                     }
                     if (value.equals(Constants.COUNTRY)) {
                         countryKey = value;
-                    }
-                    if (value.equals(Constants.CITY)) {
+                    } else if (value.equals(Constants.CITY)) {
                         cityKey = value;
+                    } else if (value.equals(Constants.SEX)) {
+                        sexKey = value;
+                    } else if (value.equals(Constants.STATUS)) {
+                        statusKey = value;
                     }
                 }
             }
@@ -76,17 +75,30 @@ public class GroupService {
             }
             if (t.length == 4) {
                 if (cityKey != null) {
-                    LinkedList<GroupObj> list = Repository.city_gr_r;
+                    LinkedList<GroupObj> list = GroupRepository.city_gr_r;
                     if (order.charAt(0) == '1') {
-                        list =  Repository.city_gr_n;
+                        list =  GroupRepository.city_gr_n;
                     }
                     return ServerHandler.createOK(Utils.groupToString(list, limit,Constants.CITY));
                 } else if (countryKey != null) {
-                    LinkedList<GroupObj> list = Repository.country_gr_r;
+                    LinkedList<GroupObj> list = GroupRepository.country_gr_r;
                     if (order.charAt(0) == '1') {
-                        list = Repository.country_gr_n;
+                        list = GroupRepository.country_gr_n;
                     }
                     return ServerHandler.createOK(Utils.groupToString(list, limit, Constants.COUNTRY));
+                } else if (sexKey != null) {
+                    LinkedList<GroupObj> list = GroupRepository.sex_gr_r;
+                    if (order.charAt(0) == '1') {
+                        list = GroupRepository.sex_gr_n;
+                    }
+                    return ServerHandler.createOK(Utils.groupToString(list, limit, Constants.SEX));
+                } else if (statusKey != null) {
+                    LinkedList<GroupObj> list = GroupRepository.status_gr_r;
+                    if (order.charAt(0) == '1') {
+                        list = GroupRepository.status_gr_n;
+                    }
+                    //System.out.println(req.uri() + "===" + new String(Utils.groupToString(list, limit, Constants.STATUS)));
+                    return ServerHandler.createOK(Utils.groupToString(list, limit, Constants.STATUS));
                 }
             }
             /*if (phase1.get()) {

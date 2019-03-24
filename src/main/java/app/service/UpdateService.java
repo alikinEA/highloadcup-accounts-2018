@@ -1,5 +1,6 @@
 package app.service;
 
+import app.Repository.GroupRepository;
 import app.Repository.Repository;
 import app.models.Account;
 import app.models.Constants;
@@ -70,6 +71,7 @@ public class UpdateService {
                 Repository.updateEmailIndex(accountData);
             }
             if (account.getSex() != null) {
+                Utils.updateStrValue(account.getSex(),accountData.getSex(), GroupRepository.sex_gr_n);
                 accountData.setSex(account.getSex());
                 Repository.updateSexIndex(accountData);
             }
@@ -82,6 +84,7 @@ public class UpdateService {
                 Repository.updateInterestIndex(accountData);
             }
             if (account.getStatus() != null) {
+                Utils.updateStrValue(account.getStatus(),accountData.getStatus(), GroupRepository.status_gr_n);
                 accountData.setStatus(account.getStatus());
                 Repository.updateStatusIndex(accountData);
             }
@@ -99,12 +102,12 @@ public class UpdateService {
                 Repository.updateYearIndex(accountData);
             }
             if (account.getCity() != null) {
-                Utils.updateStrValue(account.getCity(),accountData.getCity(),Repository.city_gr_n);
+                Utils.updateStrValue(account.getCity(),accountData.getCity(), GroupRepository.city_gr_n);
                 accountData.setCity(account.getCity());
                 Repository.updateCityIndex(accountData);
             }
             if (account.getCountry() != null) {
-                Utils.updateStrValue(account.getCountry(),accountData.getCountry(),Repository.country_gr_n);
+                Utils.updateStrValue(account.getCountry(),accountData.getCountry(),GroupRepository.country_gr_n);
                 accountData.setCountry(account.getCountry());
                 Repository.updateCountryIndex(accountData);
             }

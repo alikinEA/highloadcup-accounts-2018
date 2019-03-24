@@ -303,7 +303,7 @@ public class Utils {
         Iterator<GroupObj> itr = store.iterator();
         while (itr.hasNext()) {
             GroupObj gr = itr.next();
-            if (gr.getCount() < 1) {
+            if (gr.getCount().get() < 1) {
                 continue;
             }
             if (limitC < limit) {
@@ -397,13 +397,13 @@ public class Utils {
 
     public static void updateStrValue(String newV, String oldV, LinkedList<GroupObj> gr_index) {
         for (GroupObj groupObj : gr_index) {
-            if (groupObj.getName() == newV) {
-                groupObj.setCount(groupObj.getCount() + 1);
+            if (groupObj.getName().equals(newV)) {
+                groupObj.getCount().incrementAndGet();
                 continue;
             }
-            if (groupObj.getName() == oldV
+            if (groupObj.getName().equals(oldV)
                     || (groupObj.getName() == Constants.NULL && oldV == null)) {
-                groupObj.setCount(groupObj.getCount() - 1);
+                groupObj.getCount().decrementAndGet();
             }
         }
     }
@@ -415,16 +415,85 @@ public class Utils {
         }
         GroupObj gr = null;
         for (GroupObj groupObj : index) {
-            if (groupObj.getName() == str) {
+            if (groupObj.getName().equals(str)) {
                 gr = groupObj;
                 break;
             }
         }
         if (gr == null) {
-            index.add(new GroupObj(1,str));
+            index.add(new GroupObj(str));
         } else {
-            gr.setCount(gr.getCount() + 1);
+            gr.getCount().incrementAndGet();
         }
     }
+
+    /*public static byte[] groupSexToString(int countM,int countF,char order,int limit) {
+        StringBuilder sb = LocalPoolService.threadLocalBuilder.get();
+        if (limit > 1) {
+            if (order == '1') {
+                if (countF <= countM) {
+                    sb.append("{\"groups\":[{\"sex\":\"f\",\"count\":");
+                    sb.append(countF);
+                    sb.append("},");
+                    sb.append("{\"sex\":\"m\",\"count\":");
+                    sb.append(countM);
+                    sb.append("}]}");
+                    return sb.toString().getBytes();
+                } else {
+                    sb.append("{\"groups\":[{\"sex\":\"m\",\"count\":");
+                    sb.append(countM);
+                    sb.append("},");
+                    sb.append("{\"sex\":\"f\",\"count\":");
+                    sb.append(countF);
+                    sb.append("}]}");
+                    return sb.toString().getBytes();
+                }
+            } else {
+                if (countF >= countM) {
+                    sb.append("{\"groups\":[{\"sex\":\"f\",\"count\":");
+                    sb.append(countF);
+                    sb.append("},");
+                    sb.append("{\"sex\":\"m\",\"count\":");
+                    sb.append(countM);
+                    sb.append("}]}");
+                    return sb.toString().getBytes();
+                } else {
+                    sb.append("{\"groups\":[{\"sex\":\"m\",\"count\":");
+                    sb.append(countM);
+                    sb.append("},");
+                    sb.append("{\"sex\":\"f\",\"count\":");
+                    sb.append(countF);
+                    sb.append("}]}");
+                    return sb.toString().getBytes();
+                }
+            }
+        } else {
+            if (order == '1') {
+                if (countF <= countM) {
+                    sb.append("{\"groups\":[{\"sex\":\"f\",\"count\":");
+                    sb.append(countF);
+                    sb.append("}]}");
+                    return sb.toString().getBytes();
+                } else {
+                    sb.append("{\"groups\":[{\"sex\":\"m\",\"count\":");
+                    sb.append(countM);
+                    sb.append("}]}");
+                    return sb.toString().getBytes();
+                }
+            } else {
+                if (countF >= countM) {
+                    sb.append("{\"groups\":[{\"sex\":\"m\",\"count\":");
+                    sb.append(countM);
+                    sb.append("}]}");
+                    return sb.toString().getBytes();
+                } else {
+                    sb.append("{\"groups\":[{\"sex\":\"f\",\"count\":");
+                    sb.append(countF);
+                    sb.append("}]}");
+                    return sb.toString().getBytes();
+                }
+            }
+        }
+    }*/
 
 }

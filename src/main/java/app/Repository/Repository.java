@@ -106,12 +106,6 @@ public class Repository {
     public static final Account[] list_f = new Account[659_140];
     public static final Account[] list_m = new Account[659_140];
 
-    //groups
-    public static final LinkedList<GroupObj> city_gr_n = new LinkedList<>();
-    public static final LinkedList<GroupObj> city_gr_r = new LinkedList<>();
-
-    public static final LinkedList<GroupObj> country_gr_n = new LinkedList<>();
-    public static final LinkedList<GroupObj> country_gr_r = new LinkedList<>();
 
     public static void initData() {
         long start = new Date().getTime();
@@ -305,8 +299,7 @@ public class Repository {
             updateStatusIndex(account);
             updateLikesInvertIndex(account);
 
-            Utils.insertStrToIndexGr(account.getCity(),city_gr_n);
-            Utils.insertStrToIndexGr(account.getCountry(),country_gr_n);
+            GroupRepository.insertGroupIndex(account);
         }
     }
 
@@ -461,26 +454,6 @@ public class Repository {
     }
 
 
-    public static RoaringBitmap getLikesBitMap(int[] likes) {
-        if (likes == null) {
-            return null;
-        }
-        return RoaringBitmap.bitmapOf(likes);
-    }
-
-    public static RoaringBitmap getInterestBitMap(String[] interests) {
-        if (interests == null) {
-            return null;
-        }
-
-        RoaringBitmap bitmap = new RoaringBitmap();
-        for (String interest : interests) {
-            bitmap.add(Repository.interests.get(interest));
-        }
-
-        return bitmap;
-    }
-
     public static void reSortIndex() {
         long start = new Date().getTime();
         System.out.println("Start reindex = " + start);
@@ -527,18 +500,8 @@ public class Repository {
             Arrays.sort(entry.getValue(), idsComparator);
         }
 
-        city_gr_n.sort(groupComparatorN);
-        city_gr_r.clear();
-        city_gr_r.addAll(city_gr_n);
-        city_gr_r.sort(groupComparatorR);
+        GroupRepository.reSortIndex();
 
-        country_gr_n.sort(groupComparatorN);
-        country_gr_r.clear();
-        country_gr_r.addAll(country_gr_n);
-        country_gr_r.sort(groupComparatorR);
-
-        //Arrays.sort(birth_idx_lt,birthComparatorLt);
-        //Arrays.sort(birth_idx_gt,birthComparatorGt);
         System.gc();// перерыв между фазами
         Server.printCurrentMemoryUsage();
         System.out.println("end reindex = " + (new Date().getTime() - start) );
@@ -556,5 +519,26 @@ public class Repository {
             }
         }
     }
+
+
+    /*public static RoaringBitmap getLikesBitMap(int[] likes) {
+        if (likes == null) {
+            return null;
+        }
+        return RoaringBitmap.bitmapOf(likes);
+    }
+
+    public static RoaringBitmap getInterestBitMap(String[] interests) {
+        if (interests == null) {
+            return null;
+        }
+
+        RoaringBitmap bitmap = new RoaringBitmap();
+        for (String interest : interests) {
+            bitmap.add(Repository.interests.get(interest));
+        }
+
+        return bitmap;
+    }*/
 
 }
