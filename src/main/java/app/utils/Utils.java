@@ -1,6 +1,7 @@
 package app.utils;
 
 import app.Repository.Repository;
+import app.models.AccountC;
 import app.models.Constants;
 import app.service.LocalPoolService;
 import app.models.Account;
@@ -217,7 +218,7 @@ public class Utils {
             sb.append(account.getEmail());
             sb.append("\",");
 
-            if (sexPr && account.getSex() != null) {
+            if (sexPr) {
                 sb.append("\"sex\":");
                 sb.append("\"");
                 sb.append(account.getSex());
@@ -231,7 +232,7 @@ public class Utils {
                 sb.append("\",");
             }
 
-            if (statusPr && account.getStatus() != null) {
+            if (statusPr) {
                 sb.append("\"status\":");
                 sb.append("\"");
                 sb.append(account.getStatus());
@@ -245,7 +246,7 @@ public class Utils {
                 sb.append("\",");
             }
 
-            if (birthPr && account.getBirth() != 0) {
+            if (birthPr) {
                 sb.append("\"birth\":");
                 sb.append(account.getBirth());
                 sb.append(",");
@@ -288,9 +289,7 @@ public class Utils {
             sb.setLength(sb.length() -1);
             sb.append("},");
         }
-        if (accounts.size() > 0) {
-            sb.setLength(sb.length() - 1);
-        }
+        sb.setLength(sb.length() - 1);
         sb.append("]}");
         return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
@@ -425,6 +424,72 @@ public class Utils {
         } else {
             gr.getCount().incrementAndGet();
         }
+    }
+
+    public static byte[] accountCToString(TreeSet<AccountC> result, int limit) {
+        StringBuilder sb = LocalPoolService.threadLocalBuilder.get();
+        sb.append("{\"accounts\":[");
+        int count = 0;
+        for (AccountC accountC : result) {
+            count++;
+            Account account = accountC.getAccount();
+            sb.append("{");
+
+            sb.append("\"id\":");
+            sb.append(account.getId());
+            sb.append(",");
+
+            sb.append("\"email\":");
+            sb.append("\"");
+            sb.append(account.getEmail());
+            sb.append("\",");
+
+            sb.append("\"status\":");
+            sb.append("\"");
+            sb.append(account.getStatus());
+            sb.append("\",");
+
+            sb.append("\"birth\":");
+            sb.append(account.getBirth());
+            sb.append(",");
+
+            if (account.getFname() != null) {
+                sb.append("\"fname\":");
+                sb.append("\"");
+                sb.append(account.getFname());
+                sb.append("\",");
+            }
+
+            if (account.getSname() != null) {
+                sb.append("\"sname\":");
+                sb.append("\"");
+                sb.append(account.getSname());
+                sb.append("\",");
+            }
+
+            if (account.getStart() != 0) {
+                sb.append("\"premium\":");
+                sb.append("{");
+
+                sb.append("\"start\":");
+                sb.append(account.getStart());
+                sb.append(",");
+
+                sb.append("\"finish\":");
+                sb.append(account.getFinish());
+
+                sb.append("},");
+            }
+            sb.setLength(sb.length() -1);
+            sb.append("},");
+
+            if (limit == count) {
+                break;
+            }
+        }
+        sb.setLength(sb.length() - 1);
+        sb.append("]}");
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     /*public static byte[] groupSexToString(int countM,int countF,char order,int limit) {

@@ -9,7 +9,6 @@ import app.utils.Utils;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 
-import java.util.Iterator;
 import java.util.TreeSet;
 
 import static app.Repository.Repository.currentTimeStamp2;
@@ -34,9 +33,9 @@ public class RecomendedService {
                 return ServerHandler.NOT_FOUND_R;
             } else {
                 String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(Constants.URI_RECOMENDED) + 12), '&');
-                int limit;
-                String country;
-                String city;
+                int limit = 0;
+                String country = "";
+                String city = "";
                 for (String param : params) {
                     if (param.startsWith(Constants.LIMIT)) {
                         try {
@@ -62,7 +61,39 @@ public class RecomendedService {
                     }
                 }
 
-                return ServerHandler.OK_EMPTY_R;
+                Account[] data = Repository.premium_1_m;
+                if (accountData.getSex() == Constants.M) {
+                    data = Repository.premium_1_f;
+                }
+
+                TreeSet<AccountC> result = LocalPoolService.recommendedResult.get();
+                for (Account account1 : data) {
+                    if (account1 == null) {
+                        break;
+                    }
+                    if (account1.getId() != accountData.getId()) {
+                        if (city.isEmpty() || city.equals(account1.getCity())) {
+                            if (country.isEmpty() || country.equals(account1.getCountry())) {
+                                if (!accountData.getSex().equals(account1.getSex())) {
+                                    int c = getCompatibility(accountData, account1);
+                                    if (c > 0) {
+                                        AccountC accountC = new AccountC();
+                                        accountC.setAccount(account1);
+                                        accountC.setC(c);
+                                        while (!result.add(accountC)) {
+                                            c = c + 1;
+                                            accountC.setC(c);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (result.size() == 0) {
+                    return ServerHandler.OK_EMPTY_R;
+                }
+                return ServerHandler.createOK(Utils.accountCToString(result,limit));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -72,29 +103,6 @@ public class RecomendedService {
         }
     }
 
-    private static void calcCompat(Account accountData, String country, String city, TreeSet<AccountC> compat, Iterator<Account> iterator) {
-        while (iterator.hasNext()) {
-            Account account1 = iterator.next();
-            if (account1.getId() != accountData.getId()) {
-                if (city.isEmpty() || city.equals(account1.getCity())) {
-                    if (country.isEmpty() || country.equals(account1.getCountry())) {
-                        if (!accountData.getSex().equals(account1.getSex())) {
-                            int c = getCompatibility(accountData, account1);
-                            if (c > 0) {
-                                AccountC accountC = new AccountC();
-                                accountC.setAccount(account1);
-                                accountC.setC(c);
-                                while (!compat.add(accountC)) {
-                                    c = c + 1;
-                                    accountC.setC(c);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     private static int getCompatibility(Account accountData, Account account1) {
         int compt = 0;

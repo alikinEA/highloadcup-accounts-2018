@@ -52,6 +52,9 @@ public class Repository {
     public static final AtomicInteger index_premium_2 = new AtomicInteger(-1);
     public static final AtomicInteger index_premium_3 = new AtomicInteger(-1);
 
+    public static final AtomicInteger index_premium_1_f = new AtomicInteger(-1);
+    public static final AtomicInteger index_premium_1_m = new AtomicInteger(-1);
+
     public static final AtomicInteger index_status_1 = new AtomicInteger(-1);
     public static final AtomicInteger index_status_2 = new AtomicInteger(-1);
     public static final AtomicInteger index_status_3 = new AtomicInteger(-1);
@@ -95,6 +98,9 @@ public class Repository {
     public static final Account[] premium_1 = new Account[135_936];
     public static final Account[] premium_2 = new Account[413_874];
     public static final Account[] premium_3 = new Account[909_506];
+
+    public static final Account[] premium_1_m = new Account[70_000];
+    public static final Account[] premium_1_f = new Account[70_000];
 
     public static final Account[] status_1 = new Account[667_655];
     public static final Account[] status_2 = new Account[266_824];
@@ -352,6 +358,11 @@ public class Repository {
             if (currentTimeStamp2 < account.getFinish()
                     && currentTimeStamp2 > account.getStart()) {
                 premium_1[index_premium_1.incrementAndGet()] = account;
+                if (account.getSex() == Constants.F) {
+                    premium_1_f[index_premium_1_f.incrementAndGet()] = account;
+                } else {
+                    premium_1_m[index_premium_1_m.incrementAndGet()] = account;
+                }
             }
             premium_2[index_premium_2.incrementAndGet()] = account;
         } else {
@@ -466,6 +477,9 @@ public class Repository {
         Arrays.sort(premium_1, idsComparator);
         Arrays.sort(premium_2, idsComparator);
         Arrays.sort(premium_3, idsComparator);
+
+        Arrays.sort(premium_1_f, idsComparator);
+        Arrays.sort(premium_1_m, idsComparator);
 
         Arrays.sort(status_1, idsComparator);
         Arrays.sort(status_2, idsComparator);

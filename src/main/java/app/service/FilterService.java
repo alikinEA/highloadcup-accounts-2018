@@ -730,7 +730,15 @@ public class FilterService {
 
         if (premiumPr) {
             if (premiumPrV == Constants.NOW_PR) {
-                return Repository.premium_1;
+                if (sexPr) {
+                    if (sexV == Constants.F) {
+                        return Repository.premium_1_f;
+                    } else {
+                        return Repository.premium_1_m;
+                    }
+                } else {
+                    return Repository.premium_1;
+                }
             } else if (premiumPrV == Constants.NULL_PR) {
                 if (premiumV == Constants.NULL_PR_VAL_ONE) {
                     return Repository.premium_3;

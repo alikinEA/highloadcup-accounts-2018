@@ -1,11 +1,9 @@
 package app.service;
 
 import app.models.Account;
-
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import app.models.AccountC;
+import app.utils.Comparators;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -15,6 +13,21 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class LocalPoolService {
 
     public static ReadWriteLock lock = new ReentrantReadWriteLock();
+
+    public static ThreadLocal<TreeSet<AccountC>> recommendedResult =
+            new ThreadLocal<>() {
+                @Override
+                protected TreeSet<AccountC> initialValue() {
+                    return new TreeSet<>(Comparators.recComparator);
+                }
+
+                @Override
+                public TreeSet<AccountC> get() {
+                    TreeSet<AccountC> b = super.get();
+                    b.clear();
+                    return b;
+                }
+            };
 
     public static ThreadLocal<Calendar> threadLocalCalendar =
 
