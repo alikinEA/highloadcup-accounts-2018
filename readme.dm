@@ -1,6 +1,6 @@
 Highloadcup 2018 Accounts https://highloadcup.ru
 
-Решение допилино относительно рейтинга (штраф 55409)
+Решение допилино относительно рейтинга (штраф 48744)
 
 Hardware:
 4 core cpu

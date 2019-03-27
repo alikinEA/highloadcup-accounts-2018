@@ -80,10 +80,7 @@ public class RecomendedService {
                                         AccountC accountC = new AccountC();
                                         accountC.setAccount(account1);
                                         accountC.setC(c);
-                                        while (!result.add(accountC)) {
-                                            c = c + 1;
-                                            accountC.setC(c);
-                                        }
+                                        result.add(accountC);
                                     }
                                 }
                             }
