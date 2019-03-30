@@ -34,8 +34,10 @@ public class RecomendedService {
             } else {
                 String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(Constants.URI_RECOMENDED) + 12), '&');
                 int limit = 0;
-                String country = "";
-                String city = "";
+                String country = null;
+                String city = null;
+                String queryId = null;
+
                 for (String param : params) {
                     if (param.startsWith(Constants.LIMIT)) {
                         try {
@@ -47,16 +49,25 @@ public class RecomendedService {
                             return ServerHandler.BAD_REQUEST_R;
                         }
                     }
-                    if (param.startsWith(Constants.COUNTRY)) {
-                        country = Utils.getValue(param);
+                    if (param.charAt(0) == 'c' && param.charAt(1) == 'o') {
+                        country = Utils.getValue(param).intern();
                         if (country.isEmpty()) {
                             return ServerHandler.BAD_REQUEST_R;
                         }
                     }
-                    if (param.startsWith(Constants.CITY)) {
-                        city = Utils.getValue(param);
+                    if (param.charAt(0) == 'c' && param.charAt(1) == 'i') {
+                        city = Utils.getValue(param).intern();
                         if (city.isEmpty()) {
                             return ServerHandler.BAD_REQUEST_R;
+                        }
+                    }
+                    if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
+                        queryId = Utils.getValue(param).intern();
+                        if (Repository.queryCount.get() > 117_000) {
+                            byte[] cachedQuery = Repository.queryCacheRec.get(queryId);
+                            if (cachedQuery != null) {
+                                return ServerHandler.createOK(cachedQuery);
+                            }
                         }
                     }
                 }
@@ -67,36 +78,61 @@ public class RecomendedService {
                 }
 
                 TreeSet<AccountC> result = LocalPoolService.recommendedResult.get();
-                for (Account account1 : data) {
-                    if (account1 == null) {
-                        break;
-                    }
-                    if (account1.getId() != accountData.getId()) {
-                        if (city.isEmpty() || city.equals(account1.getCity())) {
-                            if (country.isEmpty() || country.equals(account1.getCountry())) {
-                                if (!accountData.getSex().equals(account1.getSex())) {
-                                    int c = getCompatibility(accountData, account1);
-                                    if (c > 0) {
-                                        AccountC accountC = new AccountC();
-                                        accountC.setAccount(account1);
-                                        accountC.setC(c);
-                                        result.add(accountC);
-                                    }
-                                }
-                            }
+                calcRec(accountData, country, city, data, result);
+                if (result.size() < limit) {
+                    if (country != null) {
+                        if (accountData.getSex() == Constants.M) {
+                            data = Repository.country_by_name_status_1_not_premium.get(country + Constants.F);
+                        } else {
+                            data = Repository.country_by_name_status_1_not_premium.get(country + Constants.M);
                         }
+                        calcRec(accountData, country, city, data, result);
+                    } else {
+                        if (accountData.getSex() == Constants.M) {
+                            data = Repository.status_1_f_not_premium;
+                        } else {
+                            data = Repository.status_1_m_not_premium;
+                        }
+                        calcRec(accountData, country, city, data, result);
                     }
                 }
                 if (result.size() == 0) {
                     return ServerHandler.OK_EMPTY_R;
                 }
-                return ServerHandler.createOK(Utils.accountCToString(result,limit));
+                byte[] body = Utils.accountCToString(result,limit);
+                if (Repository.queryCount.get() > 117_000) {
+                    Repository.queryCacheRec.put(queryId, body);
+                }
+                return ServerHandler.createOK(body);
             }
         } catch (Exception e) {
             e.printStackTrace();
             return ServerHandler.BAD_REQUEST_R;
         } finally {
             LocalPoolService.lock.readLock().unlock();
+        }
+    }
+
+    private static void calcRec(Account accountData, String country, String city, Account[] data, TreeSet<AccountC> result) {
+        for (Account account1 : data) {
+            if (account1 == null) {
+                break;
+            }
+            if (account1.getId() != accountData.getId()) {
+                if (city == null || city.equals(account1.getCity())) {
+                    if (country == null || country.equals(account1.getCountry())) {
+                        if (!accountData.getSex().equals(account1.getSex())) {
+                            int c = getCompatibility(accountData, account1);
+                            if (c > 0) {
+                                AccountC accountC = new AccountC();
+                                accountC.setAccount(account1);
+                                accountC.setC(c);
+                                result.add(accountC);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

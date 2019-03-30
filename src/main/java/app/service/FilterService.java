@@ -67,13 +67,13 @@ public class FilterService {
 
 
             int limit = 0;
-            int queryId = 0;
+            String queryId = null;
 
             for (String param : params) {
                 String valueParam = Utils.getValue(param).intern();
                 String predicate = Utils.getPredicate(param).intern();
                 if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
-                    queryId = Integer.parseInt(valueParam);
+                    queryId = valueParam;
                     if (Repository.queryCount.get() > 117_000) {
                         byte[] cachedQuery = Repository.queryCache.get(queryId);
                         if (cachedQuery != null) {
@@ -741,9 +741,25 @@ public class FilterService {
                 }
             } else if (premiumPrV == Constants.NULL_PR) {
                 if (premiumV == Constants.NULL_PR_VAL_ONE) {
-                    return Repository.premium_3;
+                    if (sexPr) {
+                        if (sexV == Constants.F) {
+                            return Repository.premium_3_f;
+                        } else {
+                            return Repository.premium_3_m;
+                        }
+                    } else {
+                        return Repository.premium_3;
+                    }
                 } else {
-                    return Repository.premium_2;
+                    if (sexPr) {
+                        if (sexV == Constants.F) {
+                            return Repository.premium_2_f;
+                        } else {
+                            return Repository.premium_2_m;
+                        }
+                    } else {
+                        return Repository.premium_2;
+                    }
                 }
             }
         }

@@ -8,12 +8,12 @@ import app.service.Service;
 import app.utils.Utils;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
-import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.hash.THashSet;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -33,7 +33,9 @@ public class Repository {
     public static volatile boolean isRait = false;
 
     public static final AtomicInteger queryCount = new AtomicInteger(1);
-    public static final TIntObjectMap<byte[]> queryCache = new TIntObjectHashMap<>(30_000,1);
+    public static final HashMap<String,byte[]> queryCache = new HashMap<>(30_000,1);
+
+    public static final HashMap<String,byte[]> queryCacheRec = new HashMap<>(11_000,1);
 
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
@@ -50,6 +52,15 @@ public class Repository {
     public static final AtomicInteger index_premium_1_f = new AtomicInteger(-1);
     public static final AtomicInteger index_premium_1_m = new AtomicInteger(-1);
 
+    public static final AtomicInteger index_premium_2_f = new AtomicInteger(-1);
+    public static final AtomicInteger index_premium_2_m = new AtomicInteger(-1);
+
+    public static final AtomicInteger index_premium_3_f = new AtomicInteger(-1);
+    public static final AtomicInteger index_premium_3_m = new AtomicInteger(-1);
+
+    public static final AtomicInteger index_status_1_f_not_premium = new AtomicInteger(-1);
+    public static final AtomicInteger index_status_1_m_not_premium = new AtomicInteger(-1);
+
     public static final AtomicInteger index_status_1 = new AtomicInteger(-1);
     public static final AtomicInteger index_status_2 = new AtomicInteger(-1);
     public static final AtomicInteger index_status_3 = new AtomicInteger(-1);
@@ -59,6 +70,9 @@ public class Repository {
 
     public static final AtomicInteger index_f = new AtomicInteger(-1);
     public static final AtomicInteger index_m = new AtomicInteger(-1);
+
+    public static final Map<String,Account[]> country_by_name_status_1_not_premium = new THashMap(200,1);
+    static final Map<String,Integer> country_by_name_status_1_not_premium_idx_num = new THashMap(200,1);
 
     public static final Account[] ids = new Account[MAX_ID];
     public static final TIntObjectHashMap<Account[]> likeInvert = new TIntObjectHashMap(MAX_ID,1);
@@ -96,6 +110,15 @@ public class Repository {
 
     public static final Account[] premium_1_m = new Account[70_000];
     public static final Account[] premium_1_f = new Account[70_000];
+
+    public static final Account[] premium_2_m = new Account[210_000];
+    public static final Account[] premium_2_f = new Account[210_000];
+
+    public static final Account[] premium_3_m = new Account[457_000];
+    public static final Account[] premium_3_f = new Account[457_000];
+
+    public static final Account[] status_1_f_not_premium = new Account[335_000];
+    public static final Account[] status_1_m_not_premium = new Account[335_000];
 
     public static final Account[] status_1 = new Account[667_655];
     public static final Account[] status_2 = new Account[266_824];
@@ -259,8 +282,15 @@ public class Repository {
             }
 
             for(Map.Entry<String, Integer> entry : country_by_name_idx_num.entrySet()) {
+                country_by_name_status_1_not_premium.put(entry.getKey() + Constants.F,new Account[10_000]);
+                country_by_name_status_1_not_premium_idx_num.put(entry.getKey() + Constants.F, 0);
+
+                country_by_name_status_1_not_premium.put(entry.getKey() + Constants.M,new Account[10_000]);
+                country_by_name_status_1_not_premium_idx_num.put(entry.getKey() + Constants.M, 0);
+
                 country_by_name.put(entry.getKey(),new Account[country_by_name_idx_num.get(entry.getKey()) + 5_000]);
                 country_by_name_idx_num.put(entry.getKey(), 0);
+
             }
 
             for(Map.Entry<String, Integer> entry : email_domain_by_name_idx_num.entrySet()) {
@@ -359,8 +389,56 @@ public class Repository {
                     premium_1_m[index_premium_1_m.incrementAndGet()] = account;
                 }
             }
+            if (account.getStatus() == Constants.STATUS1) {
+                if (account.getCountry() != null) {
+                    String postfix = Constants.F;
+                    if (account.getSex() == Constants.M) {
+                        postfix = Constants.M;
+                    }
+                    String key = account.getCountry() + postfix;
+                    Account[] index = country_by_name_status_1_not_premium.get(key);
+                    Integer idx = country_by_name_status_1_not_premium_idx_num.get(key);
+                    index[idx] = account;
+                    idx++;
+                    country_by_name_status_1_not_premium_idx_num.put(key, idx);
+                }
+                if (account.getSex() == Constants.F) {
+                    status_1_f_not_premium[index_status_1_f_not_premium.incrementAndGet()] = account;
+                } else {
+                    status_1_m_not_premium[index_status_1_m_not_premium.incrementAndGet()] = account;
+                }
+            }
+            if (account.getSex() == Constants.F) {
+                premium_2_f[index_premium_2_f.incrementAndGet()] = account;
+            } else {
+                premium_2_m[index_premium_2_m.incrementAndGet()] = account;
+            }
             premium_2[index_premium_2.incrementAndGet()] = account;
         } else {
+            if (account.getStatus() == Constants.STATUS1) {
+                if (account.getCountry() != null) {
+                    String postfix = Constants.F;
+                    if (account.getSex() == Constants.M) {
+                        postfix = Constants.M;
+                    }
+                    String key = account.getCountry() + postfix;
+                    Account[] index = country_by_name_status_1_not_premium.get(key);
+                    Integer idx = country_by_name_status_1_not_premium_idx_num.get(key);
+                    index[idx] = account;
+                    idx++;
+                    country_by_name_status_1_not_premium_idx_num.put(key, idx);
+                }
+                if (account.getSex() == Constants.F) {
+                    status_1_f_not_premium[index_status_1_f_not_premium.incrementAndGet()] = account;
+                } else {
+                    status_1_m_not_premium[index_status_1_m_not_premium.incrementAndGet()] = account;
+                }
+            }
+            if (account.getSex() == Constants.F) {
+                premium_3_f[index_premium_3_f.incrementAndGet()] = account;
+            } else {
+                premium_3_m[index_premium_3_m.incrementAndGet()] = account;
+            }
             premium_3[index_premium_3.incrementAndGet()] = account;
         }
     }
@@ -476,6 +554,15 @@ public class Repository {
         Arrays.sort(premium_1_f, idsComparator);
         Arrays.sort(premium_1_m, idsComparator);
 
+        Arrays.sort(premium_2_f, idsComparator);
+        Arrays.sort(premium_2_m, idsComparator);
+
+        Arrays.sort(premium_3_f, idsComparator);
+        Arrays.sort(premium_3_m, idsComparator);
+
+        Arrays.sort(status_1_f_not_premium, idsComparator);
+        Arrays.sort(status_1_f_not_premium, idsComparator);
+
         Arrays.sort(status_1, idsComparator);
         Arrays.sort(status_2, idsComparator);
         Arrays.sort(status_3, idsComparator);
@@ -502,6 +589,10 @@ public class Repository {
         for(Map.Entry<String, Account[]> entry : country_by_name.entrySet()) {
             Arrays.sort(entry.getValue(), idsComparator);
         }
+        for(Map.Entry<String, Account[]> entry : country_by_name_status_1_not_premium.entrySet()) {
+            Arrays.sort(entry.getValue(), idsComparator);
+           // Utils.printIndexSize(entry.getValue(),"county count");
+        }
         for(Map.Entry<String, Account[]> entry : email_domain_by_name.entrySet()) {
             Arrays.sort(entry.getValue(), idsComparator);
         }
@@ -513,6 +604,8 @@ public class Repository {
 
         System.gc();// перерыв между фазами
         Server.printCurrentMemoryUsage();
+        //System.out.println("Status 1 f not premium" + Repository.index_status_1_f_not_premium.get());
+        //System.out.println("Status 1 m not premium" + Repository.index_status_1_m_not_premium.get());
         System.out.println("end reindex = " + (new Date().getTime() - start) );
     }
 
