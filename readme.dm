@@ -28,3 +28,8 @@ Load:
 Запуск теста локально:
 https://github.com/atercattus/highloadcup_tester
 ./highloadcup_tester -addr http://127.0.0.1:8098 -hlcupdocs /mnt/data -test -phase 1
+
+
+docker build -t highloadcup2019 . --force-rm=true
+docker tag highloadcup2019 stor.highloadcup.ru/accounts/fire_toucan
+docker push stor.highloadcup.ru/accounts/fire_toucan

@@ -5,6 +5,7 @@ import app.models.Account;
 import app.models.Constants;
 import app.server.ServerHandler;
 import app.utils.Comparators;
+import app.utils.Utils;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.ValueType;
 import com.jsoniter.any.Any;
@@ -26,11 +27,11 @@ public class LikesService {
             List<Any> likesListAny = likesRequestAny.get(Constants.LIKES).asList();
 
             for (Any any : likesListAny) {
-                Any value = any.get(Constants.TS);
-                if (!ValueType.NUMBER.equals(value.valueType())) {
+                Any valueTs = any.get(Constants.TS);
+                if (!ValueType.NUMBER.equals(valueTs.valueType())) {
                     return ServerHandler.BAD_REQUEST_R;
                 }
-                value = any.get(Constants.LIKEE);
+                Any value = any.get(Constants.LIKEE);
                 int likeeId;
                 if (!ValueType.NUMBER.equals(value.valueType())) {
                     return ServerHandler.BAD_REQUEST_R;
@@ -67,6 +68,24 @@ public class LikesService {
                                 invertLikesArr[invertLikesArr.length - 1] = liker;
                                 Arrays.sort(invertLikesArr, Comparators.idsComparator);
                                 Repository.likeInvert.put(likeeId, invertLikesArr);
+                            }
+                            if (liker.getLikes() != null) {
+                                int[] arrNewLikes = Arrays.copyOf(liker.getLikes(), liker.getLikes().length + 1);
+                                arrNewLikes[arrNewLikes.length - 1] = likeeId;
+                                liker.setLikes(arrNewLikes);
+
+                                int[] arrNewLikesTs = Arrays.copyOf(liker.getLikesTs(), liker.getLikesTs().length + 1);
+                                arrNewLikesTs[arrNewLikesTs.length - 1] = valueTs.toInt();
+                                liker.setLikesTs(arrNewLikesTs);
+                                Utils.quickSortForLikes(liker.getLikes(),liker.getLikesTs(),0,liker.getLikes().length -1 );
+                            } else {
+                                int[] arrNewLikes = new int[1];
+                                arrNewLikes[0] = likeeId;
+                                liker.setLikes(arrNewLikes);
+
+                                int[] arrNewLikesTs = new int[1];
+                                arrNewLikesTs[0] = valueTs.toInt();
+                                liker.setLikesTs(arrNewLikesTs);
                             }
                         } finally {
                             LocalPoolService.lock.writeLock().unlock();

@@ -1,8 +1,7 @@
 package app.utils;
 
-import app.models.Account;
-import app.models.GroupObj;
-import app.models.AccountC;
+import app.models.*;
+
 import java.util.Comparator;
 
 /**
@@ -17,6 +16,12 @@ public class Comparators {
         return o2.getC() - o1.getC();
     };
 
+    public static final Comparator sugComparator = (Comparator<AccountRec>) (o1, o2) -> {
+        if (o2.getS() == o1.getS()) {
+            return o2.getAccount().getId() - o1.getAccount().getId();
+        }
+        return Double.compare(o2.getS() , o1.getS());
+    };
 
     public static final Comparator idsComparator = (Comparator<Account>) (o1, o2) -> {
         if (o1 == null) {

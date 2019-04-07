@@ -1,11 +1,8 @@
 package app.utils;
 
 import app.Repository.Repository;
-import app.models.AccountC;
-import app.models.Constants;
+import app.models.*;
 import app.service.LocalPoolService;
-import app.models.Account;
-import app.models.GroupObj;
 import com.jsoniter.ValueType;
 import com.jsoniter.any.Any;
 import java.io.ByteArrayOutputStream;
@@ -112,9 +109,11 @@ public class Utils {
                 if (key.equals(Constants.LIKES)) {
                     List<Any> listLike = accountAny.get(Constants.LIKES).asList();
                     int[] list = new int[listLike.size()];
+                    int[] listTs = new int[listLike.size()];
                     int index = 0;
                     for (Any anyLike : listLike) {
-                        if (!ValueType.NUMBER.equals(anyLike.get(Constants.TS).valueType())) {
+                        Any anyTs = anyLike.get(Constants.TS);
+                        if (!ValueType.NUMBER.equals(anyTs.valueType())) {
                             return null;
                         }
                         Any any = anyLike.get(Constants.ID);
@@ -122,10 +121,11 @@ public class Utils {
                             return null;
                         }
                         list[index] = any.toInt();
+                        listTs[index] = anyTs.toInt();
                         index++;
                     }
-                    Arrays.sort(list);
                     account.setLikes(list);
+                    account.setLikesTs(listTs);
                 }
 
                 if (key.equals(Constants.PREMIUM)) {
@@ -431,8 +431,8 @@ public class Utils {
         sb.append("{\"accounts\":[");
         int count = 0;
         for (AccountC accountC : result) {
-            count++;
             Account account = accountC.getAccount();
+            count++;
             sb.append("{");
 
             sb.append("\"id\":");
@@ -492,73 +492,84 @@ public class Utils {
         return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    /*public static byte[] groupSexToString(int countM,int countF,char order,int limit) {
+    public static byte[] accountRecToString(Set<Account> result) {
         StringBuilder sb = LocalPoolService.threadLocalBuilder.get();
-        if (limit > 1) {
-            if (order == '1') {
-                if (countF <= countM) {
-                    sb.append("{\"groups\":[{\"sex\":\"f\",\"count\":");
-                    sb.append(countF);
-                    sb.append("},");
-                    sb.append("{\"sex\":\"m\",\"count\":");
-                    sb.append(countM);
-                    sb.append("}]}");
-                    return sb.toString().getBytes();
-                } else {
-                    sb.append("{\"groups\":[{\"sex\":\"m\",\"count\":");
-                    sb.append(countM);
-                    sb.append("},");
-                    sb.append("{\"sex\":\"f\",\"count\":");
-                    sb.append(countF);
-                    sb.append("}]}");
-                    return sb.toString().getBytes();
-                }
-            } else {
-                if (countF >= countM) {
-                    sb.append("{\"groups\":[{\"sex\":\"f\",\"count\":");
-                    sb.append(countF);
-                    sb.append("},");
-                    sb.append("{\"sex\":\"m\",\"count\":");
-                    sb.append(countM);
-                    sb.append("}]}");
-                    return sb.toString().getBytes();
-                } else {
-                    sb.append("{\"groups\":[{\"sex\":\"m\",\"count\":");
-                    sb.append(countM);
-                    sb.append("},");
-                    sb.append("{\"sex\":\"f\",\"count\":");
-                    sb.append(countF);
-                    sb.append("}]}");
-                    return sb.toString().getBytes();
-                }
+        sb.append("{\"accounts\":[");
+        for (Account account : result) {
+            sb.append("{");
+
+            sb.append("\"id\":");
+            sb.append(account.getId());
+            sb.append(",");
+
+            sb.append("\"email\":");
+            sb.append("\"");
+            sb.append(account.getEmail());
+            sb.append("\",");
+
+            sb.append("\"status\":");
+            sb.append("\"");
+            sb.append(account.getStatus());
+            sb.append("\",");
+
+            if (account.getFname() != null) {
+                sb.append("\"fname\":");
+                sb.append("\"");
+                sb.append(account.getFname());
+                sb.append("\",");
             }
-        } else {
-            if (order == '1') {
-                if (countF <= countM) {
-                    sb.append("{\"groups\":[{\"sex\":\"f\",\"count\":");
-                    sb.append(countF);
-                    sb.append("}]}");
-                    return sb.toString().getBytes();
-                } else {
-                    sb.append("{\"groups\":[{\"sex\":\"m\",\"count\":");
-                    sb.append(countM);
-                    sb.append("}]}");
-                    return sb.toString().getBytes();
-                }
-            } else {
-                if (countF >= countM) {
-                    sb.append("{\"groups\":[{\"sex\":\"m\",\"count\":");
-                    sb.append(countM);
-                    sb.append("}]}");
-                    return sb.toString().getBytes();
-                } else {
-                    sb.append("{\"groups\":[{\"sex\":\"f\",\"count\":");
-                    sb.append(countF);
-                    sb.append("}]}");
-                    return sb.toString().getBytes();
-                }
+
+            if (account.getSname() != null) {
+                sb.append("\"sname\":");
+                sb.append("\"");
+                sb.append(account.getSname());
+                sb.append("\",");
+            }
+
+            sb.setLength(sb.length() -1);
+            sb.append("},");
+        }
+        sb.setLength(sb.length() - 1);
+        sb.append("]}");
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    public static void quickSortForLikes(int arrId[],int arrTs[], int begin, int end) {
+        if (begin < end) {
+            int partitionIndex = partition(arrId, arrTs, begin, end);
+
+            quickSortForLikes(arrId, arrTs, begin, partitionIndex - 1);
+            quickSortForLikes(arrId, arrTs, partitionIndex + 1, end);
+        }
+    }
+
+    private static int partition(int arrId[],int arrTs[], int begin, int end) {
+        int pivot = arrId[end];
+        int i = (begin-1);
+
+        for (int j = begin; j < end; j++) {
+            if (arrId[j] <= pivot) {
+                i++;
+
+                int swapTemp = arrId[i];
+                arrId[i] = arrId[j];
+                arrId[j] = swapTemp;
+
+                swapTemp = arrTs[i];
+                arrTs[i] = arrTs[j];
+                arrTs[j] = swapTemp;
             }
         }
-    }*/
+
+        int swapTemp = arrId[i+1];
+        arrId[i+1] = arrId[end];
+        arrId[end] = swapTemp;
+
+        swapTemp = arrTs[i+1];
+        arrTs[i+1] = arrTs[end];
+        arrTs[end] = swapTemp;
+
+        return i+1;
+    }
 
 }

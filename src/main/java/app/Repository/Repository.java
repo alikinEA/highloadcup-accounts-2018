@@ -36,6 +36,7 @@ public class Repository {
     public static final HashMap<String,byte[]> queryCache = new HashMap<>(30_000,1);
 
     public static final HashMap<String,byte[]> queryCacheRec = new HashMap<>(11_000,1);
+    public static final HashMap<String,byte[]> queryCacheSug = new HashMap<>(6_800,1);
 
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
@@ -350,7 +351,11 @@ public class Repository {
                     likeInvert.put(like, invertLikesArr);
                 }
             }
-            account.setLikes(null);
+            //System.out.println("likes = " + Arrays.toString(account.getLikes()));
+            //System.out.println("Ts = " + Arrays.toString(account.getLikesTs()));
+            Utils.quickSortForLikes(account.getLikes(),account.getLikesTs(),0,account.getLikes().length -1 );
+            //System.out.println("likes = " + Arrays.toString(account.getLikes()));
+            //System.out.println("TS = " + Arrays.toString(account.getLikesTs()));
         }
     }
 

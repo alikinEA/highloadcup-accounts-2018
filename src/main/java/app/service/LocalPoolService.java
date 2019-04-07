@@ -2,6 +2,7 @@ package app.service;
 
 import app.models.Account;
 import app.models.AccountC;
+import app.models.AccountRec;
 import app.utils.Comparators;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -24,6 +25,21 @@ public class LocalPoolService {
                 @Override
                 public TreeSet<AccountC> get() {
                     TreeSet<AccountC> b = super.get();
+                    b.clear();
+                    return b;
+                }
+            };
+
+    public static ThreadLocal<TreeSet<AccountRec>> suggestResult =
+            new ThreadLocal<>() {
+                @Override
+                protected TreeSet<AccountRec> initialValue() {
+                    return new TreeSet<>(Comparators.sugComparator);
+                }
+
+                @Override
+                public TreeSet<AccountRec> get() {
+                    TreeSet<AccountRec> b = super.get();
                     b.clear();
                     return b;
                 }

@@ -32,14 +32,14 @@ public class RecomendedService {
             if (accountData == null) {
                 return ServerHandler.NOT_FOUND_R;
             } else {
-                String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(Constants.URI_RECOMENDED) + 12), '&');
                 int limit = 0;
                 String country = null;
                 String city = null;
                 String queryId = null;
-
+                
+                String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(Constants.URI_RECOMENDED) + 12), '&');
                 for (String param : params) {
-                    if (param.startsWith(Constants.LIMIT)) {
+                    if (param.charAt(0) == 'l' && param.charAt(1) == 'i') {
                         try {
                             limit = Integer.parseInt(Utils.getValue(param));
                             if (limit <= 0) {

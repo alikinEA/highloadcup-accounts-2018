@@ -21,6 +21,7 @@ public class Account {
     private int finish;
     private String phone;
     private int[] likes;
+    private int[] likesTs;
     private int birth;
     private String city;
     private String country;
