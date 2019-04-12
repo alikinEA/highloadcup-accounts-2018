@@ -21,11 +21,8 @@ public class FilterService {
     public static DefaultFullHttpResponse handleFilterv2(String uri) {
         LocalPoolService.lock.readLock().lock();
         try {
-            String[] params = Utils.tokenize(uri.substring(18), '&');
 
-            if (params.length < 2) {
-                return ServerHandler.BAD_REQUEST_R;
-            }
+            String paramUrl = uri.substring(18);
 
             boolean emailPr = false;
             boolean sexPr = false;
@@ -63,13 +60,25 @@ public class FilterService {
             String countryV = null;
             String snameV = null;
             String likesV = null;
-
+            String queryId = null;
 
 
             int limit = 0;
-            String queryId = null;
+            int i = 0;
+            int j = 0;
+            int paramCount = 0;
 
-            for (String param : params) {
+            do {
+                j = paramUrl.indexOf('&', i);
+                String param;
+                if (j != -1) {
+                    param = paramUrl.substring(i, j);
+                } else {
+                    param = paramUrl.substring(i);
+                }
+                i = j + 1;
+                paramCount++;
+
                 String valueParam = Utils.getValue(param).intern();
                 String predicate = Utils.getPredicate(param).intern();
                 if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
@@ -81,7 +90,6 @@ public class FilterService {
                             return ServerHandler.createOK(cachedQuery);
                         }
                     }
-                    continue;
                 }
                 if (param.charAt(0) == 's' && param.charAt(1) == 'e') {
                     sexPr = true;
@@ -96,7 +104,7 @@ public class FilterService {
                     if (predicate.equals(Constants.DOMAIN_PR)) {
                         emailPrV = Constants.DOMAIN_PR;
                     } else if (predicate.equals(Constants.LT_PR)) {
-                        emailPrV =Constants.LT_PR;
+                        emailPrV = Constants.LT_PR;
                     } else if (predicate.equals(Constants.GT_PR)) {
                         emailPrV = Constants.GT_PR;
                     } else {
@@ -108,7 +116,7 @@ public class FilterService {
                     statusV = valueParam;
                     if (predicate.equals(Constants.EQ_PR)) {
                         statusPrV = Constants.EQ_PR;
-                    } else if(predicate.equals(Constants.NEQ_PR)) {
+                    } else if (predicate.equals(Constants.NEQ_PR)) {
                         statusPrV = Constants.NEQ_PR;
                     } else {
                         return ServerHandler.BAD_REQUEST_R;
@@ -134,7 +142,7 @@ public class FilterService {
                         snamePrV = Constants.EQ_PR;
                     } else if (predicate.equals(Constants.STARTS_PR)) {
                         snamePrV = Constants.STARTS_PR;
-                    } else if (predicate.equals(Constants.NULL_PR)){
+                    } else if (predicate.equals(Constants.NULL_PR)) {
                         snamePrV = Constants.NULL_PR;
                     } else {
                         return ServerHandler.BAD_REQUEST_R;
@@ -182,7 +190,7 @@ public class FilterService {
                         birthPrV = Constants.YEAR_PR;
                     } else if (predicate.equals(Constants.LT_PR)) {
                         birthPrV = Constants.LT_PR;
-                    }  else if (predicate.equals(Constants.GT_PR)) {
+                    } else if (predicate.equals(Constants.GT_PR)) {
                         birthPrV = Constants.GT_PR;
                     } else {
                         return ServerHandler.BAD_REQUEST_R;
@@ -226,22 +234,27 @@ public class FilterService {
                         limit = Integer.parseInt(valueParam);
                     }
                 }
+
+            } while (j >= 0);
+
+            if (paramCount < 2) {
+                return ServerHandler.BAD_REQUEST_R;
             }
 
             Set<Account> accounts = LocalPoolService.threadLocalAccounts.get();
-            if (params.length == 2) {
+            if (paramCount == 2) {
                 for (Account account : Repository.list) {
                     if (accounts.size() == limit) {
                         byte[] body = Utils.accountToString(accounts
-                                ,sexPr
-                                ,fnamePr
-                                ,statusPr
-                                ,premiumPr
-                                ,phonePr
-                                ,birthPr
-                                ,cityPr
-                                ,countryPr
-                                ,snamePr);
+                                , sexPr
+                                , fnamePr
+                                , statusPr
+                                , premiumPr
+                                , phonePr
+                                , birthPr
+                                , cityPr
+                                , countryPr
+                                , snamePr);
                         if (Repository.queryCount.get() > 117_000) {
                             Repository.queryCache.put(queryId, body);
                         }
@@ -282,19 +295,19 @@ public class FilterService {
             }
 
 
-            Account[] listForSearch = getIndexForFilter(interArr,interestsPrV
-                    ,phonePr,phonePrV,phoneV
-                    ,snamePr,snamePrV,snameV
-                    ,cityPr,cityPrV,cityV,sexV
-                    ,fnamePr,fnamePrV,fnameV
-                    ,countryPr,countryPrV,countryV
-                    ,premiumPr,premiumPrV,premiumV
-                    ,statusPr,statusPrV,statusV
-                    ,sexPr
-                    ,birthPr,birthPrV,year
-                    ,emailPr,emailPrV,emailV
-                    ,cityArr,fnameArr
-                    ,likesPr,likesArr
+            Account[] listForSearch = getIndexForFilter(interArr, interestsPrV
+                    , phonePr, phonePrV, phoneV
+                    , snamePr, snamePrV, snameV
+                    , cityPr, cityPrV, cityV, sexV
+                    , fnamePr, fnamePrV, fnameV
+                    , countryPr, countryPrV, countryV
+                    , premiumPr, premiumPrV, premiumV
+                    , statusPr, statusPrV, statusV
+                    , sexPr
+                    , birthPr, birthPrV, year
+                    , emailPr, emailPrV, emailV
+                    , cityArr, fnameArr
+                    , likesPr, likesArr
             );
             if (listForSearch == null) {
                 return ServerHandler.OK_EMPTY_R;
@@ -540,7 +553,7 @@ public class FilterService {
                             boolean isValid = false;
                             for (String value : interArr) {
                                 //todo упорядочить
-                                if (Utils.contains(account.getInterests(),value)) {
+                                if (Utils.contains(account.getInterests(), value)) {
                                     isValid = true;
                                     break;
                                 }
@@ -558,7 +571,7 @@ public class FilterService {
                                 }*/
                                 boolean isValid = true;
                                 for (String value : interArr) {
-                                    if (!Utils.contains(account.getInterests(),value)) {
+                                    if (!Utils.contains(account.getInterests(), value)) {
                                         isValid = false;
                                         break;
                                     }
@@ -586,15 +599,15 @@ public class FilterService {
                 return ServerHandler.OK_EMPTY_R;
             }
             byte[] body = Utils.accountToString(accounts
-                    ,sexPr
-                    ,fnamePr
-                    ,statusPr
-                    ,premiumPr
-                    ,phonePr
-                    ,birthPr
-                    ,cityPr
-                    ,countryPr
-                    ,snamePr);
+                    , sexPr
+                    , fnamePr
+                    , statusPr
+                    , premiumPr
+                    , phonePr
+                    , birthPr
+                    , cityPr
+                    , countryPr
+                    , snamePr);
             if (Repository.queryCount.get() > 117_000) {
                 Repository.queryCache.put(queryId, body);
             }
@@ -616,10 +629,10 @@ public class FilterService {
             , boolean countryPr, String countryPrV, String countryV
             , boolean premiumPr, String premiumPrV, String premiumV
             , boolean statusPr, String statusPrV, String statusV
-            ,boolean sexPr
+            , boolean sexPr
             , boolean birthPr, String birthPrV, Integer year
-            ,boolean emailPr,String emailPrV,String emailV
-            ,String[] cityArr,String[] fnameArr,boolean likesPr,int[] likesArr) {
+            , boolean emailPr, String emailPrV, String emailV
+            , String[] cityArr, String[] fnameArr, boolean likesPr, int[] likesArr) {
         Account[] resultIndex = Repository.list;
 
         if (likesPr) {

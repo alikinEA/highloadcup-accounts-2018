@@ -66,7 +66,7 @@ public class SuggestService {
                             return ServerHandler.BAD_REQUEST_R;
                         }
                     }
-                    if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
+                    /*if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
                         queryId = Utils.getValue(param).intern();
                         if (Repository.queryCount.get() > 117_000) {
                             byte[] cachedQuery = Repository.queryCacheSug.get(queryId);
@@ -74,10 +74,10 @@ public class SuggestService {
                                 return ServerHandler.createOK(cachedQuery);
                             }
                         }
-                    }
+                    }*/
                 }
 
-                TreeSet<AccountRec> result = LocalPoolService.suggestResult.get();
+                /*TreeSet<AccountRec> result = LocalPoolService.suggestResult.get();
                 for (int likeData : accountData.getLikes()) {
                     Account[] whoLikes = Repository.likeInvert.get(likeData);
                     for (Account account : whoLikes) {
@@ -121,7 +121,8 @@ public class SuggestService {
                 if (Repository.queryCount.get() > 117_000) {
                     Repository.queryCacheSug.put(queryId, body);
                 }
-                return ServerHandler.createOK(body);
+                return ServerHandler.createOK(body);*/
+                return ServerHandler.OK_EMPTY_R;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -131,7 +132,7 @@ public class SuggestService {
         }
     }
 
-    private static double getSimilarity(Account accountData, Account account) {
+    /*private static double getSimilarity(Account accountData, Account account) {
         double sim = 0;
         for (int i = 0; i < accountData.getLikes().length; i++) {
             int likeData = accountData.getLikes()[i];
@@ -149,5 +150,5 @@ public class SuggestService {
             }
         }
         return sim;
-    }
+    }*/
 }

@@ -69,7 +69,7 @@ public class LikesService {
                                 Arrays.sort(invertLikesArr, Comparators.idsComparator);
                                 Repository.likeInvert.put(likeeId, invertLikesArr);
                             }
-                            if (liker.getLikes() != null) {
+                            /*if (liker.getLikes() != null) {
                                 int[] arrNewLikes = Arrays.copyOf(liker.getLikes(), liker.getLikes().length + 1);
                                 arrNewLikes[arrNewLikes.length - 1] = likeeId;
                                 liker.setLikes(arrNewLikes);
@@ -86,7 +86,7 @@ public class LikesService {
                                 int[] arrNewLikesTs = new int[1];
                                 arrNewLikesTs[0] = valueTs.toInt();
                                 liker.setLikesTs(arrNewLikesTs);
-                            }
+                            }*/
                         } finally {
                             LocalPoolService.lock.writeLock().unlock();
                         }
