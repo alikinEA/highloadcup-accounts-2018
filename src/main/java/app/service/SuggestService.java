@@ -34,19 +34,27 @@ public class SuggestService {
             if (accountData == null) {
                 return ServerHandler.NOT_FOUND_R;
             } else {
-                if (accountData.getLikes() == null) {
+                /*if (accountData.getLikes() == null) {
                     return ServerHandler.OK_EMPTY_R;
-                }
-                int limit = 0;
-                String country = null;
-                String city = null;
-                String queryId = null;
+                }*/
+                String country;
+                String city;
 
-                String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(Constants.URI_SUGGEST) + 10), '&');
-                for (String param : params) {
-                    if (param.charAt(0) == 'l' && param.charAt(1) == 'i') {
+                String paramUrl = req.uri().substring(req.uri().indexOf(Constants.URI_SUGGEST) + 10);
+                int i = 0;
+                int j = 0;
+                do {
+                    j = paramUrl.indexOf('&', i);
+                    String param;
+                    if (j != -1) {
+                        param = paramUrl.substring(i, j);
+                    } else {
+                        param = paramUrl.substring(i);
+                    }
+                    i = j + 1;
+                    if (param.startsWith(Constants.LIMIT)) {
                         try {
-                            limit = Integer.parseInt(Utils.getValue(param));
+                            int limit = Integer.parseInt(Utils.getValue(param));
                             if (limit <= 0) {
                                 return ServerHandler.BAD_REQUEST_R;
                             }
@@ -75,7 +83,7 @@ public class SuggestService {
                             }
                         }
                     }*/
-                }
+                }  while (j >= 0);
 
                 /*TreeSet<AccountRec> result = LocalPoolService.suggestResult.get();
                 for (int likeData : accountData.getLikes()) {

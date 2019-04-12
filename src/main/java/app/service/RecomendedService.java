@@ -36,9 +36,20 @@ public class RecomendedService {
                 String country = null;
                 String city = null;
                 String queryId = null;
-                
-                String[] params = Utils.tokenize(req.uri().substring(req.uri().indexOf(Constants.URI_RECOMENDED) + 12), '&');
-                for (String param : params) {
+
+                String paramUrl = req.uri().substring(req.uri().indexOf(Constants.URI_RECOMENDED) + 12);
+                int i = 0;
+                int j = 0;
+                do {
+                    j = paramUrl.indexOf('&', i);
+                    String param;
+                    if (j != -1) {
+                        param = paramUrl.substring(i, j);
+                    } else {
+                        param = paramUrl.substring(i);
+                    }
+                    i = j + 1;
+
                     if (param.charAt(0) == 'l' && param.charAt(1) == 'i') {
                         try {
                             limit = Integer.parseInt(Utils.getValue(param));
@@ -70,7 +81,7 @@ public class RecomendedService {
                             }
                         }
                     }
-                }
+                }  while (j >= 0);
 
                 Account[] data = Repository.premium_1_m;
                 if (accountData.getSex() == Constants.M) {

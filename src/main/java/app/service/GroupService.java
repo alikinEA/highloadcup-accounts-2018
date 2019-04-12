@@ -20,14 +20,28 @@ public class GroupService {
 
     public static DefaultFullHttpResponse handleGroup(FullHttpRequest req) {
         try {
-            String[] t = Utils.tokenize(req.uri().substring(17),'&');
             String countryKey = null;
             String cityKey = null;
             String statusKey = null;
             String sexKey = null;
             Integer limit = null;
             String order = null;
-            for (String param : t) {
+
+            String paramUrl = req.uri().substring(17);
+            int i = 0;
+            int j = 0;
+            int paramCount = 0;
+            do {
+                j = paramUrl.indexOf('&', i);
+                String param;
+                if (j != -1) {
+                    param = paramUrl.substring(i, j);
+                } else {
+                    param = paramUrl.substring(i);
+                }
+                i = j + 1;
+                paramCount++;
+
                 if (param.startsWith("query_id")) {
                     continue;
                 }
@@ -69,11 +83,12 @@ public class GroupService {
                         statusKey = value;
                     }
                 }
-            }
+            }  while (j >= 0);
+
             if (order == null || limit == null) {
                 return ServerHandler.BAD_REQUEST_R;
             }
-            if (t.length == 4) {
+            if (paramCount == 4) {
                 if (cityKey != null) {
                     LinkedList<GroupObj> list = GroupRepository.city_gr_r;
                     if (order.charAt(0) == '1') {
