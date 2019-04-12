@@ -248,6 +248,7 @@ public class Repository {
                             }
                         }
                         json = null;
+                        System.gc();
                     }
                 }
             }
