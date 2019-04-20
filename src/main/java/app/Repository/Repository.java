@@ -613,11 +613,13 @@ public class Repository {
                 Repository.reSortIndex();
                 initCache();
 
+                Server.printCurrentMemoryUsage();
                 System.gc();
                 Server.printCurrentMemoryUsage();
             } else if (queryCount.get() == Constants.END_1_PHASE_RAIT) {
                 clearCache();
 
+                Server.printCurrentMemoryUsage();
                 System.gc();
                 Server.printCurrentMemoryUsage();
             }
@@ -626,11 +628,13 @@ public class Repository {
                 Repository.reSortIndex();
                 initCache();
 
+                Server.printCurrentMemoryUsage();
                 System.gc();
                 Server.printCurrentMemoryUsage();
             } else if (queryCount.get() == Constants.END_1_PHASE_TEST) {
                 clearCache();
 
+                Server.printCurrentMemoryUsage();
                 System.gc();
                 Server.printCurrentMemoryUsage();
             }
