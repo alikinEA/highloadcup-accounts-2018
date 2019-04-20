@@ -36,6 +36,7 @@ public class Repository {
     public static final AtomicInteger queryCount = new AtomicInteger(0);
     public static volatile Map<String,byte[]> queryCache;
     public static volatile Map<String,byte[]> queryCacheRec;
+    public static volatile Map<String,byte[]> queryCacheSug;
 
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
@@ -75,7 +76,7 @@ public class Repository {
     private static final Map<String,Integer> country_by_name_status_1_not_premium_idx_num = new THashMap<>(200,1);
 
     public static final Account[] ids = new Account[MAX_ID];
-    public static final TIntObjectHashMap<Account[]> likeInvert = new TIntObjectHashMap<>(MAX_ID,1);
+    public static final TIntObjectHashMap<Account[]> likeInvert = new TIntObjectHashMap<>(elementCount,1);
     public static final Set<String> emails = new THashSet<>(elementCount,1);
     public static final Account[] list = new Account[elementCount];
     private static final Map<String,Byte> interests = new THashMap<>(90,1);
@@ -349,9 +350,8 @@ public class Repository {
                     Arrays.sort(invertLikesArr, idsComparator);
                     likeInvert.put(like, invertLikesArr);
                 }
-                account.setLikes(null);
             }
-            //Utils.quickSortForLikes(account.getLikes(),account.getLikesTs(),0,account.getLikes().length -1 );
+            Utils.quickSortForLikes(account.getLikes(),account.getLikesTs(),0,account.getLikes().length -1 );
         }
     }
 
@@ -617,6 +617,7 @@ public class Repository {
                 System.gc();
                 Server.printCurrentMemoryUsage();
             } else if (queryCount.get() == Constants.END_1_PHASE_RAIT) {
+                clearSug();
                 clearCache();
 
                 Server.printCurrentMemoryUsage();
@@ -632,11 +633,21 @@ public class Repository {
                 System.gc();
                 Server.printCurrentMemoryUsage();
             } else if (queryCount.get() == Constants.END_1_PHASE_TEST) {
+                clearSug();
                 clearCache();
 
                 Server.printCurrentMemoryUsage();
                 System.gc();
                 Server.printCurrentMemoryUsage();
+            }
+        }
+    }
+
+    private static void clearSug() {
+        for (Account account : Repository.ids) {
+            if (account != null && account.getLikes() != null) {
+                account.setLikes(null);
+                account.setLikesTs(null);
             }
         }
     }
@@ -652,6 +663,7 @@ public class Repository {
     private static void initCache() {
         queryCache = new THashMap<>(30_000,1);
         queryCacheRec = new THashMap<>(11_000,1);
+        queryCacheSug = new THashMap<>(6_800,1);
     }
 
 

@@ -10,6 +10,7 @@ import app.utils.Utils;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -34,12 +35,10 @@ public class SuggestService {
             if (accountData == null) {
                 return ServerHandler.NOT_FOUND_R;
             } else {
-                /*if (accountData.getLikes() == null) {
-                    return ServerHandler.OK_EMPTY_R;
-                }*/
-                String country;
-                String city;
-
+                String country = null;
+                String city = null;
+                String queryId = null;
+                int limit = 0;
                 String paramUrl = req.uri().substring(req.uri().indexOf(Constants.URI_SUGGEST) + 10);
                 int i = 0;
                 int j = 0;
@@ -54,7 +53,7 @@ public class SuggestService {
                     i = j + 1;
                     if (param.startsWith(Constants.LIMIT)) {
                         try {
-                            int limit = Integer.parseInt(Utils.getValue(param));
+                            limit = Integer.parseInt(Utils.getValue(param));
                             if (limit <= 0) {
                                 return ServerHandler.BAD_REQUEST_R;
                             }
@@ -74,7 +73,7 @@ public class SuggestService {
                             return ServerHandler.BAD_REQUEST_R;
                         }
                     }
-                    /*if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
+                    if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
                         queryId = Utils.getValue(param).intern();
                         if (Repository.queryCount.get() > 117_000) {
                             byte[] cachedQuery = Repository.queryCacheSug.get(queryId);
@@ -82,10 +81,15 @@ public class SuggestService {
                                 return ServerHandler.createOK(cachedQuery);
                             }
                         }
-                    }*/
+                    }
                 }  while (j >= 0);
 
-                /*TreeSet<AccountRec> result = LocalPoolService.suggestResult.get();
+                if (accountData.getLikes() == null
+                        || (Repository.isRait && Constants.END_1_PHASE_RAIT < Repository.queryCount.get())
+                        || (!Repository.isRait && Constants.END_1_PHASE_TEST < Repository.queryCount.get())) {
+                    return ServerHandler.OK_EMPTY_R;
+                }
+                TreeSet<AccountRec> result = LocalPoolService.suggestResult.get();
                 for (int likeData : accountData.getLikes()) {
                     Account[] whoLikes = Repository.likeInvert.get(likeData);
                     for (Account account : whoLikes) {
@@ -110,11 +114,11 @@ public class SuggestService {
                 int count = 0;
                 for (AccountRec accountRec : result) {
                     int[] likesRec = accountRec.getAccount().getLikes();
-                    for (int i = likesRec.length - 1; i >= 0; i--) {
+                    for (int i1 = likesRec.length - 1; i1 >= 0; i1--) {
                         if (count == limit) {
                             break;
                         }
-                        int likeValue = likesRec[i];
+                        int likeValue = likesRec[i1];
                         for (int likeData : accountData.getLikes()) {
                             if (likeValue != likeData) {
                                 count++;
@@ -126,11 +130,8 @@ public class SuggestService {
                 }
 
                 byte[] body = Utils.accountRecToString(resultAcc);
-                if (Repository.queryCount.get() > 117_000) {
-                    Repository.queryCacheSug.put(queryId, body);
-                }
-                return ServerHandler.createOK(body);*/
-                return ServerHandler.OK_EMPTY_R;
+                Repository.queryCacheSug.put(queryId, body);
+                return ServerHandler.createOK(body);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,7 +141,7 @@ public class SuggestService {
         }
     }
 
-    /*private static double getSimilarity(Account accountData, Account account) {
+    private static double getSimilarity(Account accountData, Account account) {
         double sim = 0;
         for (int i = 0; i < accountData.getLikes().length; i++) {
             int likeData = accountData.getLikes()[i];
@@ -158,5 +159,5 @@ public class SuggestService {
             }
         }
         return sim;
-    }*/
+    }
 }

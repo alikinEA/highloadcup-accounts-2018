@@ -109,7 +109,7 @@ public class Utils {
                 if (key.equals(Constants.LIKES)) {
                     List<Any> listLike = accountAny.get(Constants.LIKES).asList();
                     int[] list = new int[listLike.size()];
-                    //int[] listTs = new int[listLike.size()];
+                    int[] listTs = new int[listLike.size()];
                     int index = 0;
                     for (Any anyLike : listLike) {
                         Any anyTs = anyLike.get(Constants.TS);
@@ -121,11 +121,11 @@ public class Utils {
                             return null;
                         }
                         list[index] = any.toInt();
-                        //listTs[index] = anyTs.toInt();
+                        listTs[index] = anyTs.toInt();
                         index++;
                     }
                     account.setLikes(list);
-                    //account.setLikesTs(listTs);
+                    account.setLikesTs(listTs);
                 }
 
                 if (key.equals(Constants.PREMIUM)) {
