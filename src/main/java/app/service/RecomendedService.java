@@ -74,11 +74,9 @@ public class RecomendedService {
                     }
                     if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
                         queryId = Utils.getValue(param).intern();
-                        if (Repository.queryCount.get() > 117_000) {
-                            byte[] cachedQuery = Repository.queryCacheRec.get(queryId);
-                            if (cachedQuery != null) {
-                                return ServerHandler.createOK(cachedQuery);
-                            }
+                        byte[] cachedQuery = Repository.queryCacheRec.get(queryId);
+                        if (cachedQuery != null) {
+                            return ServerHandler.createOK(cachedQuery);
                         }
                     }
                 }  while (j >= 0);
@@ -111,9 +109,7 @@ public class RecomendedService {
                     return ServerHandler.OK_EMPTY_R;
                 }
                 byte[] body = Utils.accountCToString(result,limit);
-                if (Repository.queryCount.get() > 117_000) {
-                    Repository.queryCacheRec.put(queryId, body);
-                }
+                Repository.queryCacheRec.put(queryId, body);
                 return ServerHandler.createOK(body);
             }
         } catch (Exception e) {

@@ -83,12 +83,10 @@ public class FilterService {
                 String predicate = Utils.getPredicate(param).intern();
                 if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
                     queryId = valueParam;
-                    if (Repository.queryCount.get() > 117_000) {
-                        byte[] cachedQuery = Repository.queryCache.get(queryId);
-                        if (cachedQuery != null) {
-                            //System.out.println("from cache = " + queryCacheCount.incrementAndGet());
-                            return ServerHandler.createOK(cachedQuery);
-                        }
+                    byte[] cachedQuery = Repository.queryCache.get(queryId);
+                    if (cachedQuery != null) {
+                        //System.out.println("from cache = " + queryCacheCount.incrementAndGet());
+                        return ServerHandler.createOK(cachedQuery);
                     }
                 }
                 if (param.charAt(0) == 's' && param.charAt(1) == 'e') {
@@ -255,9 +253,7 @@ public class FilterService {
                                 , cityPr
                                 , countryPr
                                 , snamePr);
-                        if (Repository.queryCount.get() > 117_000) {
-                            Repository.queryCache.put(queryId, body);
-                        }
+                        Repository.queryCache.put(queryId, body);
                         return ServerHandler.createOK(body);
                     } else {
                         accounts.add(account);
@@ -608,9 +604,7 @@ public class FilterService {
                     , cityPr
                     , countryPr
                     , snamePr);
-            if (Repository.queryCount.get() > 117_000) {
-                Repository.queryCache.put(queryId, body);
-            }
+            Repository.queryCache.put(queryId, body);
             return ServerHandler.createOK(body);
         } catch (Exception e) {
             System.out.println(uri);

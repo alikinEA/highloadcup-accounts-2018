@@ -55,4 +55,11 @@ public class Constants {
     public static final String FINISH = "finish";
 
     public static final String NULL = "null";
+
+    public static final int END_1_PHASE_RAIT = 27000;
+    public static final int END_2_PHASE_RAIT = 117000;
+
+    public static final int END_1_PHASE_TEST = 3000;
+    public static final int END_2_PHASE_TEST = 13000;
+
 }

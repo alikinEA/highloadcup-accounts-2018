@@ -33,8 +33,9 @@ public class Server {
     public static void  printCurrentMemoryUsage() {
         Runtime runtime = Runtime.getRuntime();
         long memory = runtime.totalMemory() - runtime.freeMemory();
-        System.out.println("Used memory is bytes: " + memory);
-        System.out.println("Used memory is mb: " + bytesToMegabytes(memory));
+        System.out.println("Query count = " + Repository.queryCount + ",Used memory is bytes: "
+                + memory + ",Used memory is mb: "
+                + bytesToMegabytes(memory));
 
     }
 
@@ -59,10 +60,11 @@ public class Server {
         }
 
         Repository.initData();
-        printCurrentMemoryUsage();
-        Thread thread = new Thread(Server::warmUp);
-
-        thread.start();
+        //Thread thread = new Thread(Server::warmUp);
+        //thread.start();
+        /*Repository.queryCount.set(0);
+        System.gc();
+        printCurrentMemoryUsage();*/
         new Server().run();
 
     }
@@ -96,9 +98,6 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Repository.queryCount.set(1);
-        System.gc();
-        printCurrentMemoryUsage();
         System.out.println("end warm up" + new Date().getTime());
     }
 

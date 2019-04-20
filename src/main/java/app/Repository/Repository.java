@@ -26,17 +26,16 @@ import static app.utils.Comparators.idsComparator;
 /**
  * Created by Alikin E.A. on 13.12.18.
  */
+@SuppressWarnings("WeakerAccess")
 public class Repository {
 
     public static volatile long currentTimeStamp = 0l;
     public static volatile Long currentTimeStamp2 = 0l;
     public static volatile boolean isRait = false;
 
-    public static final AtomicInteger queryCount = new AtomicInteger(1);
-    public static final HashMap<String,byte[]> queryCache = new HashMap<>(30_000,1);
-
-    public static final HashMap<String,byte[]> queryCacheRec = new HashMap<>(11_000,1);
-    //public static final HashMap<String,byte[]> queryCacheSug = new HashMap<>(6_800,1);
+    public static final AtomicInteger queryCount = new AtomicInteger(0);
+    public static volatile Map<String,byte[]> queryCache;
+    public static volatile Map<String,byte[]> queryCacheRec;
 
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";
@@ -46,9 +45,9 @@ public class Repository {
     public static final int MAX_ID = 1_520_000;
 
     public static final AtomicInteger index = new AtomicInteger(-1);
-    public static final AtomicInteger index_premium_1 = new AtomicInteger(-1);
-    public static final AtomicInteger index_premium_2 = new AtomicInteger(-1);
-    public static final AtomicInteger index_premium_3 = new AtomicInteger(-1);
+    private static final AtomicInteger index_premium_1 = new AtomicInteger(-1);
+    private static final AtomicInteger index_premium_2 = new AtomicInteger(-1);
+    private static final AtomicInteger index_premium_3 = new AtomicInteger(-1);
 
     public static final AtomicInteger index_premium_1_f = new AtomicInteger(-1);
     public static final AtomicInteger index_premium_1_m = new AtomicInteger(-1);
@@ -72,38 +71,38 @@ public class Repository {
     public static final AtomicInteger index_f = new AtomicInteger(-1);
     public static final AtomicInteger index_m = new AtomicInteger(-1);
 
-    public static final Map<String,Account[]> country_by_name_status_1_not_premium = new THashMap(200,1);
-    static final Map<String,Integer> country_by_name_status_1_not_premium_idx_num = new THashMap(200,1);
+    public static final Map<String,Account[]> country_by_name_status_1_not_premium = new THashMap<>(200,1);
+    private static final Map<String,Integer> country_by_name_status_1_not_premium_idx_num = new THashMap<>(200,1);
 
     public static final Account[] ids = new Account[MAX_ID];
-    public static final TIntObjectHashMap<Account[]> likeInvert = new TIntObjectHashMap(MAX_ID,1);
+    public static final TIntObjectHashMap<Account[]> likeInvert = new TIntObjectHashMap<>(MAX_ID,1);
     public static final Set<String> emails = new THashSet<>(elementCount,1);
     public static final Account[] list = new Account[elementCount];
-    static final Map<String,Byte> interests = new THashMap(90,1);
+    private static final Map<String,Byte> interests = new THashMap<>(90,1);
 
-    public static final Map<String,Account[]> sname_by_name = new THashMap(1700,1);
-    static final Map<String,Integer> sname_by_name_idx_num = new THashMap(1700,1);
+    public static final Map<String,Account[]> sname_by_name = new THashMap<>(1700,1);
+    private static final Map<String,Integer> sname_by_name_idx_num = new THashMap<>(1700,1);
 
-    public static final Map<String,Account[]> city_by_name = new THashMap(650,1);
-    static final Map<String,Integer> city_by_name_idx_num = new THashMap(650,1);
+    public static final Map<String,Account[]> city_by_name = new THashMap<>(650,1);
+    private static final Map<String,Integer> city_by_name_idx_num = new THashMap<>(650,1);
 
-    public static final Map<String,Account[]> fname_by_name = new THashMap(120,1);
-    static final Map<String,Integer> fname_by_name_idx_num = new THashMap(120,1);
+    public static final Map<String,Account[]> fname_by_name = new THashMap<>(120,1);
+    private static final Map<String,Integer> fname_by_name_idx_num = new THashMap<>(120,1);
 
-    public static final Map<String,Account[]> phone_code_by_name = new THashMap(110,1);
-    static final Map<String,Integer> phone_code_by_name_idx_num = new THashMap(110,1);
+    public static final Map<String,Account[]> phone_code_by_name = new THashMap<>(110,1);
+    private static final Map<String,Integer> phone_code_by_name_idx_num = new THashMap<>(110,1);
 
-    public static final Map<String,Account[]> country_by_name = new THashMap(100,1);
-    static final Map<String,Integer> country_by_name_idx_num = new THashMap(100,1);
+    public static final Map<String,Account[]> country_by_name = new THashMap<>(100,1);
+    private static final Map<String,Integer> country_by_name_idx_num = new THashMap<>(100,1);
 
-    public static final Map<String,Account[]> interests_by_name = new THashMap(90,1);
-    static final Map<String,Integer> interests_by_name_idx_num = new THashMap(90,1);
+    public static final Map<String,Account[]> interests_by_name = new THashMap<>(90,1);
+    private static final Map<String,Integer> interests_by_name_idx_num = new THashMap<>(90,1);
 
-    public static final Map<Integer,Account[]> year = new THashMap(30,1);
-    static final Map<Integer,Integer> year_idx_num = new THashMap(30,1);
+    public static final Map<Integer,Account[]> year = new THashMap<>(30,1);
+    private static final Map<Integer,Integer> year_idx_num = new THashMap<>(30,1);
 
-    public static final Map<String,Account[]> email_domain_by_name = new THashMap(15,1);
-    static final Map<String,Integer> email_domain_by_name_idx_num = new THashMap(15,1);
+    public static final Map<String,Account[]> email_domain_by_name = new THashMap<>(15,1);
+    private static final Map<String,Integer> email_domain_by_name_idx_num = new THashMap<>(15,1);
 
     public static final Account[] premium_1 = new Account[135_936];
     public static final Account[] premium_2 = new Account[413_874];
@@ -304,11 +303,11 @@ public class Repository {
             }
 
             reSortIndex();
-            System.out.println("list size = " + index);
+            initCache();
             System.out.println("emails size = " + emails.size());
-            System.gc();//¯\_(ツ)_/¯
+            System.gc();
+            Server.printCurrentMemoryUsage();
             System.out.println("End" + (new Date().getTime() - start));
-
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
@@ -603,25 +602,52 @@ public class Repository {
         }
 
         GroupRepository.reSortIndex();
-
-        System.gc();// перерыв между фазами
-        Server.printCurrentMemoryUsage();
-        //System.out.println("Status 1 f not premium" + Repository.index_status_1_f_not_premium.get());
-        //System.out.println("Status 1 m not premium" + Repository.index_status_1_m_not_premium.get());
         System.out.println("end reindex = " + (new Date().getTime() - start) );
     }
 
 
     public static void resortIndexForStage() {
+        queryCount.incrementAndGet();
         if (Repository.isRait) {
-            if (queryCount.incrementAndGet() == 117_000) {
+            if (queryCount.get() == Constants.END_2_PHASE_RAIT) {
                 Repository.reSortIndex();
+                initCache();
+
+                System.gc();
+                Server.printCurrentMemoryUsage();
+            } else if (queryCount.get() == Constants.END_1_PHASE_RAIT) {
+                clearCache();
+
+                System.gc();
+                Server.printCurrentMemoryUsage();
             }
         } else {
-            if (queryCount.incrementAndGet() == 13_000) {
+            if (queryCount.get() == Constants.END_2_PHASE_TEST) {
                 Repository.reSortIndex();
+                initCache();
+
+                System.gc();
+                Server.printCurrentMemoryUsage();
+            } else if (queryCount.get() == Constants.END_1_PHASE_TEST) {
+                clearCache();
+
+                System.gc();
+                Server.printCurrentMemoryUsage();
             }
         }
+    }
+
+    private static void clearCache() {
+        queryCache.clear();
+        queryCache = null;
+
+        queryCacheRec.clear();
+        queryCacheRec = null;
+    }
+
+    private static void initCache() {
+        queryCache = new THashMap<>(30_000,1);
+        queryCacheRec = new THashMap<>(11_000,1);
     }
 
 
