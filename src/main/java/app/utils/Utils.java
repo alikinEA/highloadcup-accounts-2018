@@ -67,6 +67,49 @@ public class Utils {
                 }
             }
 
+            Any anyId = null;
+            Any anyPremiumFin = null;
+            Any anyPremiumStart = null;
+            Any anyBirth = null;
+
+            for (String key : accountAny.keys()) {
+                if (key.equals(Constants.JOINED)) {
+                    Any any = accountAny.get(Constants.JOINED);
+                    if (!ValueType.NUMBER.equals(any.valueType())) {
+                        return null;
+                    }
+                }
+
+                if (key.equals(Constants.ID)) {
+                    anyId = accountAny.get(Constants.ID);
+                    if (!ValueType.NUMBER.equals(anyId.valueType())) {
+                        return null;
+                    }
+                }
+
+                if (key.equals(Constants.PREMIUM)) {
+                    Any anyPremium = accountAny.get(Constants.PREMIUM);
+                    if (!anyPremium.keys().contains(FINISH) || !anyPremium.keys().contains(START)) {
+                        return null;
+                    }
+                    anyPremiumFin = anyPremium.get(FINISH);
+                    if (!ValueType.NUMBER.equals(anyPremiumFin.valueType())) {
+                        return null;
+                    }
+                    anyPremiumStart = anyPremium.get(START);
+                    if (!ValueType.NUMBER.equals(anyPremiumStart.valueType())) {
+                        return null;
+                    }
+                }
+                if (key.equals(Constants.BIRTH)) {
+                    anyBirth = accountAny.get(Constants.BIRTH);
+                    if (!ValueType.NUMBER.equals(anyBirth.valueType())) {
+                        return null;
+                    }
+                }
+
+            }
+
             Account account = new Account();
             for (String key : accountAny.keys()) {
                 if (key.equals(Constants.SEX)) {
@@ -77,22 +120,9 @@ public class Utils {
                     account.setStatus(accountAny.get(Constants.STATUS).toString().intern());
                 }
 
-                if (key.equals(Constants.JOINED)) {
-                    Any any = accountAny.get(Constants.JOINED);
-                    if (!ValueType.NUMBER.equals(any.valueType())) {
-                        return null;
-                    } /*else {
-                        account.setJoined(any.toInt());
-                    }*/
-
-                }
-
                 if (key.equals(Constants.ID)) {
-                    Any any = accountAny.get(Constants.ID);
-                    if (ValueType.NUMBER.equals(any.valueType())) {
-                        account.setId(any.toInt());
-                    } else {
-                        return null;
+                    if (anyId != null) {
+                        account.setId(anyId.toInt());
                     }
                 }
                 if (key.equals(Constants.INTERESTS)) {
@@ -129,18 +159,8 @@ public class Utils {
                 }
 
                 if (key.equals(Constants.PREMIUM)) {
-                    Any any = accountAny.get(Constants.PREMIUM);
-                    if (!any.keys().contains(FINISH) || !any.keys().contains(START)) {
-                        return null;
-                    }
-                    if (!ValueType.NUMBER.equals(any.get(FINISH).valueType())) {
-                        return null;
-                    }
-                    if (!ValueType.NUMBER.equals(any.get(START).valueType())) {
-                        return null;
-                    }
-                    account.setFinish(any.get(FINISH).toInt());
-                    account.setStart(any.get(START).toInt());
+                    account.setFinish(anyPremiumFin.toInt());
+                    account.setStart(anyPremiumStart.toInt());
                 }
 
                 if (key.equals(Constants.EMAIL)) {
@@ -166,19 +186,14 @@ public class Utils {
                     account.setJoined(accountAny.get(Service.JOINED).toInt());
                 }*/
                 if (key.equals(Constants.BIRTH)) {
-                    Any any = accountAny.get(Constants.BIRTH);
-                    if (!ValueType.NUMBER.equals(any.valueType())) {
-                        return null;
-                    } else {
-                        account.setBirth(any.toInt());
-                    }
+                    account.setBirth(anyBirth.toInt());
                 }
 
             }
             return account;
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            throw new RuntimeException("deserialize error",e);
         }
     }
 
