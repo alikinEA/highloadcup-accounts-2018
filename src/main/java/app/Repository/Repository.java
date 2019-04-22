@@ -11,6 +11,7 @@ import com.jsoniter.any.Any;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.hash.THashSet;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
 
@@ -34,9 +35,9 @@ public class Repository {
     public static volatile boolean isRait = false;
 
     public static final AtomicInteger queryCount = new AtomicInteger(0);
-    public static volatile Map<String,byte[]> queryCache;
-    public static volatile Map<String,byte[]> queryCacheRec;
-    public static volatile Map<String,byte[]> queryCacheSug;
+    public static volatile Map<String, DefaultFullHttpResponse> queryCache;
+    public static volatile Map<String, DefaultFullHttpResponse> queryCacheRec;
+    public static volatile Map<String, DefaultFullHttpResponse> queryCacheSug;
 
     private static final String dataPath = "/tmp/data/";
     //private static final String dataPath = "/mnt/data/";

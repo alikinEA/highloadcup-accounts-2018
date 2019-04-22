@@ -83,10 +83,10 @@ public class FilterService {
                 String predicate = Utils.getPredicate(param).intern();
                 if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
                     queryId = valueParam;
-                    byte[] cachedQuery = Repository.queryCache.get(queryId);
+                    DefaultFullHttpResponse cachedQuery = Repository.queryCache.get(queryId);
                     if (cachedQuery != null) {
                         //System.out.println("from cache = " + queryCacheCount.incrementAndGet());
-                        return ServerHandler.createOK(cachedQuery);
+                        return cachedQuery;
                     }
                 }
                 if (param.charAt(0) == 's' && param.charAt(1) == 'e') {
@@ -253,8 +253,9 @@ public class FilterService {
                                 , cityPr
                                 , countryPr
                                 , snamePr);
-                        Repository.queryCache.put(queryId, body);
-                        return ServerHandler.createOK(body);
+                        DefaultFullHttpResponse cacheQuery = ServerHandler.createOK(body);
+                        Repository.queryCache.put(queryId, cacheQuery);
+                        return cacheQuery;
                     } else {
                         accounts.add(account);
                     }
@@ -604,8 +605,9 @@ public class FilterService {
                     , cityPr
                     , countryPr
                     , snamePr);
-            Repository.queryCache.put(queryId, body);
-            return ServerHandler.createOK(body);
+            DefaultFullHttpResponse cacheQuery = ServerHandler.createOK(body);
+            Repository.queryCache.put(queryId, cacheQuery);
+            return cacheQuery;
         } catch (Exception e) {
             System.out.println(uri);
             e.printStackTrace();

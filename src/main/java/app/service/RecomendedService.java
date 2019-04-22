@@ -74,9 +74,9 @@ public class RecomendedService {
                     }
                     if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
                         queryId = Utils.getValue(param).intern();
-                        byte[] cachedQuery = Repository.queryCacheRec.get(queryId);
+                        DefaultFullHttpResponse cachedQuery = Repository.queryCacheRec.get(queryId);
                         if (cachedQuery != null) {
-                            return ServerHandler.createOK(cachedQuery);
+                            return cachedQuery;
                         }
                     }
                 }  while (j >= 0);
@@ -109,8 +109,9 @@ public class RecomendedService {
                     return ServerHandler.OK_EMPTY_R;
                 }
                 byte[] body = Utils.accountCToString(result,limit);
-                Repository.queryCacheRec.put(queryId, body);
-                return ServerHandler.createOK(body);
+                DefaultFullHttpResponse cacheQuery = ServerHandler.createOK(body);
+                Repository.queryCacheRec.put(queryId, cacheQuery);
+                return cacheQuery;
             }
         } catch (Exception e) {
             e.printStackTrace();

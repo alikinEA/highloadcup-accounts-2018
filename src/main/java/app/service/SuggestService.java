@@ -76,9 +76,9 @@ public class SuggestService {
                     if (param.charAt(0) == 'q' && param.charAt(1) == 'u') {
                         queryId = Utils.getValue(param).intern();
                         if (Repository.queryCount.get() > 117_000) {
-                            byte[] cachedQuery = Repository.queryCacheSug.get(queryId);
+                            DefaultFullHttpResponse cachedQuery = Repository.queryCacheSug.get(queryId);
                             if (cachedQuery != null) {
-                                return ServerHandler.createOK(cachedQuery);
+                                return cachedQuery;
                             }
                         }
                     }
@@ -130,8 +130,9 @@ public class SuggestService {
                 }
 
                 byte[] body = Utils.accountRecToString(resultAcc);
-                Repository.queryCacheSug.put(queryId, body);
-                return ServerHandler.createOK(body);
+                DefaultFullHttpResponse caheQuery = ServerHandler.createOK(body);
+                Repository.queryCacheSug.put(queryId, caheQuery);
+                return caheQuery;
             }
         } catch (Exception e) {
             e.printStackTrace();
