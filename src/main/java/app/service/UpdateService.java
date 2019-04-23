@@ -7,6 +7,7 @@ import app.models.Constants;
 import app.server.ServerHandler;
 import app.utils.Utils;
 import com.jsoniter.JsonIterator;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 
@@ -32,7 +33,10 @@ public class UpdateService {
                 return ServerHandler.NOT_FOUND_R;
             }
 
-            account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
+            ByteBuf buf = req.content();
+            byte[] bytes = new byte[buf.readableBytes()];
+            buf.readBytes(bytes);
+            account = Utils.anyToAccount(JsonIterator.deserialize(bytes));
             if (account == null) {
                 return ServerHandler.BAD_REQUEST_R;
             }

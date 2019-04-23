@@ -137,7 +137,6 @@ public class Repository {
         long start = new Date().getTime();
         System.out.println("Start = " + start);
         try {
-            Service.lock.writeLock().lock();
             int fileCount = 3;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(dataPath + "options.txt")))){
                 String timestamp = reader.readLine();
@@ -312,8 +311,6 @@ public class Repository {
             System.out.println("End" + (new Date().getTime() - start));
         } catch (Exception e) {
             e.printStackTrace();
-        }finally {
-            Service.lock.writeLock().unlock();
         }
     }
 

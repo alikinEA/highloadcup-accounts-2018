@@ -13,8 +13,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class Service {
 
-    public static ReadWriteLock lock = new ReentrantReadWriteLock();
-
     public static DefaultFullHttpResponse handle(FullHttpRequest req) {
         String uri = req.uri();
         if (uri.charAt(10) == 'f' && uri.charAt(11) == 'i' && uri.charAt(12) == 'l') {

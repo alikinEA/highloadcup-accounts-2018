@@ -9,6 +9,7 @@ import app.utils.Utils;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.ValueType;
 import com.jsoniter.any.Any;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 
@@ -23,7 +24,10 @@ public class LikesService {
 
     public static DefaultFullHttpResponse handleLikes(FullHttpRequest req) {
         try {
-            Any likesRequestAny = JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8));
+            ByteBuf buf = req.content();
+            byte[] bytes = new byte[buf.readableBytes()];
+            buf.readBytes(bytes);
+            Any likesRequestAny = JsonIterator.deserialize(bytes);
             List<Any> likesListAny = likesRequestAny.get(Constants.LIKES).asList();
 
             for (Any any : likesListAny) {

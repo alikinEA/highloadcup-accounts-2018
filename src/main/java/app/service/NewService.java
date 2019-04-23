@@ -6,6 +6,7 @@ import app.models.Constants;
 import app.server.ServerHandler;
 import app.utils.Utils;
 import com.jsoniter.JsonIterator;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 
@@ -17,7 +18,10 @@ import java.nio.charset.StandardCharsets;
 public class NewService {
 
     public static DefaultFullHttpResponse handleNew(FullHttpRequest req) {
-        Account account = Utils.anyToAccount(JsonIterator.deserialize(req.content().toString(StandardCharsets.UTF_8)));
+        ByteBuf buf = req.content();
+        byte[] bytes = new byte[buf.readableBytes()];
+        buf.readBytes(bytes);
+        Account account = Utils.anyToAccount(JsonIterator.deserialize(bytes));
         if (account == null || account.getId() == -1) {
             return ServerHandler.BAD_REQUEST_R;
         }
