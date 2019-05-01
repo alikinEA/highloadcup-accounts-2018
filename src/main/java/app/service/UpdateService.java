@@ -122,6 +122,13 @@ public class UpdateService {
             if (account.getLikes() != null) {
                 Repository.updateLikesInvertIndex(account);
             }
+            if (account.getStart() != 0
+                    || account.getStatus() != null
+                    || account.getSex() != null
+                    || account.getCountry() != null
+                    || account.getCity() != null) {
+                Repository.updatePremiumIndexSug(accountData);
+            }
         } finally {
             LocalPoolService.lock.writeLock().unlock();
         }

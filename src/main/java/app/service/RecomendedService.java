@@ -53,7 +53,7 @@ public class RecomendedService {
                     if (param.charAt(0) == 'l' && param.charAt(1) == 'i') {
                         try {
                             limit = Integer.parseInt(Utils.getValue(param));
-                            if (limit <= 0) {
+                            if (limit <= 0 || limit > 20) {
                                 return ServerHandler.BAD_REQUEST_R;
                             }
                         } catch (Exception e) {
@@ -89,11 +89,24 @@ public class RecomendedService {
                 TreeSet<AccountC> result = LocalPoolService.recommendedResult.get();
                 calcRec(accountData, country, city, data, result);
                 if (result.size() < limit) {
-                    if (country != null) {
+                    if (city != null) {
+                        if (accountData.getSex() == Constants.M) {
+                            data = Repository.city_by_name_status_1_not_premium.get(city + Constants.F);
+                        } else {
+                            data = Repository.city_by_name_status_1_not_premium.get(city + Constants.M);
+                        }
+                        if (data == null) {
+                            return ServerHandler.OK_EMPTY_R;
+                        }
+                        calcRec(accountData, country, city, data, result);
+                    } else if (country != null) {
                         if (accountData.getSex() == Constants.M) {
                             data = Repository.country_by_name_status_1_not_premium.get(country + Constants.F);
                         } else {
                             data = Repository.country_by_name_status_1_not_premium.get(country + Constants.M);
+                        }
+                        if (data == null) {
+                            return ServerHandler.OK_EMPTY_R;
                         }
                         calcRec(accountData, country, city, data, result);
                     } else {
@@ -104,6 +117,23 @@ public class RecomendedService {
                         }
                         calcRec(accountData, country, city, data, result);
                     }
+                }
+                if (result.size() < limit) {
+                    if (accountData.getSex() == Constants.M) {
+                        data = Repository.status_2_f_not_premium;
+                    } else {
+                        data = Repository.status_2_m_not_premium;
+                    }
+                    calcRec(accountData, country, city, data, result);
+                }
+
+                if (result.size() < limit) {
+                    if (accountData.getSex() == Constants.M) {
+                        data = Repository.status_3_f_not_premium;
+                    } else {
+                        data = Repository.status_3_m_not_premium;
+                    }
+                    calcRec(accountData, country, city, data, result);
                 }
                 if (result.size() == 0) {
                     return ServerHandler.OK_EMPTY_R;
@@ -148,11 +178,11 @@ public class RecomendedService {
     private static int getCompatibility(Account accountData, Account account1) {
         int compt = 0;
         if (account1.getStatus().equals(Constants.STATUS1)) {
-            compt = compt + 50_000_0;
+            compt = compt + 50_000_000;
         } else if (account1.getStatus().equals(Constants.STATUS2)){
-            compt = compt + 20_000_0;
+            compt = compt + 20_000_000;
         } else {
-            compt = compt + 1_000_0;
+            compt = compt + 1_000_000;
         }
         boolean notComp = true;
         if (accountData.getInterests() != null) {
@@ -160,7 +190,7 @@ public class RecomendedService {
                 if (account1.getInterests() != null) {
                     if (Utils.contains(account1.getInterests(),interest)) {
                         notComp = false;
-                        compt = compt + 1_000_0;
+                        compt = compt + 1_000_000;
                     }
                 } else {
                     return 0;
@@ -173,14 +203,14 @@ public class RecomendedService {
         if (account1.getStart() != 0) {
             if (currentTimeStamp2 < account1.getFinish()
                     && currentTimeStamp2 > account1.getStart()) {
-                compt = compt + 60_000_0;
+                compt = compt + 60_000_000;
             }
         }
-        int daysAcc1 = (int) (((currentTimeStamp2 - account1.getBirth())) / (60*60*24));
-        int daysAccData = (int) (((currentTimeStamp2 - accountData.getBirth())) / (60*60*24));
+        int daysAcc1 = (int) (((currentTimeStamp2 - account1.getBirth())) / (60*60));
+        int daysAccData = (int) (((currentTimeStamp2 - accountData.getBirth())) / (60*60));
 
-        int days = 36500 - Math.abs(daysAccData - daysAcc1);
+        int days = 876_000 - Math.abs(daysAccData - daysAcc1);
         compt = compt + days;
-        return compt * 100;
+        return compt;
     }
 }

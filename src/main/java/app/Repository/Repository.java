@@ -63,6 +63,12 @@ public class Repository {
     public static final AtomicInteger index_status_1_f_not_premium = new AtomicInteger(-1);
     public static final AtomicInteger index_status_1_m_not_premium = new AtomicInteger(-1);
 
+    public static final AtomicInteger index_status_2_f_not_premium = new AtomicInteger(-1);
+    public static final AtomicInteger index_status_2_m_not_premium = new AtomicInteger(-1);
+
+    public static final AtomicInteger index_status_3_f_not_premium = new AtomicInteger(-1);
+    public static final AtomicInteger index_status_3_m_not_premium = new AtomicInteger(-1);
+
     public static final AtomicInteger index_status_1 = new AtomicInteger(-1);
     public static final AtomicInteger index_status_2 = new AtomicInteger(-1);
     public static final AtomicInteger index_status_3 = new AtomicInteger(-1);
@@ -75,6 +81,9 @@ public class Repository {
 
     public static final Map<String,Account[]> country_by_name_status_1_not_premium = new THashMap<>(200,1);
     private static final Map<String,Integer> country_by_name_status_1_not_premium_idx_num = new THashMap<>(200,1);
+
+    public static final Map<String,Account[]> city_by_name_status_1_not_premium = new THashMap<>(1300,1);
+    private static final Map<String,Integer> city_by_name_status_1_not_premium_idx_num = new THashMap<>(1300,1);
 
     public static final Account[] ids = new Account[MAX_ID];
     public static final TIntObjectHashMap<Account[]> likeInvert = new TIntObjectHashMap<>(elementCount,1);
@@ -119,8 +128,14 @@ public class Repository {
     public static final Account[] premium_3_m = new Account[457_000];
     public static final Account[] premium_3_f = new Account[457_000];
 
-    public static final Account[] status_1_f_not_premium = new Account[335_000];
-    public static final Account[] status_1_m_not_premium = new Account[335_000];
+    public static final Account[] status_1_f_not_premium = new Account[330_000];
+    public static final Account[] status_1_m_not_premium = new Account[330_000];
+
+    public static final Account[] status_2_f_not_premium = new Account[130_000];
+    public static final Account[] status_2_m_not_premium = new Account[130_000];
+
+    public static final Account[] status_3_f_not_premium = new Account[201_000];
+    public static final Account[] status_3_m_not_premium = new Account[201_000];
 
     public static final Account[] status_1 = new Account[667_655];
     public static final Account[] status_2 = new Account[266_824];
@@ -246,6 +261,15 @@ public class Repository {
                                 countDomain++;
                                 email_domain_by_name_idx_num.put(domain,countDomain);
                             }
+                            if (account.getStart() != 0) {
+                                if (currentTimeStamp2 < account.getFinish()
+                                        && currentTimeStamp2 > account.getStart()) {
+                                } else {
+                                    incrementCountryAndCityCount(account);
+                                }
+                            } else {
+                                incrementCountryAndCityCount(account);
+                            }
                         }
                         json = null;
                         System.gc();
@@ -263,12 +287,12 @@ public class Repository {
             }
 
             for(Map.Entry<String, Integer> entry : sname_by_name_idx_num.entrySet()) {
-                sname_by_name.put(entry.getKey(),new Account[sname_by_name_idx_num.get(entry.getKey()) + 5_000]);
+                sname_by_name.put(entry.getKey(),new Account[entry.getValue() + 5_000]);
                 sname_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : fname_by_name_idx_num.entrySet()) {
-                fname_by_name.put(entry.getKey(),new Account[fname_by_name_idx_num.get(entry.getKey()) + 5_000]);
+                fname_by_name.put(entry.getKey(),new Account[entry.getValue() + 5_000]);
                 fname_by_name_idx_num.put(entry.getKey(), 0);
             }
 
@@ -277,19 +301,29 @@ public class Repository {
                 phone_code_by_name_idx_num.put(entry.getKey(), 0);
             }
 
+            for(Map.Entry<String, Integer> entry : city_by_name_status_1_not_premium_idx_num.entrySet()) {
+                city_by_name_status_1_not_premium.put(entry.getKey(), new Account[entry.getValue() + 50]);
+                city_by_name_status_1_not_premium_idx_num.put(entry.getKey(), 0);
+
+                city_by_name_status_1_not_premium.put(entry.getKey(), new Account[entry.getValue() + 50]);
+                city_by_name_status_1_not_premium_idx_num.put(entry.getKey(), 0);
+            }
+
+            for(Map.Entry<String, Integer> entry : country_by_name_status_1_not_premium_idx_num.entrySet()) {
+                country_by_name_status_1_not_premium.put(entry.getKey(), new Account[entry.getValue() + 500]);
+                country_by_name_status_1_not_premium_idx_num.put(entry.getKey(), 0);
+
+                country_by_name_status_1_not_premium.put(entry.getKey(), new Account[entry.getValue() + 500]);
+                country_by_name_status_1_not_premium_idx_num.put(entry.getKey(), 0);
+            }
+
             for(Map.Entry<String, Integer> entry : city_by_name_idx_num.entrySet()) {
-                city_by_name.put(entry.getKey(),new Account[city_by_name_idx_num.get(entry.getKey()) + 8_000]);
+                city_by_name.put(entry.getKey(),new Account[entry.getValue() + 8_000]);
                 city_by_name_idx_num.put(entry.getKey(), 0);
             }
 
             for(Map.Entry<String, Integer> entry : country_by_name_idx_num.entrySet()) {
-                country_by_name_status_1_not_premium.put(entry.getKey() + Constants.F,new Account[10_000]);
-                country_by_name_status_1_not_premium_idx_num.put(entry.getKey() + Constants.F, 0);
-
-                country_by_name_status_1_not_premium.put(entry.getKey() + Constants.M,new Account[10_000]);
-                country_by_name_status_1_not_premium_idx_num.put(entry.getKey() + Constants.M, 0);
-
-                country_by_name.put(entry.getKey(),new Account[country_by_name_idx_num.get(entry.getKey()) + 5_000]);
+                country_by_name.put(entry.getKey(),new Account[entry.getValue() + 5_000]);
                 country_by_name_idx_num.put(entry.getKey(), 0);
 
             }
@@ -314,6 +348,43 @@ public class Repository {
         }
     }
 
+    private static void incrementCountryAndCityCount(Account account) {
+        if (account.getStatus() == Constants.STATUS1) {
+            if (account.getCity() != null) {
+                Integer count = city_by_name_status_1_not_premium_idx_num.get(account.getCity() + Constants.F);
+                if (count == null) {
+                    city_by_name_status_1_not_premium_idx_num.put(account.getCity() + Constants.F,1);
+                } else {
+                    count++;
+                    city_by_name_status_1_not_premium_idx_num.put(account.getCity() + Constants.F,count);
+                }
+                count = city_by_name_status_1_not_premium_idx_num.get(account.getCity() + Constants.M);
+                if (count == null) {
+                    city_by_name_status_1_not_premium_idx_num.put(account.getCity() + Constants.M,1);
+                } else {
+                    count++;
+                    city_by_name_status_1_not_premium_idx_num.put(account.getCity() + Constants.M,count);
+                }
+            }
+            if (account.getCountry() != null) {
+                Integer count = country_by_name_status_1_not_premium_idx_num.get(account.getCountry() + Constants.F);
+                if (count == null) {
+                    country_by_name_status_1_not_premium_idx_num.put(account.getCountry() + Constants.F,1);
+                } else {
+                    count++;
+                    country_by_name_status_1_not_premium_idx_num.put(account.getCountry() + Constants.F,count);
+                }
+                count = country_by_name_status_1_not_premium_idx_num.get(account.getCountry() + Constants.M);
+                if (count == null) {
+                    country_by_name_status_1_not_premium_idx_num.put(account.getCountry() + Constants.M,1);
+                } else {
+                    count++;
+                    country_by_name_status_1_not_premium_idx_num.put(account.getCountry() + Constants.M,count);
+                }
+            }
+        }
+    }
+
     public static void insertToIndex(Account account) {
         if (account != null) {
             updatePhoneIndex(account);
@@ -325,6 +396,7 @@ public class Repository {
             updateEmailIndex(account);
             updateYearIndex(account);
             updatePremiumIndex(account);
+            updatePremiumIndexSug(account);
             updateSexIndex(account);
             updateStatusIndex(account);
             updateLikesInvertIndex(account);
@@ -388,25 +460,6 @@ public class Repository {
                     premium_1_m[index_premium_1_m.incrementAndGet()] = account;
                 }
             }
-            if (account.getStatus() == Constants.STATUS1) {
-                if (account.getCountry() != null) {
-                    String postfix = Constants.F;
-                    if (account.getSex() == Constants.M) {
-                        postfix = Constants.M;
-                    }
-                    String key = account.getCountry() + postfix;
-                    Account[] index = country_by_name_status_1_not_premium.get(key);
-                    Integer idx = country_by_name_status_1_not_premium_idx_num.get(key);
-                    index[idx] = account;
-                    idx++;
-                    country_by_name_status_1_not_premium_idx_num.put(key, idx);
-                }
-                if (account.getSex() == Constants.F) {
-                    status_1_f_not_premium[index_status_1_f_not_premium.incrementAndGet()] = account;
-                } else {
-                    status_1_m_not_premium[index_status_1_m_not_premium.incrementAndGet()] = account;
-                }
-            }
             if (account.getSex() == Constants.F) {
                 premium_2_f[index_premium_2_f.incrementAndGet()] = account;
             } else {
@@ -414,31 +467,71 @@ public class Repository {
             }
             premium_2[index_premium_2.incrementAndGet()] = account;
         } else {
-            if (account.getStatus() == Constants.STATUS1) {
-                if (account.getCountry() != null) {
-                    String postfix = Constants.F;
-                    if (account.getSex() == Constants.M) {
-                        postfix = Constants.M;
-                    }
-                    String key = account.getCountry() + postfix;
-                    Account[] index = country_by_name_status_1_not_premium.get(key);
-                    Integer idx = country_by_name_status_1_not_premium_idx_num.get(key);
-                    index[idx] = account;
-                    idx++;
-                    country_by_name_status_1_not_premium_idx_num.put(key, idx);
-                }
-                if (account.getSex() == Constants.F) {
-                    status_1_f_not_premium[index_status_1_f_not_premium.incrementAndGet()] = account;
-                } else {
-                    status_1_m_not_premium[index_status_1_m_not_premium.incrementAndGet()] = account;
-                }
-            }
             if (account.getSex() == Constants.F) {
                 premium_3_f[index_premium_3_f.incrementAndGet()] = account;
             } else {
                 premium_3_m[index_premium_3_m.incrementAndGet()] = account;
             }
             premium_3[index_premium_3.incrementAndGet()] = account;
+        }
+    }
+
+    public static void updatePremiumIndexSug(Account account) {
+        if (account.getStart() != 0) {
+            if (currentTimeStamp2 < account.getFinish()
+                    && currentTimeStamp2 > account.getStart()) {
+            } else {
+                updateNotPremiumIndex(account);
+            }
+        } else {
+            updateNotPremiumIndex(account);
+        }
+
+    }
+
+    private static void updateNotPremiumIndex(Account account) {
+        if (account.getStatus() == Constants.STATUS1) {
+            if (account.getCountry() != null) {
+                String postfix = Constants.F;
+                if (account.getSex() == Constants.M) {
+                    postfix = Constants.M;
+                }
+                String key = account.getCountry() + postfix;
+                Account[] index = country_by_name_status_1_not_premium.get(key);
+                Integer idx = country_by_name_status_1_not_premium_idx_num.get(key);
+                index[idx] = account;
+                idx++;
+                country_by_name_status_1_not_premium_idx_num.put(key, idx);
+            }
+            if (account.getCity() != null) {
+                String postfix = Constants.F;
+                if (account.getSex() == Constants.M) {
+                    postfix = Constants.M;
+                }
+                String key = account.getCity() + postfix;
+                Account[] index = city_by_name_status_1_not_premium.get(key);
+                Integer idx = city_by_name_status_1_not_premium_idx_num.get(key);
+                index[idx] = account;
+                idx++;
+                city_by_name_status_1_not_premium_idx_num.put(key, idx);
+            }
+            if (account.getSex() == Constants.F) {
+                status_1_f_not_premium[index_status_1_f_not_premium.incrementAndGet()] = account;
+            } else {
+                status_1_m_not_premium[index_status_1_m_not_premium.incrementAndGet()] = account;
+            }
+        } else if (account.getStatus() == Constants.STATUS2) {
+            if (account.getSex() == Constants.F) {
+                status_2_f_not_premium[index_status_2_f_not_premium.incrementAndGet()] = account;
+            } else {
+                status_2_m_not_premium[index_status_2_m_not_premium.incrementAndGet()] = account;
+            }
+        } else if (account.getStatus() == Constants.STATUS3)  {
+            if (account.getSex() == Constants.F) {
+                status_3_f_not_premium[index_status_3_f_not_premium.incrementAndGet()] = account;
+            } else {
+                status_3_m_not_premium[index_status_3_m_not_premium.incrementAndGet()] = account;
+            }
         }
     }
 
@@ -505,7 +598,19 @@ public class Repository {
             city_by_name.put(account.getCity(),index);
             city_by_name_idx_num.put(account.getCity(), idx);
         }
-
+        if (account.getSex() == Constants.F) {
+            String key = account.getCity() + Constants.F;
+            if (city_by_name_status_1_not_premium.get(key) == null) {
+                city_by_name_status_1_not_premium.put(key, new Account[50]);
+                city_by_name_status_1_not_premium_idx_num.put(key, 0);
+            }
+        } else {
+            String key = account.getCity() + Constants.M;
+            if (city_by_name_status_1_not_premium.get(key) == null) {
+                city_by_name_status_1_not_premium.put(key, new Account[50]);
+                city_by_name_status_1_not_premium_idx_num.put(key, 0);
+            }
+        }
     }
 
     public static void updateInterestIndex(Account account) {
@@ -560,7 +665,14 @@ public class Repository {
         Arrays.sort(premium_3_m, idsComparator);
 
         Arrays.sort(status_1_f_not_premium, idsComparator);
-        Arrays.sort(status_1_f_not_premium, idsComparator);
+        Arrays.sort(status_1_m_not_premium, idsComparator);
+
+        Arrays.sort(status_2_f_not_premium, idsComparator);
+        Arrays.sort(status_2_m_not_premium, idsComparator);
+
+        Arrays.sort(status_3_f_not_premium, idsComparator);
+        Arrays.sort(status_3_m_not_premium, idsComparator);
+
 
         Arrays.sort(status_1, idsComparator);
         Arrays.sort(status_2, idsComparator);
@@ -590,7 +702,9 @@ public class Repository {
         }
         for(Map.Entry<String, Account[]> entry : country_by_name_status_1_not_premium.entrySet()) {
             Arrays.sort(entry.getValue(), idsComparator);
-           // Utils.printIndexSize(entry.getValue(),"county count");
+        }
+        for(Map.Entry<String, Account[]> entry : city_by_name_status_1_not_premium.entrySet()) {
+            Arrays.sort(entry.getValue(), idsComparator);
         }
         for(Map.Entry<String, Account[]> entry : email_domain_by_name.entrySet()) {
             Arrays.sort(entry.getValue(), idsComparator);
